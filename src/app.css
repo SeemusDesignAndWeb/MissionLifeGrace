@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	body {
+		@apply bg-white font-sans antialiased overflow-x-hidden;
+	}
+
+	h1, h2, h3, h4, h5, h6 {
+		@apply font-bold;
+	}
+
+	h1 {
+		@apply text-dark-gray text-5xl leading-[50px];
+	}
+
+	h2 {
+		@apply text-medium-gray text-4xl pb-2.5;
+	}
+
+	h3 {
+		@apply text-xl mb-0 text-[#454545];
+	}
+
+	p {
+		@apply text-light-gray text-sm font-normal leading-6;
+	}
+
+	a {
+		@apply text-dark-gray transition-all duration-500 no-underline;
+	}
+
+	a:hover, a:active, a:focus {
+		@apply text-primary outline-none;
+	}
+}
+
+@layer utilities {
+	.section-title {
+		@apply pb-10;
+	}
+
+	.section-title h2 {
+		@apply m-0;
+	}
+
+	.section-title h4 {
+		@apply text-[#bfbdbd] text-[10px] tracking-[1px] uppercase font-bold mb-0;
+	}
+}
+
