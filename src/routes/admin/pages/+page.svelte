@@ -34,7 +34,8 @@
 				heroTitle: page.heroTitle || '',
 				heroSubtitle: page.heroSubtitle || '',
 				heroButtons: page.heroButtons || [],
-				heroOverlay: page.heroOverlay || 40
+				heroOverlay: page.heroOverlay || 40,
+				sections: page.sections || []
 			}
 			: {
 					id: '',
@@ -46,7 +47,8 @@
 					heroButtons: [],
 					heroOverlay: 40,
 					metaDescription: '',
-					heroMessages: []
+					heroMessages: [],
+					sections: []
 				};
 		showForm = true;
 	}
@@ -280,12 +282,43 @@
 						+ Add Message
 					</button>
 				</div>
-				<div class="relative mb-4">
-					<label class="block text-sm font-medium mb-1">Content</label>
-					<div class="relative" style="height: 400px;">
-						<RichTextEditor bind:value={editing.content} height="400px" />
+				{#if editing.id !== 'im-new'}
+					<div class="relative mb-4">
+						<label class="block text-sm font-medium mb-1">Content</label>
+						<div class="relative" style="height: 400px;">
+							<RichTextEditor bind:value={editing.content} height="400px" />
+						</div>
 					</div>
-				</div>
+				{/if}
+				
+				{#if editing.id === 'im-new' && editing.sections}
+					<div class="border-t pt-6 mt-6">
+						<h3 class="text-lg font-semibold mb-4">Page Sections</h3>
+						
+						{#each editing.sections as section, sectionIndex}
+							{#if section.type === 'welcome'}
+								<div class="mb-6 p-4 bg-gray-50 rounded">
+									<label class="block text-sm font-medium mb-2">Welcome Section Content</label>
+									<div class="relative" style="height: 300px;">
+										<RichTextEditor bind:value={section.content} height="300px" />
+									</div>
+								</div>
+							{:else if section.type === 'columns' && section.columns}
+								<div class="mb-6 p-4 bg-gray-50 rounded">
+									<label class="block text-sm font-medium mb-4">What to Expect Columns</label>
+									{#each section.columns as column, colIndex}
+										<div class="mb-4">
+											<label class="block text-sm font-medium mb-2">{column.title || `Column ${colIndex + 1}`}</label>
+											<div class="relative" style="height: 250px;">
+												<RichTextEditor bind:value={column.content} height="250px" />
+											</div>
+										</div>
+									{/each}
+								</div>
+							{/if}
+						{/each}
+					</div>
+				{/if}
 				<div class="relative mt-4">
 					<label class="block text-sm font-medium mb-1">Hero Image URL</label>
 					<div class="space-y-2">

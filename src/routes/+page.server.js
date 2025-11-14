@@ -1,10 +1,11 @@
-import { getHeroSlides, getContactInfo, getServiceTimes, getEvents } from '$lib/server/database';
+import { getHeroSlides, getContactInfo, getServiceTimes, getEvents, getServices } from '$lib/server/database';
 
 export const load = async () => {
 	const heroSlides = getHeroSlides();
 	const contactInfo = getContactInfo();
 	const serviceTimes = getServiceTimes();
 	const allEvents = getEvents();
+	const services = getServices().sort((a, b) => (a.order || 0) - (b.order || 0));
 	// Get featured events that are published, sorted by date
 	const featuredEvents = allEvents
 		.filter(e => e.featured && e.published)
@@ -19,6 +20,7 @@ export const load = async () => {
 		heroSlides: heroSlides.length > 0 ? heroSlides : null,
 		contactInfo,
 		serviceTimes,
+		services,
 		featuredEvents: featuredEvents.length > 0 ? featuredEvents : [],
 		heroEvents: heroEvents.length > 0 ? heroEvents : null
 	};

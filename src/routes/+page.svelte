@@ -19,7 +19,7 @@
 <Navbar />
 <Hero heroSlides={data.heroSlides} featuredEvents={data.heroEvents} />
 <About />
-<Menu />
+<Menu services={data.services} />
 <Contact contactInfo={data.contactInfo} />
 <Footer contactInfo={data.contactInfo} serviceTimes={data.serviceTimes} />
 

@@ -1,58 +1,27 @@
 <script lang="js">
 	import { onMount } from 'svelte';
 
+	export let services = [];
+
 	let mounted = false;
-	let lightboxImage = null;
 
 	onMount(() => {
 		mounted = true;
 	});
 
-	const services = [
-		{
-			name: 'Sunday Worship',
-			description: 'Join us every Sunday at 10:30 AM for inspiring worship and teaching',
-			time: '10:30 AM',
-			image: 'https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066390/egcc/egcc/img-church-bg.jpg'
-		},
-		{
-			name: 'Youth Group',
-			description: 'Fridays at 7 PM - A place for teens to connect, grow, and have fun',
-			time: 'Friday 7:00 PM',
-			image: 'https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066391/egcc/egcc/img-community-groups-bg.jpg'
-		},
-		{
-			name: 'Bible Study',
-			description: 'Wednesday evenings - Deep dive into God\'s Word together',
-			time: 'Wednesday 7:30 PM',
-			image: 'https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066390/egcc/egcc/img-church-bg.jpg'
-		},
-		{
-			name: 'Prayer Meeting',
-			description: 'Join us for prayer and fellowship every Tuesday evening',
-			time: 'Tuesday 7:00 PM',
-			image: 'https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066390/egcc/egcc/img-church-bg.jpg'
-		},
-		{
-			name: 'Children\'s Ministry',
-			description: 'Sunday School and activities for kids during the service',
-			time: 'Sunday 10:30 AM',
-			image: 'https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066391/egcc/egcc/img-community-groups-bg.jpg'
-		},
-		{
-			name: 'Community Outreach',
-			description: 'Serving our local community through various programs and events',
-			time: 'Various Times',
-			image: 'https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066391/egcc/egcc/img-community-groups-bg.jpg'
+	// Map database services to component format
+	$: mappedServices = services.map(service => ({
+		name: service.title || '',
+		description: service.description || '',
+		time: service.time || '',
+		image: service.image || '',
+		url: service.url || ''
+	}));
+
+	function handleServiceClick(service) {
+		if (service.url) {
+			window.open(service.url, service.url.startsWith('http') ? '_blank' : '_self');
 		}
-	];
-
-	function openLightbox(image) {
-		lightboxImage = image;
-	}
-
-	function closeLightbox() {
-		lightboxImage = null;
 	}
 </script>
 
@@ -69,77 +38,73 @@
 		</div>
 
 		<div class="grid md:grid-cols-3 gap-8">
-			{#each services as service, index}
-				<div
-					class="group relative cursor-pointer animate-fade-in-up bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
-					style="animation-delay: {index * 0.1}s"
-					on:click={() => openLightbox(service.image)}
-					role="button"
-					tabindex="0"
-					on:keydown={(e) => {
-						if (e.key === 'Enter' || e.key === ' ') {
-							openLightbox(service.image);
-						}
-					}}
-				>
-					<div class="relative overflow-hidden aspect-[2/1]">
-						<img
-							src={service.image}
-							alt={service.name}
-							class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-						/>
-						<div
-							class="absolute inset-0 bg-black bg-opacity-60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
-						>
-							<div class="text-white text-center">
-								<i class="fa fa-info-circle text-4xl"></i>
+			{#each mappedServices as service, index}
+				{#if service.url}
+					<div
+						class="group relative animate-fade-in-up bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl overflow-hidden shadow-lg transition-all duration-300 cursor-pointer hover:shadow-xl transform hover:-translate-y-2"
+						style="animation-delay: {index * 0.1}s"
+						on:click={() => handleServiceClick(service)}
+						role="button"
+						tabindex="0"
+						on:keydown={(e) => {
+							if (e.key === 'Enter' || e.key === ' ') {
+								e.preventDefault();
+								handleServiceClick(service);
+							}
+						}}
+					>
+						<div class="relative overflow-hidden aspect-[2/1]">
+							<img
+								src={service.image}
+								alt={service.name}
+								class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+							/>
+							<div
+								class="absolute inset-0 bg-black bg-opacity-60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
+							>
+								<div class="text-white text-center">
+									<i class="fa fa-external-link text-4xl"></i>
+								</div>
+							</div>
+						</div>
+						<div class="p-6">
+							<h3 class="text-xl font-bold mb-2 text-white">{service.name}</h3>
+							{#if service.time}
+								<div class="text-primary font-bold text-sm mb-3">{service.time}</div>
+							{/if}
+							<div class="text-gray-300 text-sm leading-relaxed service-description">
+								{@html service.description}
 							</div>
 						</div>
 					</div>
-					<div class="p-6">
-						<div class="flex justify-between items-start mb-2">
-							<h3 class="text-xl font-bold mb-1 text-white">{service.name}</h3>
-							<div class="text-primary font-bold text-sm whitespace-nowrap ml-4">{service.time}</div>
+				{:else}
+					<div
+						class="group relative animate-fade-in-up bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl overflow-hidden shadow-lg transition-all duration-300"
+						style="animation-delay: {index * 0.1}s"
+					>
+						<div class="relative overflow-hidden aspect-[2/1]">
+							<img
+								src={service.image}
+								alt={service.name}
+								class="w-full h-full object-cover"
+							/>
 						</div>
-						<p class="text-gray-300 text-sm leading-relaxed">{service.description}</p>
+						<div class="p-6">
+							<h3 class="text-xl font-bold mb-2 text-white">{service.name}</h3>
+							{#if service.time}
+								<div class="text-primary font-bold text-sm mb-3">{service.time}</div>
+							{/if}
+							<div class="text-gray-300 text-sm leading-relaxed service-description">
+								{@html service.description}
+							</div>
+						</div>
 					</div>
-				</div>
+				{/if}
 			{/each}
 		</div>
 	</div>
 </section>
 
-<!-- Lightbox -->
-{#if lightboxImage}
-	<div
-		class="fixed inset-0 z-[9999] bg-black bg-opacity-90 flex items-center justify-center p-4"
-		on:click={closeLightbox}
-		on:keydown={(e) => {
-			if (e.key === 'Escape') closeLightbox();
-		}}
-		role="button"
-		tabindex="0"
-	>
-		<button
-			class="absolute top-4 right-4 text-white text-4xl hover:text-primary transition-colors"
-			on:click={closeLightbox}
-			aria-label="Close lightbox"
-		>
-			&times;
-		</button>
-		<div
-			on:click|stopPropagation
-			on:keydown|stopPropagation
-			role="presentation"
-		>
-			<img
-				src={lightboxImage}
-				alt="Service"
-				class="max-w-full max-h-full object-contain"
-			/>
-		</div>
-	</div>
-{/if}
 
 <style>
 	@keyframes fade-in-up {
@@ -156,6 +121,19 @@
 	.animate-fade-in-up {
 		animation: fade-in-up 0.8s ease-out forwards;
 		opacity: 0;
+	}
+
+	/* Override inline styles in service descriptions to match dark theme */
+	:global(.service-description),
+	:global(.service-description *) {
+		color: rgb(209, 213, 219) !important; /* text-gray-300 */
+		background-color: transparent !important;
+	}
+
+	:global(.service-description p),
+	:global(.service-description span) {
+		color: rgb(209, 213, 219) !important;
+		background-color: transparent !important;
 	}
 </style>
 

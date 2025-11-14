@@ -12,7 +12,7 @@
         "Get connected in small groups throughout the week",
         "Want to know more? Let's meet for a coffee, perhaps at Fresh Ground Coffee House"
       ],
-      "content": "<h2>YOU ARE WELCOME!</h2><p>Whether you have recently found us online, or you have visited us in person. We extend to you a warm welcome. If you have not been with us on a Sunday we encourage you to come along at <strong>11:00am</strong> (doors open at 10:30 - usually for refreshments, except over August we start with prayer). We enjoy greeting any visitors, whether you are passing through or looking for a church family, or simply interested in faith and have questions. Whatever your reason you will find a warm reception and a decent cup of coffee waiting for you.</p><p>We look forward to seeing you again soon!</p><h2>WHAT TO EXPECT</h2><h4><strong>Start with a coffee..</strong></h4><p>We always start with tea and coffee and an opportunity to greet visitors, catch up briefly with friends and enjoy being together. Community is important to us. We also follow our meetings with more time for refreshments.</p><h4><strong>Worship and a message</strong></h4><p>Our meetings start with worship. We call this 'open worship', which means there is more of a flow of singing, praise and prayers together followed by a talk from the bible with some application. We believe in the desire of God to speak to us and also to change our lives, even in this gathering.</p><p>Our core belief is in the relevance and power of the Bible as the word of God and the current real active moving of the Holy Spirit amongst his people. So we always want to make room for God to speak, and to move amongst us.</p><h2>FOR ALL AGES</h2><h4><strong>Young and old are welcome</strong></h4><p>Youth and children go out to their own groups instead of the bible talk. We are a family church so we love the little ones and they are free to be involved in our worship together. We have a variety of groups running while the Sunday message is shared including Adventurers up till 7 and Explorers from 8-14 years. Our older teenagers join the main church in the meeting.</p><h2>GET CONNECTED</h2><h4><strong>Church for us is more than Sundays</strong></h4><p>We have various Community Groups that happen during the week. We encourage our church family to be more than Sunday attenders where they can really find support, care and encouragement.</p><p>See our <a href=\"/community-groups\">Community Groups</a> page for details.</p>",
+      "content": "<h2>YOU ARE WELCOME!</h2><p>Whether you have recently found us online, or you have visited us in person. We extend to you a warm welcome. If you have not been with us on a Sunday we encourage you to come along at <strong>11:00am</strong> (doors open at 10:30 - usually for refreshments, except over August we start with prayer). We enjoy greeting any visitors, whether you are passing through or looking for a church family, or simply interested in faith and have questions. Whatever your reason you will find a warm reception and a decent cup of coffee waiting for you.</p><h2>WHAT TO EXPECT</h2><h4><strong>Start with a coffee..</strong></h4><p>We always start with tea and coffee and an opportunity to greet visitors, catch up briefly with friends and enjoy being together. Community is important to us. We also follow our meetings with more time for refreshments.</p><h4><strong>Worship and a message</strong></h4><p>Our meetings start with worship. We call this 'open worship', which means there is more of a flow of singing, praise and prayers together followed by a talk from the bible with some application. We believe in the desire of God to speak to us and also to change our lives, even in this gathering.</p><h2>FOR ALL AGES</h2><h4><strong>Young and old are welcome</strong></h4><p>Youth and children go out to their own groups instead of the bible talk. We are a family church so we love the little ones and they are free to be involved in our worship together. We have a variety of groups running while the Sunday message is shared including Adventurers up till 7 and Explorers from 8-14 years. Our older teenagers join the main church in the meeting.</p><h2>GET CONNECTED</h2><h4><strong>Church for us is more than Sundays</strong></h4><p>We have various Community Groups that happen during the week. We encourage our church family to be more than Sunday attenders where they can really find support, care and encouragement.</p><p>See our <a href=\"/community-groups\">Community Groups</a> page for details.</p>",
       "published": true,
       "order": 1,
       "sections": [
@@ -25,7 +25,7 @@
           "imagePosition": "left",
           "imageWidth": "max-w-xs",
           "title": "YOU ARE WELCOME!",
-          "content": "Whether you have recently found us online, or you have visited us in person. We extend to you a warm welcome. If you have not been with us on a Sunday we encourage you to come along at <strong>11:00am</strong> (doors open at 10:30 - usually for refreshments, except over August we start with prayer). We enjoy greeting any visitors, whether you are passing through or looking for a church family, or simply interested in faith and have questions. Whatever your reason you will find a warm reception and a decent cup of coffee waiting for you.<br/><br/>We look forward to seeing you again soon!",
+          "content": "<p>Whether you have recently found us online, or you have visited us in person. We extend to you a warm welcome. If you have not been with us on a Sunday we encourage you to come along at <strong>11:00am</strong> (doors open at 10:30 - usually for refreshments, except over August we start with prayer). </p><p><br></p><p>We enjoy greeting any visitors, whether you are passing through or looking for a church family, or simply interested in faith and have questions. Whatever your reason you will find a warm reception and a decent cup of coffee waiting for you.</p><p><br></p><p>We look forward to seeing you again soon!</p>",
           "signature": "/images/signature.png"
         },
         {
@@ -39,7 +39,7 @@
             {
               "id": "expect-column",
               "title": "WHAT TO EXPECT",
-              "content": "<h4><strong>Start with a coffee..</strong></h4><p>We always start with tea and coffee and an opportunity to greet visitors, catch up briefly with friends and enjoy being together. Community is important to us. We also follow our meetings with more time for refreshments.</p><h4><strong>Worship and a message</strong></h4><p>Our meetings start with worship. We call this 'open worship', which means there is more of a flow of singing, praise and prayers together followed by a talk from the bible with some application. We believe in the desire of God to speak to us and also to change our lives, even in this gathering.</p><p>Our core belief is in the relevance and power of the Bible as the word of God and the current real active moving of the Holy Spirit amongst his people. So we always want to make room for God to speak, and to move amongst us.</p>"
+              "content": "<h4><strong>Start with a coffee..</strong></h4><p>We always start with tea and coffee and an opportunity to greet visitors, catch up briefly with friends and enjoy being together. Community is important to us. We also follow our meetings with more time for refreshments.</p><h4><strong>Worship and a message</strong></h4><p>Our meetings start with worship. We call this 'open worship', which means there is more of a flow of singing, praise and prayers together followed by a talk from the bible with some application. We believe in the desire of God to speak to us and also to change our lives, even in this gathering.</p>"
             },
             {
               "id": "ages-column",
@@ -62,7 +62,9 @@
           "showForm": true
         }
       ],
-      "subtitle": "What to expect when you come to EGCC"
+      "subtitle": "What to expect when you come to EGCC",
+      "heroSubtitle": "",
+      "heroButtons": []
     },
     {
       "id": "church",
@@ -352,44 +354,48 @@
     {
       "id": "sunday-worship",
       "title": "Sunday Worship",
-      "description": "Join us every Sunday at 10:30 AM for inspiring worship and teaching",
+      "description": "<p>Join us every Sunday at 11:00 AM for inspiring worship and teaching. Refreshments from 10:30am.</p>",
       "image": "/images/church-bg.jpg",
-      "icon": ""
+      "icon": "fa fa-heart",
+      "order": 0,
+      "time": "Sunday 11:00am",
+      "url": ""
     },
     {
       "id": "youth-group",
       "title": "Youth Group",
       "description": "Fridays at 7 PM - A place for teens to connect, grow, and have fun",
       "image": "/images/activities-bg.jpg",
-      "icon": ""
-    },
-    {
-      "id": "bible-study",
-      "title": "Bible Study",
-      "description": "Wednesday evenings - Deep dive into God's Word together",
-      "image": "/images/church-bg.jpg",
-      "icon": ""
+      "icon": "",
+      "order": 3
     },
     {
       "id": "prayer-meeting",
       "title": "Prayer Meeting",
-      "description": "Join us for prayer and fellowship every Tuesday evening",
+      "description": "<p>Join us for prayer and fellowship every Sunday morning</p>",
       "image": "/images/church-bg.jpg",
-      "icon": ""
+      "icon": "fa fa-hands",
+      "order": 1,
+      "time": "Sunday 10:00am",
+      "url": ""
     },
     {
       "id": "childrens-ministry",
       "title": "Children's Ministry",
       "description": "Sunday School and activities for kids during the service",
       "image": "/images/activities-bg.jpg",
-      "icon": ""
+      "icon": "",
+      "order": 4
     },
     {
-      "id": "community-outreach",
-      "title": "Community Outreach",
-      "description": "Serving our local community through various programs and events",
-      "image": "/images/community-groups-bg.jpg",
-      "icon": ""
+      "id": "fresh-ground",
+      "title": "Fresh Ground Coffee House",
+      "description": "<p><span style=\"background-color: rgb(255, 255, 255); color: rgb(55, 65, 81);\">Fresh Ground is a welcoming community café offering quality food and beverages at accessible prices. </span></p>",
+      "image": "https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066389/egcc/egcc/img-activities-bg.jpg",
+      "icon": "fa fa-food",
+      "time": "Wednesday to Saturday 9:30am to 2:00pm",
+      "order": 2,
+      "url": "https://www.freshgroundeltham.co.uk"
     }
   ],
   "heroSlides": [
@@ -2841,13 +2847,13 @@
     {
       "id": "fresh-ground-coffee-house",
       "title": "Fresh Ground Coffee House",
-      "description": "<p>Fresh Ground is our coffee shop which is open every week from Wednesday to Saturday from 9:30am to 2:00pm. Serving food and drink including the best coffee in Eltham.</p><p>This is a place where all can come and meet others. A real community cafe feel and activities that run for toddlers and olders.</p>",
+      "description": "<p>Fresh Ground is our coffee shop which is open every week from Wednesday to Saturday from 9:30am to 2:00pm. Serving food and drink including the best coffee in Eltham.</p>",
       "image": "https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066389/egcc/egcc/img-activities-bg.jpg",
       "icon": "home",
       "timeInfo": "Wed-Sat: 9:30am - 2:00pm",
       "audience": "",
       "link": "http://www.freshgroundeltham.co.uk",
-      "linkText": "View the website for more details: www.freshgroundeltham.co.uk",
+      "linkText": "",
       "order": 0
     },
     {
