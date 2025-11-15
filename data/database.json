@@ -604,6 +604,18 @@
       "cloudinaryPublicId": "egcc/egcc/img-team-john-watson",
       "width": 320,
       "height": 318
+    },
+    {
+      "id": "63596db4-b08f-47e8-9c3f-7c9e6660b0f1",
+      "filename": "f16d2126-46ec-4a54-97a6-3626e3fc3985",
+      "originalName": "website.png",
+      "path": "https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763236562/egcc/f16d2126-46ec-4a54-97a6-3626e3fc3985.png",
+      "cloudinaryPublicId": "egcc/f16d2126-46ec-4a54-97a6-3626e3fc3985",
+      "size": 232950,
+      "mimeType": "image/png",
+      "width": 400,
+      "height": 400,
+      "uploadedAt": "2025-11-15T19:56:03.046Z"
     }
   ],
   "podcasts": [

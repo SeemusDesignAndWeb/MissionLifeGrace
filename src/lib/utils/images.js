@@ -1,14 +1,56 @@
 /**
+ * Optimize an existing Cloudinary URL by adding optimization parameters
+ * Adds w_1000/f_auto/q_auto if not already present
+ * @param {string} url - Cloudinary URL
+ * @returns {string} Optimized Cloudinary URL
+ */
+export function optimizeCloudinaryUrl(url) {
+	if (!url || !isCloudinaryUrl(url)) return url;
+	
+	// Check if URL already has transformations
+	const uploadIndex = url.indexOf('/upload/');
+	if (uploadIndex === -1) return url;
+	
+	const baseUrl = url.substring(0, uploadIndex + '/upload/'.length);
+	const rest = url.substring(uploadIndex + '/upload/'.length);
+	
+	// Split into transformations and public ID
+	const parts = rest.split('/');
+	const publicId = parts[parts.length - 1];
+	const existingTransforms = parts.length > 1 ? parts.slice(0, -1).join('/') : '';
+	
+	// Parse existing transformations
+	const existing = existingTransforms ? existingTransforms.split(',').filter(t => t.trim()) : [];
+	
+	// Check what optimization params already exist
+	const hasWidth = existing.some(t => t.startsWith('w_'));
+	const hasFormat = existing.some(t => t.startsWith('f_'));
+	const hasQuality = existing.some(t => t.startsWith('q_'));
+	
+	// Build final transformations array
+	const finalTransforms = [...existing];
+	
+	// Add missing optimization params
+	if (!hasWidth) finalTransforms.push('w_1000');
+	if (!hasFormat) finalTransforms.push('f_auto');
+	if (!hasQuality) finalTransforms.push('q_auto');
+	
+	// Construct optimized URL
+	return `${baseUrl}${finalTransforms.join(',')}/${publicId}`;
+}
+
+/**
  * Get the full image URL, handling both Cloudinary URLs and local paths
+ * Automatically applies Cloudinary optimization parameters (w_1000/f_auto/q_auto)
  * @param {string} path - Image path (Cloudinary URL or local path)
- * @returns {string} Full image URL
+ * @returns {string} Full image URL with optimization
  */
 export function getImageUrl(path) {
 	if (!path) return '';
 
-	// If it's already a full Cloudinary URL, return it
-	if (path.startsWith('http')) {
-		return path;
+	// If it's already a full Cloudinary URL, optimize it
+	if (path.startsWith('http') && isCloudinaryUrl(path)) {
+		return optimizeCloudinaryUrl(path);
 	}
 
 	// If it's a local path starting with /images/, return as is
@@ -17,9 +59,9 @@ export function getImageUrl(path) {
 		return path;
 	}
 
-	// If it's a Cloudinary public ID (without folder), construct URL
+	// If it's a Cloudinary public ID (without folder), construct optimized URL
 	if (!path.includes('/') && !path.includes('.')) {
-		return `https://res.cloudinary.com/dl8kjhwjs/image/upload/${path}`;
+		return `https://res.cloudinary.com/dl8kjhwjs/image/upload/w_1000,f_auto,q_auto/${path}`;
 	}
 
 	// Default: return as is
@@ -28,6 +70,7 @@ export function getImageUrl(path) {
 
 /**
  * Get optimized Cloudinary image URL with transformations
+ * Automatically includes default optimization parameters (w_1000/f_auto/q_auto) unless overridden
  * @param {string} path - Cloudinary URL or public ID
  * @param {object} options - Transformation options (width, height, quality, format, etc.)
  * @returns {string} Optimized Cloudinary URL
@@ -41,16 +84,28 @@ export function getOptimizedImageUrl(path, options = {}) {
 		// Extract public ID from Cloudinary URL
 		const parts = path.split('/upload/');
 		if (parts.length > 1) {
-			publicId = parts[1].split('.')[0];
+			// Get everything after /upload/ and extract public ID (remove file extension)
+			const afterUpload = parts[1];
+			const publicIdParts = afterUpload.split('/');
+			publicId = publicIdParts[publicIdParts.length - 1].split('.')[0];
 		}
 	}
 
-	// Build transformation string
+	// Build transformation string with defaults
 	const transformations = [];
-	if (options.width) transformations.push(`w_${options.width}`);
+	
+	// Default optimizations (unless overridden)
+	if (!options.width) transformations.push('w_1000');
+	else transformations.push(`w_${options.width}`);
+	
+	if (!options.format) transformations.push('f_auto');
+	else transformations.push(`f_${options.format}`);
+	
+	if (!options.quality) transformations.push('q_auto');
+	else transformations.push(`q_${options.quality}`);
+	
+	// Additional transformations
 	if (options.height) transformations.push(`h_${options.height}`);
-	if (options.quality) transformations.push(`q_${options.quality}`);
-	if (options.format) transformations.push(`f_${options.format}`);
 	if (options.crop) transformations.push(`c_${options.crop}`);
 	if (options.gravity) transformations.push(`g_${options.gravity}`);
 

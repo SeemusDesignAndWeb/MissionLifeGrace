@@ -43,21 +43,61 @@ https://res.cloudinary.com/dl8kjhwjs/image/upload/egcc/[public-id]
 
 ## Image Optimization
 
-You can use Cloudinary's transformation features for optimized image delivery. The utility functions in `src/lib/utils/images.js` provide helpers for:
-- Getting optimized image URLs with width/height/quality settings
+**Automatic Optimization**: All Cloudinary images are automatically optimized with `/w_1000/f_auto/q_auto/` parameters:
+- `w_1000`: Resizes images to max width of 1000px
+- `f_auto`: Automatically delivers the best format (WebP, AVIF, etc.) based on browser support
+- `q_auto`: Automatically optimizes quality for best file size while maintaining visual quality
+
+This means faster load times and significant bandwidth savings without any manual configuration!
+
+### Utility Functions
+
+The utility functions in `src/lib/utils/images.js` provide helpers for:
+- Getting optimized image URLs (automatically includes optimization parameters)
+- Optimizing existing Cloudinary URLs
 - Checking if a URL is from Cloudinary
 - Normalizing image URLs
 
-Example:
+**Basic Usage:**
+```javascript
+import { getImageUrl, optimizeCloudinaryUrl } from '$lib/utils/images';
+
+// Automatically optimizes Cloudinary URLs
+const optimizedUrl = getImageUrl(imagePath);
+
+// Or optimize an existing Cloudinary URL
+const optimizedUrl = optimizeCloudinaryUrl('https://res.cloudinary.com/.../image.jpg');
+```
+
+**Advanced Usage:**
 ```javascript
 import { getOptimizedImageUrl } from '$lib/utils/images';
 
-// Get optimized thumbnail
+// Get optimized thumbnail with custom settings
+// (still includes f_auto and q_auto unless overridden)
 const thumbnailUrl = getOptimizedImageUrl(imageUrl, {
   width: 300,
   height: 300,
-  crop: 'fill',
-  quality: 80
+  crop: 'fill'
+  // format and quality default to 'auto' if not specified
 });
 ```
+
+### Svelte Component
+
+Use the `OptimizedImage` component for automatic optimization in your Svelte templates:
+
+```svelte
+<script>
+  import OptimizedImage from '$lib/components/OptimizedImage.svelte';
+</script>
+
+<OptimizedImage 
+  src={image.path} 
+  alt="Description" 
+  class="w-full h-auto"
+/>
+```
+
+This component automatically applies Cloudinary optimization parameters to any Cloudinary URL.
 

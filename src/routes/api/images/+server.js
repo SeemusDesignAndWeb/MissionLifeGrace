@@ -46,9 +46,9 @@ export const POST = async ({ request, cookies }) => {
 		const buffer = Buffer.from(arrayBuffer);
 
 		// Upload to Cloudinary
+		// Note: public_id already includes folder path, so folder option will be removed automatically
 		const uploadResult = await uploadImage(buffer, file.name, {
-			public_id: `egcc/${randomUUID()}`,
-			filename_override: file.name
+			public_id: `egcc/${randomUUID()}`
 		});
 
 		// Create image metadata
