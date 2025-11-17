@@ -225,7 +225,7 @@
 									</h3>
 								{/if}
 								{#if section.content}
-									<div class="prose prose-sm max-w-none text-gray-300 leading-relaxed flex-1">
+									<div class="prose prose-sm max-w-none text-gray-300 leading-relaxed flex-1 [&_a]:text-brand-yellow [&_a:hover]:text-yellow-400 [&_a]:underline [&_a]:font-medium [&_a]:transition-colors">
 										{@html section.content}
 									</div>
 								{/if}
