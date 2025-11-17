@@ -81,6 +81,24 @@ export function readDatabase() {
 			// This is safe because the file doesn't exist - we're not overwriting anything
 			console.warn('[DB] Database file not found in production, attempting one-time restore from git history...');
 			console.warn('[DB] Database file path:', dbPath);
+			console.warn('[DB] Volume mount path:', process.env.RAILWAY_VOLUME_MOUNT_PATH || 'not set');
+			
+			// Check if /data directory is accessible
+			try {
+				const dataDir = dirname(dbPath);
+				const dirExists = existsSync(dataDir);
+				console.warn('[DB] Directory exists check:', dirExists, 'at', dataDir);
+				
+				// Try to list directory to verify volume is mounted
+				try {
+					const dirContents = execSync(`ls -la ${dataDir}`, { encoding: 'utf-8', timeout: 5000 });
+					console.warn('[DB] Directory contents:', dirContents.substring(0, 200));
+				} catch (lsError) {
+					console.warn('[DB] Cannot list directory:', lsError.message);
+				}
+			} catch (dirCheckError) {
+				console.warn('[DB] Directory check error:', dirCheckError.message);
+			}
 			
 			try {
 				// Try to restore from git history (commit fc4b61b has the last good version)
@@ -100,7 +118,8 @@ export function readDatabase() {
 				return parsed;
 			} catch (restoreError) {
 				console.error('[DB] ❌ Failed to restore from git history:', restoreError.message);
-				console.error('[DB] This is a production environment - cannot proceed without database');
+				console.error('[DB] This might be because git is not available in production build');
+				console.error('[DB] Please manually create the database file at', dbPath);
 				throw new Error(`Database file not found at ${dbPath} and could not restore from backup. Please restore manually.`);
 			}
 		} else if (isProduction) {
