@@ -24,6 +24,7 @@
 	$: sections = data.page?.sections || [];
 	$: historySection = sections.find((s, i) => s.type === 'text' && i === 0);
 	$: otherSections = sections.filter((s, i) => s.type === 'text' && i > 0);
+	$: valuesSection = sections.find(s => s.type === 'values');
 </script>
 
 <svelte:head>
@@ -130,76 +131,133 @@
 
 <!-- Other Sections - Card Grid -->
 {#if otherSections.length > 0}
-	<section class="py-20 bg-white">
+	<section class="py-20 bg-gray-900">
 		<div class="container mx-auto px-4">
 			<div class="max-w-6xl mx-auto">
 				<div class="text-center mb-16">
 					<span class="text-primary text-sm font-semibold uppercase tracking-wider mb-2 block">Who We Are</span>
-					<h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+					<h2 class="text-4xl md:text-5xl font-bold text-white mb-4">
 						Our Identity
 					</h2>
-					<p class="text-xl text-gray-600 max-w-2xl mx-auto">
+					<p class="text-xl text-gray-300 max-w-2xl mx-auto">
 						Discover what makes us who we are
 					</p>
 				</div>
 				<div class="grid md:grid-cols-3 gap-8">
 					{#each otherSections as section, index}
 						<div
-							class="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 flex flex-col"
+							class="group relative animate-fade-in-up bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl transform hover:-translate-y-2 flex flex-col"
+							style="animation-delay: {index * 0.1}s"
 						>
-							<div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+							<div class="relative overflow-hidden aspect-[2/1]">
 								{#if index === 0}
-									<!-- Network icon -->
-									<svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-									</svg>
+									<img
+										src="https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066390/egcc/egcc/img-church-bg.jpg"
+										alt="Church Community"
+										class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+									/>
 								{:else if index === 1}
-									<!-- Family icon -->
-									<svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-									</svg>
+									<img
+										src="https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066391/egcc/egcc/img-community-groups-bg.jpg"
+										alt="Church Family"
+										class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+									/>
 								{:else}
-									<!-- Life Groups icon -->
-									<svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-									</svg>
+									<img
+										src="https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066391/egcc/egcc/img-community-groups-bg.jpg"
+										alt="Community Groups"
+										class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+									/>
 								{/if}
 							</div>
-							{#if section.title}
-								<h3 class="text-2xl font-bold text-gray-900 mb-4">
-									{@html section.title}
-								</h3>
-							{/if}
-							{#if section.content}
-								<div class="prose prose-sm max-w-none text-gray-600 leading-relaxed flex-1">
-									{@html section.content}
-								</div>
-							{/if}
-							<div class="mt-6 pt-6 border-t border-gray-200">
-								<div class="relative h-40 rounded-lg overflow-hidden">
-									{#if index === 0}
-										<img
-											src="https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066390/egcc/egcc/img-church-bg.jpg"
-											alt="Church Community"
-											class="w-full h-full object-cover"
-										/>
-									{:else if index === 1}
-										<img
-											src="https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066391/egcc/egcc/img-community-groups-bg.jpg"
-											alt="Church Family"
-											class="w-full h-full object-cover"
-										/>
-									{:else}
-										<img
-											src="https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066391/egcc/egcc/img-community-groups-bg.jpg"
-											alt="Community Groups"
-											class="w-full h-full object-cover"
-										/>
-									{/if}
-								</div>
+							<div class="p-6 flex-1 flex flex-col">
+								{#if section.title}
+									<h3 class="text-xl font-bold mb-4 text-white">
+										{@html section.title}
+									</h3>
+								{/if}
+								{#if section.content}
+									<div class="prose prose-sm max-w-none text-gray-300 leading-relaxed flex-1">
+										{@html section.content}
+									</div>
+								{/if}
 							</div>
 						</div>
 					{/each}
+				</div>
+			</div>
+		</div>
+	</section>
+{/if}
+
+<!-- Values Section -->
+{#if valuesSection}
+	<section class="py-20 bg-gradient-to-b from-white to-gray-50">
+		<div class="container mx-auto px-4">
+			<div class="max-w-6xl mx-auto">
+				<div class="text-center mb-16">
+					<span class="text-primary text-sm font-semibold uppercase tracking-wider mb-2 block">What Makes Us Who We Are</span>
+					{#if valuesSection.title}
+						<h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+							{valuesSection.title}
+						</h2>
+					{/if}
+					{#if valuesSection.description}
+						<p class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+							{valuesSection.description}
+						</p>
+					{/if}
+				</div>
+				{#if valuesSection.values && valuesSection.values.length > 0}
+					<div class="grid md:grid-cols-2 gap-8 mb-12">
+						{#each valuesSection.values as value, index}
+							{@const colorClasses = [
+								{ bg: 'bg-primary/10', border: 'border-primary', title: 'text-primary' },
+								{ bg: 'bg-brand-blue/10', border: 'border-brand-blue', title: 'text-brand-blue' },
+								{ bg: 'bg-brand-yellow/10', border: 'border-brand-yellow', title: 'text-brand-yellow' },
+								{ bg: 'bg-brand-red/10', border: 'border-brand-red', title: 'text-brand-red' },
+								{ bg: 'bg-primary/10', border: 'border-primary', title: 'text-primary' },
+								{ bg: 'bg-brand-blue/10', border: 'border-brand-blue', title: 'text-brand-blue' },
+								{ bg: 'bg-brand-yellow/10', border: 'border-brand-yellow', title: 'text-brand-yellow' }
+							]}
+							{@const colors = colorClasses[index % colorClasses.length]}
+							<div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border-2 {colors.border} transform hover:-translate-y-2">
+								<div class="flex items-start gap-4 mb-4">
+									<div class="w-12 h-12 {colors.bg} rounded-full flex items-center justify-center flex-shrink-0">
+										<span class="text-xl font-bold {colors.title}">{index + 1}</span>
+									</div>
+									<div class="flex-1">
+										{#if value.title}
+											<h3 class="text-2xl md:text-3xl font-bold {colors.title} mb-3 leading-tight">
+												{value.title}
+											</h3>
+										{/if}
+									</div>
+								</div>
+								{#if value.description}
+									<p class="text-gray-600 leading-relaxed">
+										{value.description}
+									</p>
+								{/if}
+							</div>
+						{/each}
+					</div>
+				{/if}
+				
+				<!-- What We Believe Box -->
+				<div class="bg-gradient-to-br from-primary/10 via-brand-blue/10 to-primary/10 border-2 border-primary rounded-2xl p-8 text-center shadow-lg">
+					<h3 class="text-2xl font-bold text-gray-900 mb-4">What We Believe</h3>
+					<p class="text-gray-700 mb-6 max-w-2xl mx-auto">
+						We agree with the Evangelical Alliance statement of faith.
+					</p>
+					<a
+						href="https://www.eauk.org/about-us/how-we-work/basis-of-faith"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="inline-block px-8 py-4 bg-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg"
+					>
+						Read Statement of Faith
+					</a>
 				</div>
 			</div>
 		</div>
@@ -222,5 +280,21 @@
 
 	.animate-fade-in {
 		animation: fade-in 0.6s ease-out;
+	}
+
+	@keyframes fade-in-up {
+		from {
+			opacity: 0;
+			transform: translateY(30px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.animate-fade-in-up {
+		animation: fade-in-up 0.8s ease-out forwards;
+		opacity: 0;
 	}
 </style>
