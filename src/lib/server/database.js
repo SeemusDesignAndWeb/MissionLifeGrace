@@ -63,17 +63,28 @@ const defaultDatabase = {
 	}
 };
 
-// Read function with auto-initialization
+// Read function - NEVER auto-initialize in production to prevent data loss
 export function readDatabase() {
 	try {
 		const dbPath = getDbPath();
 		const data = readFileSync(dbPath, 'utf-8');
 		return JSON.parse(data);
 	} catch (error) {
+		const isProduction = process.env.NODE_ENV === 'production' || dbPath.startsWith('/');
+		
+		if (isProduction) {
+			// In production, NEVER auto-initialize - this would overwrite existing data
+			console.error('[DB] CRITICAL: Failed to read database in production:', error);
+			console.error('[DB] Database file path:', dbPath);
+			console.error('[DB] This is a production environment - NOT initializing to prevent data loss');
+			throw new Error(`Database file not found at ${dbPath}. Cannot proceed in production to prevent data loss.`);
+		}
+		
+		// Only auto-initialize in development
 		console.warn('[DB] Failed to read database from persistent location:', error);
-		console.log('[DB] Database file does not exist, initializing with default structure...');
+		console.log('[DB] Database file does not exist (development mode), initializing with default structure...');
 
-		// Initialize with default structure and save to persistent location
+		// Initialize with default structure and save to persistent location (development only)
 		try {
 			writeDatabase(defaultDatabase);
 			console.log('[DB] Successfully initialized database with default structure');
@@ -123,8 +134,18 @@ export function savePage(page) {
 	const db = readDatabase();
 	const index = db.pages.findIndex((p) => p.id === page.id);
 	if (index >= 0) {
-		// Merge with existing page to preserve fields not in the form (like sections)
-		db.pages[index] = { ...db.pages[index], ...page };
+		// CRITICAL: Preserve sections and other fields that might not be in the incoming page object
+		// Only update fields that are actually provided in the page object
+		const existingPage = db.pages[index];
+		db.pages[index] = {
+			...existingPage,
+			...page,
+			// Explicitly preserve sections if they exist in existing page but not in new page
+			sections: page.sections !== undefined ? page.sections : existingPage.sections,
+			// Preserve other important fields
+			heroMessages: page.heroMessages !== undefined ? page.heroMessages : existingPage.heroMessages,
+			heroButtons: page.heroButtons !== undefined ? page.heroButtons : existingPage.heroButtons,
+		};
 	} else {
 		db.pages.push(page);
 	}
@@ -191,9 +212,10 @@ export function deleteService(id) {
 // CRUD operations for Activities
 export function getActivities() {
 	const db = readDatabase();
+	// DO NOT auto-write on read - this could overwrite production data
+	// Only initialize in memory if missing
 	if (!db.activities) {
 		db.activities = [];
-		writeDatabase(db);
 	}
 	return db.activities || [];
 }
@@ -350,9 +372,10 @@ export function deletePodcast(id) {
 // CRUD operations for Community Groups
 export function getCommunityGroups() {
 	const db = readDatabase();
+	// DO NOT auto-write on read - this could overwrite production data
+	// Only initialize in memory if missing
 	if (!db.communityGroups) {
 		db.communityGroups = [];
-		writeDatabase(db);
 	}
 	return db.communityGroups || [];
 }
@@ -387,9 +410,10 @@ export function deleteCommunityGroup(id) {
 // CRUD operations for Events
 export function getEvents() {
 	const db = readDatabase();
+	// DO NOT auto-write on read - this could overwrite production data
+	// Only initialize in memory if missing
 	if (!db.events) {
 		db.events = [];
-		writeDatabase(db);
 	}
 	return db.events || [];
 }
