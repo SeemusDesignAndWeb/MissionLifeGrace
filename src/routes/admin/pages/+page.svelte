@@ -609,6 +609,11 @@
 									+ Add Values Section
 								</button>
 							{/if}
+							{#if editing.id === 'team'}
+								<p class="text-xs text-gray-500 mt-2">
+									Note: Team members are managed separately in the <a href="/admin/team" class="text-brand-blue underline">Team Management</a> section.
+								</p>
+							{/if}
 						</div>
 					</div>
 				{/if}
