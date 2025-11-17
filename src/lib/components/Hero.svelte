@@ -83,7 +83,7 @@
 	});
 </script>
 
-<section id="home" class="relative h-screen overflow-hidden">
+<section id="home" class="relative h-[70vh] md:h-screen overflow-hidden">
 	{#each slides as slide, index}
 		<div
 			class="absolute inset-0 transition-opacity duration-1000"
@@ -92,19 +92,19 @@
 			style="background-image: url('{slide.image}'); background-size: cover; background-position: center;"
 		>
 		<div class="absolute inset-0 bg-black bg-opacity-40"></div>
-		<div class="relative h-full flex items-center">
-			<div class="container mx-auto px-4">
-				<div class="grid md:grid-cols-3 gap-8 w-full">
+		<div class="relative h-full flex items-center py-8 md:py-0">
+			<div class="container mx-auto px-4 w-full">
+				<div class="grid md:grid-cols-3 gap-4 md:gap-8 w-full">
 					<!-- Left side - Hero content -->
-					<div class="md:col-span-2">
+					<div class="md:col-span-2 col-span-full">
 						<div class="max-w-3xl">
 							{#if slide.title}
-								<p class="text-white text-xl md:text-2xl font-light mb-4 animate-fade-in">
+								<p class="text-white text-base md:text-xl lg:text-2xl font-light mb-2 md:mb-4 animate-fade-in">
 									{slide.title}
 								</p>
 							{/if}
 							{#if slide.subtitle}
-								<h1 class="text-white text-5xl md:text-6xl font-bold mb-8 leading-tight animate-fade-in">
+								<h1 class="text-white text-3xl md:text-6xl lg:text-7xl font-bold mb-4 md:mb-8 leading-tight animate-fade-in">
 									{slide.subtitle}
 								</h1>
 							{/if}
@@ -112,23 +112,23 @@
 								<a
 									href={slide.ctaLink}
 									on:click={(e) => smoothScroll(e, slide.ctaLink.slice(1))}
-									class="inline-block bg-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg animate-fade-in"
+									class="inline-block bg-primary text-white px-6 py-2 md:px-8 md:py-4 rounded-lg text-sm md:text-base font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg animate-fade-in"
 								>
 									{slide.cta}
 								</a>
 							{/if}
 						</div>
 					</div>
-					<!-- Right side - Events -->
+					<!-- Right side - Events (Desktop) -->
 					{#if featuredEvents && featuredEvents.length > 0}
-						<div class="md:col-span-1">
-							<div class="space-y-4 animate-fade-in">
+						<div class="md:col-span-1 hidden md:block">
+							<div class="space-y-3 md:space-y-4 animate-fade-in">
 								{#each featuredEvents as event}
 									<a
 										href="/events/{event.id}"
 										class="block rounded-lg overflow-hidden shadow-2xl transition-all transform hover:scale-105 cursor-pointer group"
 									>
-										<div class="relative" style="height: 280px;">
+										<div class="relative h-[180px] md:h-[280px]">
 											{#if event.image}
 												<div
 													class="absolute inset-0 bg-cover bg-center"
@@ -138,6 +138,11 @@
 												</div>
 											{:else}
 												<div class="absolute inset-0 bg-primary"></div>
+											{/if}
+											{#if event.title}
+												<div class="absolute inset-0 flex items-end p-4">
+													<h3 class="text-white font-bold text-lg md:text-xl leading-tight drop-shadow-lg">{event.title}</h3>
+												</div>
 											{/if}
 										</div>
 										<div class="bg-black px-4 py-2">
@@ -172,8 +177,46 @@
 		</div>
 	{/each}
 
+	<!-- Mobile Events Section (at bottom of hero) -->
+	{#if featuredEvents && featuredEvents.length > 0}
+		<div class="absolute bottom-0 left-0 right-0 md:hidden bg-black/90 backdrop-blur-sm py-4 px-4">
+			<div class="container mx-auto">
+				<div class="space-y-2">
+					{#each featuredEvents as event}
+						<a
+							href="/events/{event.id}"
+							class="block bg-gray-900/50 hover:bg-gray-800/50 rounded-lg px-4 py-2.5 transition-colors border border-gray-700"
+						>
+							{#if event.title}
+								<h3 class="font-semibold text-white mb-1.5 text-sm">{event.title}</h3>
+							{/if}
+							<div class="flex items-center gap-4 text-xs text-gray-300">
+								{#if event.date}
+									<div class="flex items-center gap-1.5">
+										<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+										</svg>
+										<span>{formatDate(event.date)}</span>
+									</div>
+								{/if}
+								{#if event.time}
+									<div class="flex items-center gap-1.5">
+										<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+										</svg>
+										<span>{formatTime(event.time)}</span>
+									</div>
+								{/if}
+							</div>
+						</a>
+					{/each}
+				</div>
+			</div>
+		</div>
+	{/if}
+
 	<!-- Slide indicators -->
-	<div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-2">
+	<div class="hidden md:flex absolute bottom-4 md:bottom-8 left-1/2 transform -translate-x-1/2 gap-2 z-10">
 		{#each slides as _, index}
 			<button
 				on:click={() => goToSlide(index)}

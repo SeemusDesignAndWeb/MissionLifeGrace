@@ -56,8 +56,8 @@
 
 		<div class="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
 			{#each leadership as leader}
-				<div class="flex gap-10">
-					<div class="flex-shrink-0">
+				<div class="flex flex-col md:flex-row gap-6 md:gap-10">
+					<div class="flex-shrink-0 flex justify-center md:justify-start">
 						<div class="relative">
 							<div class="absolute -inset-4 bg-primary/20 rounded-2xl transform rotate-3"></div>
 							<img
@@ -67,7 +67,7 @@
 							/>
 						</div>
 					</div>
-					<div class="flex-1">
+					<div class="flex-1 text-center md:text-left">
 						<h3 class="text-xl font-bold text-gray-900 mb-1">{leader.name}</h3>
 						<p class="text-primary font-medium mb-3">{leader.role}</p>
 						<p class="text-gray-600 text-sm leading-relaxed">{leader.quote}</p>

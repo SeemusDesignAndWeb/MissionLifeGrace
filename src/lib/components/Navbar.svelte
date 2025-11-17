@@ -31,7 +31,7 @@
 </script>
 
 <nav
-	class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 {scrolled ? 'bg-white shadow-md' : ''}"
+	class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 {menuOpen ? 'bg-brand-blue shadow-md' : scrolled ? 'bg-white shadow-md' : 'bg-white/70 backdrop-blur-sm'}"
 >
 	<div class="container mx-auto px-4">
 		<div class="flex items-center justify-between py-4">
@@ -40,7 +40,7 @@
 				<img
 					src="/images/egcc-color.png"
 					alt="Eltham Green Community Church"
-					class="h-12 w-auto transition-all duration-300 {scrolled ? '' : 'brightness-0 invert'}"
+					class="h-12 w-auto transition-all duration-300 {menuOpen ? 'brightness-0 invert' : ''} {menuOpen || scrolled ? 'md:brightness-100 md:invert-0' : 'md:brightness-0 md:invert'}"
 				/>
 			</a>
 
@@ -51,16 +51,16 @@
 				aria-label="Toggle menu"
 			>
 				<span
-					class="block w-6 h-0.5 transition-all duration-300 {scrolled ? 'bg-gray-900' : 'bg-white'}"
+					class="block w-6 h-0.5 transition-all duration-300 {menuOpen ? 'bg-white' : 'bg-gray-900'}"
 					class:rotate-45={menuOpen}
 					class:translate-y-2={menuOpen}
 				></span>
 				<span
-					class="block w-6 h-0.5 transition-all duration-300 {scrolled ? 'bg-gray-900' : 'bg-white'}"
+					class="block w-6 h-0.5 transition-all duration-300 {menuOpen ? 'bg-white' : 'bg-gray-900'}"
 					class:opacity-0={menuOpen}
 				></span>
 				<span
-					class="block w-6 h-0.5 transition-all duration-300 {scrolled ? 'bg-gray-900' : 'bg-white'}"
+					class="block w-6 h-0.5 transition-all duration-300 {menuOpen ? 'bg-white' : 'bg-gray-900'}"
 					class:-rotate-45={menuOpen}
 					class:-translate-y-2={menuOpen}
 				></span>
@@ -138,13 +138,13 @@
 
 		<!-- Mobile menu -->
 		{#if menuOpen}
-			<div class="md:hidden pb-4">
+			<div class="md:hidden pb-4 bg-brand-blue -mx-4 px-4 pt-4">
 				<ul class="flex flex-col gap-4">
 					<li>
 						<a
 							href="/im-new"
 							on:click={() => (menuOpen = false)}
-							class="block transition-colors {scrolled ? 'text-gray-900 hover:text-brand-blue' : 'text-white hover:text-gray-200'}"
+							class="block transition-colors text-white hover:text-gray-200"
 						>
 							I'm New
 						</a>
@@ -153,7 +153,7 @@
 						<a
 							href="/church"
 							on:click={() => (menuOpen = false)}
-							class="block transition-colors {scrolled ? 'text-gray-900 hover:text-brand-blue' : 'text-white hover:text-gray-200'}"
+							class="block transition-colors text-white hover:text-gray-200"
 						>
 							Church
 						</a>
@@ -162,7 +162,7 @@
 						<a
 							href="/team"
 							on:click={() => (menuOpen = false)}
-							class="block transition-colors {scrolled ? 'text-gray-900 hover:text-brand-blue' : 'text-white hover:text-gray-200'}"
+							class="block transition-colors text-white hover:text-gray-200"
 						>
 							Team
 						</a>
@@ -171,7 +171,7 @@
 						<a
 							href="/community-groups"
 							on:click={() => (menuOpen = false)}
-							class="block transition-colors {scrolled ? 'text-gray-900 hover:text-brand-blue' : 'text-white hover:text-gray-200'}"
+							class="block transition-colors text-white hover:text-gray-200"
 						>
 							Community Groups
 						</a>
@@ -180,7 +180,7 @@
 						<a
 							href="/activities"
 							on:click={() => (menuOpen = false)}
-							class="block transition-colors {scrolled ? 'text-gray-900 hover:text-brand-blue' : 'text-white hover:text-gray-200'}"
+							class="block transition-colors text-white hover:text-gray-200"
 						>
 							Activities
 						</a>
@@ -189,7 +189,7 @@
 						<a
 							href="/audio"
 							on:click={() => (menuOpen = false)}
-							class="block transition-colors {scrolled ? 'text-gray-900 hover:text-brand-blue' : 'text-white hover:text-gray-200'}"
+							class="block transition-colors text-white hover:text-gray-200"
 						>
 							Audio
 						</a>
@@ -198,7 +198,7 @@
 						<a
 							href="/media"
 							on:click={() => (menuOpen = false)}
-							class="block transition-colors {scrolled ? 'text-gray-900 hover:text-brand-blue' : 'text-white hover:text-gray-200'}"
+							class="block transition-colors text-white hover:text-gray-200"
 						>
 							Online
 						</a>
