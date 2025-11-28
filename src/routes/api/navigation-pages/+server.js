@@ -7,22 +7,20 @@ export const GET = async () => {
 		
 		// Filter pages that should be shown in navigation
 		const navigationPages = allPages
-			.filter(page => page.showInNavigation !== false) // Default to true if not set
+			.filter(page => page.showInNavigation !== false)
 			.sort((a, b) => {
-				// Sort by navigationOrder first
 				const orderA = a.navigationOrder !== undefined ? a.navigationOrder : 999;
 				const orderB = b.navigationOrder !== undefined ? b.navigationOrder : 999;
 				if (orderA !== orderB) {
 					return orderA - orderB;
 				}
-				// Then by title
 				return (a.title || '').localeCompare(b.title || '');
 			});
 		
 		return json(navigationPages);
 	} catch (error) {
 		console.error('Failed to fetch navigation pages:', error);
-		return json([], { status: 500 });
+		return json({ error: 'Failed to fetch navigation pages' }, { status: 500 });
 	}
 };
 

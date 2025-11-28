@@ -57,12 +57,13 @@
 		event={data.highlightedEvent} 
 		open={showHighlightBanner} 
 		on:close={() => showHighlightBanner = false} 
+		class="gallery-hide-when-fullscreen"
 	/>
 {/if}
 
 <!-- Website Navbar - only show outside admin area -->
 {#if showWebsiteNavbar}
-	<Navbar bannerVisible={showHighlightBanner} />
+	<Navbar bannerVisible={showHighlightBanner} class="gallery-hide-when-fullscreen" />
 {/if}
 
 <!-- Page Content with dynamic padding to account for fixed navbar and banner -->

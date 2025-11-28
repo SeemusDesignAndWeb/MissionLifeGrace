@@ -1,6 +1,7 @@
 <script lang="js">
 	import { onMount, getContext } from 'svelte';
 	import Contact from './Contact.svelte';
+	import Gallery from './Gallery.svelte';
 
 	export let page;
 	export let contactInfo = {
@@ -158,8 +159,23 @@
 									class:opacity-0={currentMessage !== index}
 									class:opacity-100={currentMessage === index}
 								>
-									<h4 class="text-white text-lg animate-fade-in">{msg}</h4>
+									<p class="text-white text-lg md:text-xl font-light animate-fade-in">
+										{msg}
+									</p>
 								</div>
+							{/each}
+						</div>
+					{/if}
+					{#if page.heroButtons && page.heroButtons.length > 0}
+						<div class="flex flex-wrap gap-3 mt-4">
+							{#each page.heroButtons as button}
+								<a
+									href={button.link}
+									target={button.target || '_self'}
+									class="px-6 py-3 {button.style === 'secondary' ? 'bg-white text-primary hover:bg-gray-100' : 'bg-primary text-white hover:bg-opacity-90'} rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg text-sm"
+								>
+									{button.text}
+								</a>
 							{/each}
 						</div>
 					{/if}
@@ -337,6 +353,16 @@
 								{/each}
 							{/if}
 						</div>
+
+					{:else if section.type === 'gallery'}
+						<Gallery
+							images={section.images || []}
+							columns={section.columns || 3}
+							gap={section.gap || 'gap-4'}
+							title={section.title || ''}
+							startFullscreenSlideshow={section.startFullscreenSlideshow || false}
+							slideshowInterval={section.slideshowInterval || 4000}
+						/>
 					{/if}
 				</div>
 			</div>

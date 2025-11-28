@@ -11,6 +11,7 @@
 	let showForm = false;
 	let showImagePicker = false;
 	let currentSectionIndex = null;
+	let currentImageIndex = null;
 	let draggedIndex = null;
 	let draggedOverIndex = null;
 
@@ -21,6 +22,7 @@
 	// Reset section index when image picker closes without selection
 	$: if (!showImagePicker && currentSectionIndex !== null) {
 		currentSectionIndex = null;
+		currentImageIndex = null;
 	}
 
 	async function loadPages() {
@@ -150,11 +152,22 @@
 			if (section.type === 'mlg') {
 				// For MLG sections, set the logo
 				section.logo = imagePath;
+			} else if (section.type === 'gallery') {
+				// For gallery sections, add to images array or update existing
+				if (!section.images) section.images = [];
+				if (currentImageIndex !== null && currentImageIndex < section.images.length) {
+					// Update existing image
+					section.images[currentImageIndex] = imagePath;
+				} else {
+					// Add new image
+					section.images = [...section.images, imagePath];
+				}
 			} else {
 				// For other sections, set the image
 				section.image = imagePath;
 			}
 			currentSectionIndex = null;
+			currentImageIndex = null;
 		} else if (editing) {
 			// Setting image for hero
 			editing.heroImage = imagePath;
@@ -927,6 +940,122 @@
 											placeholder="e.g., Visit Mission Life Grace"
 										/>
 									</div>
+								{:else if section.type === 'gallery'}
+									<div class="mb-3">
+										<label class="block text-xs font-medium mb-1 text-gray-600">Title (optional)</label>
+										<input
+											type="text"
+											bind:value={section.title}
+											class="w-full px-3 py-2 border rounded"
+											placeholder="Gallery title"
+										/>
+									</div>
+									<div class="mb-3">
+										<label class="block text-xs font-medium mb-1 text-gray-600">Columns</label>
+										<select bind:value={section.columns} class="w-full px-3 py-2 border rounded">
+											<option value={2}>2 Columns</option>
+											<option value={3}>3 Columns</option>
+											<option value={4}>4 Columns</option>
+										</select>
+									</div>
+									<div class="mb-3">
+										<label class="flex items-center gap-2">
+											<input
+												type="checkbox"
+												bind:checked={section.startFullscreenSlideshow}
+												class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+											/>
+											<span class="text-sm font-medium text-gray-700">Start fullscreen slideshow</span>
+										</label>
+										<p class="text-xs text-gray-500 mt-1 ml-6">
+											When checked, the gallery will automatically open in fullscreen mode when the page loads, with images fading in and out automatically.
+										</p>
+									</div>
+									{#if section.startFullscreenSlideshow}
+										<div class="mb-3">
+											<label class="block text-xs font-medium mb-1 text-gray-600">Slideshow Interval (milliseconds)</label>
+											<input
+												type="number"
+												bind:value={section.slideshowInterval}
+												class="w-full px-3 py-2 border rounded"
+												placeholder="4000"
+												min="1000"
+												step="500"
+											/>
+											<p class="text-xs text-gray-500 mt-1">
+												Time each image is displayed before fading to the next (default: 4000ms = 4 seconds)
+											</p>
+										</div>
+									{/if}
+									<div class="mb-3">
+										<label class="block text-xs font-medium mb-1 text-gray-600">Images</label>
+										{#if !section.images}
+											{section.images = []}
+										{/if}
+										<div class="space-y-2">
+											{#each section.images as image, imageIndex}
+												<div class="flex items-center gap-2 p-2 border rounded">
+													<input
+														type="text"
+														bind:value={section.images[imageIndex]}
+														class="flex-1 px-3 py-2 border rounded"
+														placeholder="Image URL"
+													/>
+													<button
+														type="button"
+														on:click={() => {
+															showImagePicker = true;
+															currentSectionIndex = sectionIndex;
+															// Store which image index we're updating
+															currentImageIndex = imageIndex;
+														}}
+														class="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm"
+													>
+														Select
+													</button>
+													{#if section.images[imageIndex]}
+														<img
+															src={section.images[imageIndex]}
+															alt="Preview"
+															class="w-16 h-16 object-cover rounded border"
+														/>
+													{/if}
+													<button
+														type="button"
+														on:click={() => {
+															section.images = section.images.filter((_, i) => i !== imageIndex);
+															editing = editing;
+														}}
+														class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+													>
+														Remove
+													</button>
+												</div>
+											{/each}
+											<button
+												type="button"
+												on:click={() => {
+													if (!section.images) section.images = [];
+													section.images = [...section.images, ''];
+													editing = editing;
+												}}
+												class="w-full px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm"
+											>
+												+ Add Image
+											</button>
+											<button
+												type="button"
+												on:click={() => {
+													showImagePicker = true;
+													currentSectionIndex = sectionIndex;
+													currentImageIndex = null; // Adding new image
+												}}
+												class="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+											>
+												+ Select from Library
+											</button>
+										</div>
+									</div>
 								{/if}
 							</div>
 						{/each}
@@ -942,6 +1071,17 @@
 								class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm"
 							>
 								+ Add Text Section
+							</button>
+							<button
+								type="button"
+								on:click={() => {
+									if (!editing.sections) editing.sections = [];
+									editing.sections = [...editing.sections, { type: 'gallery', title: '', images: [], columns: 3, startFullscreenSlideshow: false, slideshowInterval: 4000 }];
+									editing = editing;
+								}}
+								class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm"
+							>
+								+ Add Gallery Section
 							</button>
 							{#if editing.id === 'im-new'}
 								<button
@@ -1063,8 +1203,8 @@
 					</div>
 				{/if}
 				
-				<!-- Show "Add Section" buttons even when no sections exist (especially for team page, im-new page, and church page) -->
-				{#if (editing.id === 'team' || editing.id === 'im-new' || editing.id === 'church') && (!editing.sections || editing.sections.length === 0)}
+				<!-- Show "Add Section" buttons when no sections exist (for all pages) -->
+				{#if (!editing.sections || editing.sections.length === 0)}
 					<div class="border-t pt-6 mt-6">
 						<h3 class="text-lg font-semibold mb-4">Page Sections</h3>
 						<div class="flex gap-2 flex-wrap">
@@ -1078,6 +1218,17 @@
 								class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm"
 							>
 								+ Add Text Section
+							</button>
+							<button
+								type="button"
+								on:click={() => {
+									if (!editing.sections) editing.sections = [];
+									editing.sections = [...editing.sections, { type: 'gallery', title: '', images: [], columns: 3, startFullscreenSlideshow: false, slideshowInterval: 4000 }];
+									editing = editing;
+								}}
+								class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm"
+							>
+								+ Add Gallery Section
 							</button>
 							{#if editing.id === 'im-new'}
 								<button
