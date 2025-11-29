@@ -1,14 +1,26 @@
 import { getPage, getContactInfo } from '$lib/server/database';
 
 export const load = async () => {
-	const page = getPage('vision');
+	let page = getPage('vision');
 	const contactInfo = getContactInfo();
 	
-	if (page) {
-		return { page, contactInfo };
+	// If page doesn't exist, return a default structure
+	if (!page) {
+		page = {
+			id: 'vision',
+			title: 'Our Vision',
+			heroTitle: 'Our Vision',
+			heroSubtitle: 'What we believe and where we\'re going',
+			heroImage: '',
+			heroOverlay: 40,
+			metaDescription: 'The vision of Mission Life Grace',
+			content: '',
+			published: true,
+			sections: []
+		};
 	}
 	
-	throw new Error('Vision page not found');
+	return { page, contactInfo };
 };
 
 
