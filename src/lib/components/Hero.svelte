@@ -7,6 +7,8 @@
 	let currentSlide = 0;
 	let autoplayInterval = null;
 	let bannerVisible = false;
+	let circlesVisible = false;
+	let scrollY = 0;
 	
 	// Get banner visibility from context
 	try {
@@ -40,27 +42,27 @@
 	const defaultSlides = [
 		{
 			id: 'default-1',
-			title: 'Eltham Green Community Church',
-			subtitle: 'A welcoming community of faith, hope, and love',
-			cta: 'Join Us',
-			ctaLink: '#services',
-			image: '/images/church-bg.jpg'
+			title: 'Mission Life Grace',
+			subtitle: 'Churches on mission together',
+			cta: 'Learn more',
+			ctaLink: '#about-us',
+			image: 'https://res.cloudinary.com/dsnceqtza/image/upload/v1763390998/mission-life-grace/375d5fb3-6856-49be-a8d1-48859a442bca.jpg'
 		},
 		{
 			id: 'default-2',
-			title: 'Sunday Worship',
-			subtitle: 'Join us every Sunday for inspiring worship and fellowship',
-			cta: 'Service Times',
-			ctaLink: '#services',
-			image: '/images/church-bg.jpg'
+			title: 'A Network of Churches',
+			subtitle: 'Working together to see the Kingdom of God come',
+			cta: 'Our Churches',
+			ctaLink: '/churches',
+			image: 'https://res.cloudinary.com/dsnceqtza/image/upload/v1763390998/mission-life-grace/375d5fb3-6856-49be-a8d1-48859a442bca.jpg'
 		},
 		{
 			id: 'default-3',
-			title: 'Community & Connection',
-			subtitle: 'Building relationships and serving our community together',
-			cta: 'Get Involved',
-			ctaLink: '#contact',
-			image: '/images/church-bg.jpg'
+			title: 'Training & Networking',
+			subtitle: 'Equipping leaders and building community across the network',
+			cta: 'Get involved',
+			ctaLink: '#services',
+			image: 'https://res.cloudinary.com/dsnceqtza/image/upload/v1763390998/mission-life-grace/375d5fb3-6856-49be-a8d1-48859a442bca.jpg'
 		}
 	];
 
@@ -90,8 +92,25 @@
 
 	onMount(() => {
 		autoplayInterval = window.setInterval(nextSlide, 5000);
+		
+		// Animate circles on load
+		setTimeout(() => {
+			circlesVisible = true;
+		}, 300);
+		
+		// Animate circles on scroll
+		const handleScroll = () => {
+			scrollY = window.scrollY;
+			if (scrollY > 50 && !circlesVisible) {
+				circlesVisible = true;
+			}
+		};
+		
+		window.addEventListener('scroll', handleScroll);
+		
 		return () => {
 			if (autoplayInterval) window.clearInterval(autoplayInterval);
+			window.removeEventListener('scroll', handleScroll);
 		};
 	});
 </script>
@@ -104,8 +123,11 @@
 			class:opacity-100={currentSlide === index}
 			style="background-image: url('{slide.image}'); background-size: cover; background-position: center;"
 		>
-		<div class="absolute inset-0 bg-black bg-opacity-40"></div>
-		<div class="relative h-full flex items-center py-8 md:py-0">
+					<div class="absolute inset-0 bg-black bg-opacity-40"></div>
+					<!-- Circular decorative elements -->
+					<div class="absolute top-10 right-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl opacity-60"></div>
+					<div class="absolute bottom-10 left-10 w-32 h-32 bg-brand-blue/20 rounded-full blur-2xl opacity-50"></div>
+					<div class="relative h-full flex items-center py-8 md:py-0">
 			<div class="container mx-auto px-4 w-full">
 				<div class="grid md:grid-cols-3 gap-4 md:gap-8 w-full">
 					<!-- Left side - Hero content -->
@@ -125,7 +147,7 @@
 								<a
 									href={slide.ctaLink}
 									on:click={(e) => smoothScroll(e, slide.ctaLink.slice(1))}
-									class="inline-block bg-primary text-white px-6 py-2 md:px-8 md:py-4 rounded-lg text-sm md:text-base font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg animate-fade-in"
+									class="inline-block bg-primary text-white px-6 py-2 md:px-8 md:py-4 rounded-full text-sm md:text-base font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg animate-fade-in"
 								>
 									{slide.cta}
 								</a>
@@ -139,39 +161,26 @@
 								{#each featuredEvents as event}
 									<a
 										href="/events/{event.id}"
-										class="block rounded-lg overflow-hidden shadow-2xl transition-all transform hover:scale-105 cursor-pointer group event-glow"
+										class="block transition-all transform hover:scale-105 cursor-pointer group"
 									>
-										<div class="relative h-[180px] md:h-[280px]">
+										<div class="relative flex justify-center">
+											<!-- Decorative circles around the event image - animated -->
+											<div class="absolute -top-2 -right-2 md:-top-4 md:-right-4 w-16 h-16 md:w-24 md:h-24 lg:w-32 lg:h-32 bg-primary/50 rounded-full blur-sm transition-all duration-1000 {circlesVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'} {circlesVisible ? 'animate-float' : ''}" style="animation-delay: 0.1s"></div>
+											<div class="absolute -bottom-2 -left-2 md:-bottom-4 md:-left-4 w-12 h-12 md:w-20 md:h-20 lg:w-28 lg:h-28 bg-brand-blue/50 rounded-full blur-sm transition-all duration-1000 {circlesVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'} {circlesVisible ? 'animate-float' : ''}" style="animation-delay: 0.3s"></div>
+											<div class="absolute top-1/2 -right-8 md:-right-12 lg:-right-16 w-10 h-10 md:w-16 md:h-16 lg:w-20 lg:h-20 bg-primary-light/60 rounded-full blur-[2px] transition-all duration-1000 {circlesVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'} {circlesVisible ? 'animate-float' : ''}" style="animation-delay: 0.5s"></div>
+											<div class="absolute top-1/4 -left-8 md:-left-12 lg:-left-16 w-14 h-14 md:w-18 md:h-18 lg:w-24 lg:h-24 bg-brand-blue/45 rounded-full blur-[2px] transition-all duration-1000 {circlesVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'} {circlesVisible ? 'animate-float' : ''}" style="animation-delay: 0.7s"></div>
+											<div class="absolute bottom-1/4 right-1/4 w-8 h-8 md:w-12 md:h-12 lg:w-16 lg:h-16 bg-primary/55 rounded-full transition-all duration-1000 {circlesVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'} {circlesVisible ? 'animate-float' : ''}" style="animation-delay: 0.2s"></div>
+											<div class="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-6 md:w-10 md:h-10 lg:w-14 lg:h-14 bg-brand-blue/50 rounded-full transition-all duration-1000 {circlesVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'} {circlesVisible ? 'animate-float' : ''}" style="animation-delay: 0.4s"></div>
+											<div class="absolute bottom-0 right-1/3 w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 bg-primary/45 rounded-full blur-[1px] transition-all duration-1000 {circlesVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'} {circlesVisible ? 'animate-float' : ''}" style="animation-delay: 0.6s"></div>
+											
 											{#if event.image}
-												<div
-													class="absolute inset-0 bg-cover bg-center"
-													style="background-image: url('{event.image}');"
-												>
-													<div class="absolute inset-0 bg-black bg-opacity-40 group-hover:bg-opacity-30 transition-all"></div>
-												</div>
+												<img
+													src={event.image}
+													alt={event.title || 'Event'}
+													class="relative z-10 w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full object-cover shadow-2xl"
+												/>
 											{:else}
-												<div class="absolute inset-0 bg-primary"></div>
-											{/if}
-										</div>
-										<div class="bg-black px-4 py-2">
-											<div class="flex items-center gap-2 text-sm text-white">
-												<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-												</svg>
-												<span>{formatDate(event.date)}</span>
-												{#if event.time}
-													<span class="mx-1">•</span>
-													<span>{formatTime(event.time)}</span>
-												{/if}
-											</div>
-											{#if event.location}
-												<div class="flex items-center gap-1 text-xs text-white/80 mt-1">
-													<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-													</svg>
-													<span class="truncate">{event.location}</span>
-												</div>
+												<div class="relative z-10 w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full bg-gradient-to-br from-primary via-brand-blue to-primary-dark shadow-2xl"></div>
 											{/if}
 										</div>
 									</a>
@@ -273,31 +282,18 @@
 		}
 	}
 
-	.event-glow {
-		position: relative;
-		animation: glow-pulse 3s ease-in-out infinite;
+	@keyframes float {
+		0%, 100% {
+			transform: translateY(0) scale(1);
+		}
+		50% {
+			transform: translateY(-10px) scale(1.05);
+		}
 	}
 
-	.event-glow:hover {
-		animation: none;
-		box-shadow: 0 0 70px rgba(75, 177, 112, 0.8), 0 0 140px rgba(75, 177, 112, 0.5), 0 0 200px rgba(75, 177, 112, 0.3), 0 0 280px rgba(75, 177, 112, 0.15);
+	.animate-float {
+		animation: float 3s ease-in-out infinite;
 	}
 
-	.event-glow::before {
-		content: '';
-		position: absolute;
-		inset: -8px;
-		border-radius: 0.5rem;
-		background: linear-gradient(135deg, rgba(75, 177, 112, 0.4), rgba(75, 177, 112, 0.15));
-		z-index: -1;
-		animation: glow-background 3s ease-in-out infinite;
-	}
-
-	.event-glow:hover::before {
-		animation: none;
-		opacity: 0.95;
-		filter: blur(28px);
-		transform: scale(1.08);
-	}
 </style>
 

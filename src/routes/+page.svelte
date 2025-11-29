@@ -2,10 +2,11 @@
 	import { onMount } from 'svelte';
 	import Hero from '$lib/components/Hero.svelte';
 	import About from '$lib/components/About.svelte';
+	import Vision from '$lib/components/Vision.svelte';
 	import Team from '$lib/components/Team.svelte';
-	import Menu from '$lib/components/Menu.svelte';
 	import Contact from '$lib/components/Contact.svelte';
 	import Footer from '$lib/components/Footer.svelte';
+	import Conferences from '$lib/components/Conferences.svelte';
 	import LatestMessagePopup from '$lib/components/LatestMessagePopup.svelte';
 
 	export let data;
@@ -25,15 +26,16 @@
 </script>
 
 <svelte:head>
-	<title>Eltham Green Community Church - EGCC</title>
-	<meta name="description" content="Eltham Green Community Church - A welcoming community of faith in Eltham, London" />
+	<title>Mission Life Grace - Churches on Mission Together</title>
+	<meta name="description" content="Mission Life Grace - A network of churches on mission together to see the Kingdom of God come" />
 </svelte:head>
 
 <Hero heroSlides={data.heroSlides} featuredEvents={data.heroEvents} />
 <About home={data.home} />
-<Menu services={data.services} />
+<Vision home={data.home} />
+<Conferences conferences={data.heroConferences || []} />
 <Contact contactInfo={data.contactInfo} />
-<Footer contactInfo={data.contactInfo} serviceTimes={data.serviceTimes} />
+<Footer contactInfo={data.contactInfo} />
 
 <!-- Popups -->
 <LatestMessagePopup 

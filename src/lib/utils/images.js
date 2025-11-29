@@ -61,7 +61,7 @@ export function getImageUrl(path) {
 
 	// If it's a Cloudinary public ID (without folder), construct optimized URL
 	if (!path.includes('/') && !path.includes('.')) {
-		return `https://res.cloudinary.com/dl8kjhwjs/image/upload/w_1000,f_auto,q_auto/${path}`;
+		return `https://res.cloudinary.com/dsnceqtza/image/upload/w_1000,f_auto,q_auto/${path}`;
 	}
 
 	// Default: return as is
@@ -111,7 +111,7 @@ export function getOptimizedImageUrl(path, options = {}) {
 
 	const transformStr = transformations.length > 0 ? `${transformations.join(',')}/` : '';
 
-	return `https://res.cloudinary.com/dl8kjhwjs/image/upload/${transformStr}${publicId}`;
+	return `https://res.cloudinary.com/dsnceqtza/image/upload/${transformStr}${publicId}`;
 }
 
 /**

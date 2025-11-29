@@ -7,7 +7,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.page.title} - Eltham Green Community Church</title>
+	<title>{data.page.title} - Mission Life Grace</title>
 	<meta name="description" content={data.page.metaDescription || data.page.title} />
 </svelte:head>
 

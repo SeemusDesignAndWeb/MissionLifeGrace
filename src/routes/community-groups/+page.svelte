@@ -87,13 +87,13 @@
 					<div class="flex flex-wrap gap-3 mt-4">
 						<a
 							href="#intro"
-							class="px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg text-sm"
+							class="px-6 py-3 bg-primary text-white rounded-full font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg text-sm"
 						>
 							Learn More
 						</a>
 						<a
 							href="#contact"
-							class="px-6 py-3 bg-white text-primary rounded-lg font-semibold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg text-sm"
+							class="px-6 py-3 bg-white text-primary rounded-full font-semibold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg text-sm"
 						>
 							Join a Group
 						</a>
@@ -143,7 +143,7 @@
 							<div class="mt-8">
 								<a
 									href={detailsSection.cta.link}
-									class="inline-block px-8 py-4 bg-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg"
+									class="inline-block px-8 py-4 bg-primary text-white rounded-full font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg"
 								>
 									{detailsSection.cta.text}
 								</a>
@@ -154,7 +154,7 @@
 						<div class="relative w-full max-w-lg">
 							<div class="absolute -inset-4 bg-primary/20 rounded-2xl transform rotate-3"></div>
 							<img
-								src={detailsSection.image || "https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066391/egcc/egcc/img-community-groups-bg.jpg"}
+								src={detailsSection.image || "https://res.cloudinary.com/dsnceqtza/image/upload/v1763390998/mission-life-grace/375d5fb3-6856-49be-a8d1-48859a442bca.jpg"}
 								alt="Community Groups"
 								class="relative rounded-2xl shadow-2xl w-full h-auto"
 							/>

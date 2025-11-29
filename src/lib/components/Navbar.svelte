@@ -11,12 +11,16 @@
 	// Page ID to route mapping
 	const pageRoutes = {
 		'im-new': '/im-new',
-		'church': '/church',
+		'church': '/churches',
+		'churches': '/churches',
+		'values': '/values',
 		'team': '/team',
 		'community-groups': '/community-groups',
 		'activities': '/activities',
 		'audio': '/audio',
-		'media': '/media'
+		'media': '/media',
+		'conferences': '/conferences',
+		'events': '/events'
 	};
 
 	// Get navigation label for a page
@@ -24,9 +28,46 @@
 		return page.navigationLabel || page.title || 'Page';
 	}
 
-	// Get route for a page
-	function getPageRoute(pageId) {
-		return pageRoutes[pageId] || `/${pageId}`;
+	// Get route for a page or link
+	function getPageRoute(item) {
+		// If it's a link page, use the linkUrl
+		if (item.isLink && item.linkUrl) {
+			return item.linkUrl;
+		}
+		// Otherwise, use the page route mapping
+		return pageRoutes[item.id] || `/${item.id}`;
+	}
+	
+	// Get target for a link
+	function getLinkTarget(item) {
+		if (item.isLink && item.linkTarget) {
+			return item.linkTarget;
+		}
+		return '_self';
+	}
+	
+	// Handle link clicks - check if it's an anchor link
+	function handleLinkClick(e, item) {
+		const url = getPageRoute(item);
+		// Check if it's an anchor link (starts with # or contains #)
+		if (url.startsWith('#') || (url.includes('#') && !url.startsWith('http'))) {
+			e.preventDefault();
+			menuOpen = false;
+			const hashIndex = url.indexOf('#');
+			if (hashIndex >= 0) {
+				const path = url.substring(0, hashIndex) || window.location.pathname;
+				const anchor = url.substring(hashIndex + 1);
+				// If we're on a different page, navigate first
+				if (path !== window.location.pathname && path !== '') {
+					window.location.href = url;
+				} else {
+					// Same page, just scroll
+					smoothScroll(e, anchor);
+				}
+			}
+		} else {
+			menuOpen = false;
+		}
 	}
 
 	onMount(async () => {
@@ -72,12 +113,15 @@
 	<div class="container mx-auto px-4">
 		<div class="flex items-center justify-between transition-all duration-300" class:py-3={bannerVisible} class:py-4={!bannerVisible}>
 			<!-- Logo -->
-			<a href="/" class="flex items-center">
+			<a href="/" class="flex items-center gap-3">
 				<img
-					src="/images/egcc-color.png"
-					alt="Eltham Green Community Church"
+					src="/images/mlg-logo.svg"
+					alt="Mission Life Grace"
 					class="h-12 w-auto transition-all duration-300 {menuOpen ? 'brightness-0 invert' : ''} {menuOpen ? 'md:brightness-0 md:invert' : 'md:brightness-100 md:invert-0'}"
 				/>
+				<span class="text-xl md:text-2xl font-light transition-colors {menuOpen ? 'text-white' : 'text-gray-900'} hidden sm:block">
+					Mission Life Grace
+				</span>
 			</a>
 
 			<!-- Mobile menu button -->
@@ -105,14 +149,15 @@
 			<!-- Desktop menu -->
 			<div class="hidden md:flex items-center gap-8">
 				<ul class="flex items-center gap-6">
-					{#each navigationPages as page}
+					{#each navigationPages as item}
 						<li>
 							<a
-								href={getPageRoute(page.id)}
-								on:click={() => (menuOpen = false)}
+								href={getPageRoute(item)}
+								target={getLinkTarget(item)}
+								on:click={(e) => handleLinkClick(e, item)}
 								class="transition-colors text-gray-900 hover:text-brand-blue"
 							>
-								{getNavigationLabel(page)}
+								{getNavigationLabel(item)}
 							</a>
 						</li>
 					{/each}
@@ -124,14 +169,15 @@
 		{#if menuOpen}
 			<div class="md:hidden pb-4 bg-brand-blue -mx-4 px-4 pt-4">
 				<ul class="flex flex-col gap-4">
-					{#each navigationPages as page}
+					{#each navigationPages as item}
 						<li>
 							<a
-								href={getPageRoute(page.id)}
-								on:click={() => (menuOpen = false)}
+								href={getPageRoute(item)}
+								target={getLinkTarget(item)}
+								on:click={(e) => handleLinkClick(e, item)}
 								class="block transition-colors text-white hover:text-gray-200"
 							>
-								{getNavigationLabel(page)}
+								{getNavigationLabel(item)}
 							</a>
 						</li>
 					{/each}

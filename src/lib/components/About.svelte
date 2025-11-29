@@ -26,13 +26,17 @@
 				</div>
 
 				<div class="order-1 md:order-2 flex justify-center md:justify-end">
-					<div class="relative w-full max-w-lg">
-						<div class="absolute -inset-4 bg-primary/20 rounded-2xl transform rotate-3"></div>
-						<img
-							src={home?.aboutImage || 'https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066390/egcc/egcc/img-church-bg.jpg'}
-							alt="About us"
-							class="relative rounded-2xl shadow-2xl w-full h-auto"
-						/>
+					<div class="relative w-full max-w-lg flex justify-center md:justify-end">
+						<div class="relative">
+							<!-- Circular decorative shape behind - same size as image, offset -->
+							<div class="absolute w-80 h-80 md:w-96 md:h-96 bg-primary/20 rounded-full -top-2 -right-2 md:-top-3 md:-right-3"></div>
+							<!-- Circular image -->
+							<img
+								src={home?.aboutImage || 'https://res.cloudinary.com/dsnceqtza/image/upload/v1763390998/mission-life-grace/375d5fb3-6856-49be-a8d1-48859a442bca.jpg'}
+								alt="About us"
+								class="relative rounded-full shadow-2xl w-80 h-80 md:w-96 md:h-96 object-cover z-10"
+							/>
+						</div>
 					</div>
 				</div>
 			</div>

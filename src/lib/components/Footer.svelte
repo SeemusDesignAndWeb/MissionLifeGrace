@@ -1,95 +1,70 @@
 <script lang="js">
 	export let contactInfo = {
 		address: '542 Westhorne Avenue, Eltham, London, SE9 6RR',
-		phone: '020 8850 1331',
-		email: 'enquiries@egcc.co.uk'
-	};
-
-	export let serviceTimes = {
-		sunday: '11:00 AM (Doors open at 10:30 AM)',
-		weekday: 'Various times - see Community Groups',
-		notes: ''
+		email: 'enquiries@missionlifegrace.net'
 	};
 </script>
 
 <footer class="bg-gray-900 text-white py-12">
 	<div class="container mx-auto px-4">
-		<div class="grid md:grid-cols-3 gap-8 mb-8">
-			<!-- Contact -->
+		<div class="grid md:grid-cols-2 gap-12 mb-8">
+			<!-- About & Contact -->
 			<div>
-				<a href="/" class="inline-block mb-6">
+				<a href="/" class="flex items-center gap-3 mb-6">
 					<img
-						src="/images/egcc-logo-text.png"
-						alt="Eltham Green Community Church"
-						class="h-12 w-auto"
+						src="/images/mlg-logo.svg"
+						alt="Mission Life Grace"
+						class="h-10 w-auto brightness-0 invert"
 					/>
+					<span class="text-xl font-light text-white">
+						Mission Life Grace
+					</span>
 				</a>
-				<h3 class="text-white font-semibold mb-4">Contact</h3>
-				<div class="space-y-2 text-sm text-white">
-					<p class="text-white">{contactInfo.address}</p>
-					<p>
-						<a href="tel:{contactInfo.phone}" class="text-white hover:text-gray-300">
-							{contactInfo.phone}
-						</a>
-					</p>
-					<p>
-						<a href="mailto:{contactInfo.email}" class="text-white hover:text-gray-300">
-							{contactInfo.email}
-						</a>
-					</p>
+				<p class="text-gray-400 text-sm mb-6 max-w-md">
+					A network of churches on mission together to see the Kingdom of God come, where broken lives are restored, the lost are found and communities transformed.
+				</p>
+				<div>
+					<h3 class="text-white font-semibold mb-4">Contact</h3>
+					<div class="space-y-2 text-sm">
+						{#if contactInfo.address}
+							<p class="text-gray-400">{contactInfo.address}</p>
+						{/if}
+						{#if contactInfo.email}
+							<p>
+								<a href="mailto:{contactInfo.email}" class="text-gray-400 hover:text-white transition-colors">
+									{contactInfo.email}
+								</a>
+							</p>
+						{/if}
+					</div>
 				</div>
 			</div>
 
-			<!-- Service Times -->
-			<div>
-				<h3 class="text-white font-semibold mb-4">Service Times</h3>
-				<div class="space-y-2 text-sm text-white">
-					{#if serviceTimes.sunday && serviceTimes.sunday.trim() !== ''}
-						<div>
-							<p class="text-white font-medium">Sunday</p>
-							<p class="text-white">{serviceTimes.sunday}</p>
-						</div>
-					{/if}
-					{#if serviceTimes.weekday && serviceTimes.weekday.trim() !== ''}
-						<div>
-							<p class="text-white font-medium">Weekday</p>
-							<p class="text-white">{serviceTimes.weekday}</p>
-						</div>
-					{/if}
-					{#if serviceTimes.notes && serviceTimes.notes.trim() !== ''}
-						<div class="pt-2">
-							<p class="text-xs text-white">{serviceTimes.notes}</p>
-						</div>
-					{/if}
-				</div>
-			</div>
-
-			<!-- Links -->
+			<!-- Quick Links -->
 			<div>
 				<h3 class="text-white font-semibold mb-4">Quick Links</h3>
-				<div class="space-y-2 text-sm text-white">
-					<p>
-						<a href="/im-new" class="text-white hover:text-gray-300">I'm New</a>
-					</p>
-					<p>
-						<a href="/church" class="text-white hover:text-gray-300">About Us</a>
-					</p>
-					<p>
-						<a href="/team" class="text-white hover:text-gray-300">Team</a>
-					</p>
-					<p>
-						<a href="/community-groups" class="text-white hover:text-gray-300">Community Groups</a>
-					</p>
-					<p>
-						<a href="/audio" class="text-white hover:text-gray-300">Audio</a>
-					</p>
+				<div class="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+					<a href="/churches" class="text-gray-400 hover:text-white transition-colors">Churches</a>
+					<a href="/values" class="text-gray-400 hover:text-white transition-colors">Values</a>
+					<a href="/team" class="text-gray-400 hover:text-white transition-colors">Team</a>
+					<a href="/events" class="text-gray-400 hover:text-white transition-colors">Events</a>
+					<a href="/contact" class="text-gray-400 hover:text-white transition-colors">Contact</a>
 				</div>
 			</div>
 		</div>
 
-		<!-- Copyright -->
-		<div class="border-t border-gray-800 pt-8 text-center text-sm text-white">
-			<p>&copy; {new Date().getFullYear()} Eltham Green Community Church. All rights reserved.</p>
+		<!-- Copyright and Legal Links -->
+		<div class="border-t border-gray-800 pt-8">
+			<div class="flex flex-col md:flex-row justify-between items-center gap-4">
+				<p class="text-sm text-gray-400">
+					&copy; {new Date().getFullYear()} Mission Life Grace. All rights reserved.
+				</p>
+				<div class="flex flex-wrap gap-4 text-sm">
+					<a href="/privacy-policy" class="text-gray-400 hover:text-white transition-colors">Privacy Policy</a>
+					<a href="/terms-and-conditions" class="text-gray-400 hover:text-white transition-colors">Terms & Conditions</a>
+					<a href="/cookie-policy" class="text-gray-400 hover:text-white transition-colors">Cookie Policy</a>
+				</div>
+			</div>
 		</div>
 	</div>
 </footer>

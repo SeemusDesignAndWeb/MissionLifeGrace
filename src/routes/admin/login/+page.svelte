@@ -36,7 +36,7 @@
 </script>
 
 <svelte:head>
-	<title>Admin Login - EGCC</title>
+	<title>Admin Login - MLG</title>
 </svelte:head>
 
 <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -46,7 +46,7 @@
 				Admin Login
 			</h2>
 			<p class="mt-2 text-center text-sm text-gray-600">
-				Eltham Green Community Church
+				Mission Life Grace
 			</p>
 		</div>
 		<form class="mt-8 space-y-6" on:submit={handleLogin}>

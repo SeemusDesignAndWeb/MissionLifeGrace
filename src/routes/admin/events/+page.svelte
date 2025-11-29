@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import ImagePicker from '$lib/components/ImagePicker.svelte';
+	import { notifyError, notifySuccess } from '$lib/utils/notify';
 
 	export let params = {};
 
@@ -72,7 +73,7 @@
 		if (!editing) return;
 
 		if (!editing.id || !editing.title || !editing.date) {
-			alert('Please fill in ID, Title, and Date');
+			notifyError('Please fill in ID, Title, and Date');
 			return;
 		}
 
@@ -86,13 +87,14 @@
 			if (response.ok) {
 				await loadEvents();
 				cancelEdit();
+				notifySuccess('Event saved successfully');
 			} else {
 				const error = await response.json();
-				alert(error.error || 'Failed to save event');
+				notifyError(error.error || 'Failed to save event');
 			}
 		} catch (error) {
 			console.error('Failed to save event:', error);
-			alert('Failed to save event');
+			notifyError('Failed to save event');
 		}
 	}
 
@@ -106,12 +108,13 @@
 
 			if (response.ok) {
 				await loadEvents();
+				notifySuccess('Event deleted successfully');
 			} else {
-				alert('Failed to delete event');
+				notifyError('Failed to delete event');
 			}
 		} catch (error) {
 			console.error('Failed to delete event:', error);
-			alert('Failed to delete event');
+			notifyError('Failed to delete event');
 		}
 	}
 
@@ -131,7 +134,7 @@
 		<h1 class="text-3xl font-bold">Manage Events</h1>
 		<button
 			on:click={() => startEdit()}
-			class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+			class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
 		>
 			Add New Event
 		</button>
@@ -146,7 +149,7 @@
 				<div class="flex gap-2">
 					<button
 						on:click={saveEvent}
-						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
 					>
 						Save
 					</button>
@@ -275,7 +278,7 @@
 				<div class="flex gap-2">
 					<button
 						on:click={saveEvent}
-						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
 					>
 						Save
 					</button>
@@ -334,10 +337,10 @@
 								<div class="flex items-center gap-2">
 									{event.title}
 									{#if event.featured}
-										<span class="px-2 py-1 text-xs bg-blue-500 text-white rounded">Featured</span>
+										<span class="px-3 py-1 text-xs bg-primary text-white rounded-full">Featured</span>
 									{/if}
 									{#if event.highlighted}
-										<span class="px-2 py-1 text-xs bg-yellow-500 text-white rounded">Highlighted</span>
+										<span class="px-3 py-1 text-xs bg-yellow-500 text-white rounded-full">Highlighted</span>
 									{/if}
 								</div>
 							</td>
@@ -345,7 +348,7 @@
 							<td class="px-6 py-4 whitespace-nowrap text-sm">{event.time || '-'}</td>
 							<td class="px-6 py-4 text-sm text-gray-500">{event.location || '-'}</td>
 							<td class="px-6 py-4 whitespace-nowrap text-sm">
-								<span class="px-2 py-1 text-xs rounded {event.published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+								<span class="px-3 py-1 text-xs rounded-full {event.published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
 									{event.published ? 'Published' : 'Draft'}
 								</span>
 							</td>

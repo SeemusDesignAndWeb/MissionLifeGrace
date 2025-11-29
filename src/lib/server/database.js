@@ -30,6 +30,7 @@ function getDbPath() {
 // Default database structure
 const defaultDatabase = {
 	pages: [],
+	navigationLinks: [],
 	team: [],
 	services: [],
 	heroSlides: [],
@@ -37,9 +38,15 @@ const defaultDatabase = {
 	podcasts: [],
 	communityGroups: [],
 	events: [],
+	conferences: [],
+	conferenceTicketTypes: [],
+	conferenceBookings: [],
+	conferenceAttendees: [],
+	conferenceDiscountCodes: [],
+	conferencePaymentSchedules: [],
+	conferenceFormFields: [],
 	contact: {
 		address: '542 Westhorne Avenue, Eltham, London, SE9 6RR',
-		phone: '020 8850 1331',
 		email: 'enquiries@egcc.co.uk',
 		googleMapsUrl:
 			'https://www.google.com/maps/place/Eltham+Green+Community+Church/@51.4551128,0.0400237,15z'
@@ -51,14 +58,14 @@ const defaultDatabase = {
 	},
 	settings: {
 		siteName: 'Eltham Green Community Church',
-		primaryColor: '#4BB170',
+		primaryColor: '#0693ad',
 		podcastAuthor: 'Eltham Green Community Church',
 		podcastEmail: 'johnawatson72@gmail.com',
 		podcastImage: 'http://www.egcc.co.uk/company/egcc/images/EGCC-Audio.png',
-		podcastDescription: 'Latest sermons from Eltham Green Community Church',
-		teamDescription: 'EGCC is led by an Eldership Team. The team is led by our Lead Pastor John Watson who will seek God for the vision of the church.&nbsp; We take responsibility together for the life and care of the church.&nbsp; The Elders, with their wives, are supported by many others who take a leadership role whether that be in leading Worship, Ministry, Community Groups, Youth and Children\'s work and other church and community activities.',
+		podcastDescription: 'Latest messages and teachings from Mission Life Grace',
+		teamDescription: 'MLG is led by a Leadership Team. The team works together to provide direction and support for the network.&nbsp; We take responsibility together for the life and care of the network.&nbsp; The Leadership Team is supported by many others who take a leadership role whether that be in training, networking events, community work, youth and children\'s work and other network and community activities.',
 		teamHeroTitle: 'Developing leaders of tomorrow',
-		teamHeroImage: 'https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066390/egcc/egcc/img-church-bg.jpg',
+		teamHeroImage: 'https://res.cloudinary.com/dsnceqtza/image/upload/v1763390998/mission-life-grace/375d5fb3-6856-49be-a8d1-48859a442bca.jpg',
 		youtubePlaylistId: '',
 		youtubeChannelId: '',
 		spotifyShowUrl: 'https://open.spotify.com/show/7aczNe2FL8GCTxpaqM9WF1?si=9bab49974d2e48bc'
@@ -67,7 +74,27 @@ const defaultDatabase = {
 		aboutLabel: 'Our Story',
 		aboutTitle: 'Welcome to Eltham Green Community Church',
 		aboutContent: '<p>Eltham Green Community Church is a vibrant, welcoming church family located in the heart of Eltham, London. We are a community of believers committed to following Jesus Christ and sharing His love with our neighbors.</p><p>Our mission is to build a community where everyone can experience God\'s love, grow in faith, and serve others. We believe in creating a space where people from all walks of life can come together to worship, learn, and support one another on their spiritual journey.</p><p>Whether you\'re exploring faith for the first time or looking for a church home, we\'d love to welcome you. Join us for worship, connect with our community, and discover how you can be part of what God is doing here in Eltham.</p>',
-		aboutImage: 'https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066390/egcc/egcc/img-church-bg.jpg'
+		aboutImage: 'https://res.cloudinary.com/dsnceqtza/image/upload/v1763390998/mission-life-grace/375d5fb3-6856-49be-a8d1-48859a442bca.jpg',
+		visionLabel: 'Our Vision',
+		visionTitle: 'We Believe',
+		visionText: 'We believe every church exists to be part of God\'s mission to show the world Christ and that we are better equipped to do this in partnership with other churches. As a network our focus is to encourage each other through sharing our hearts, ideas and lessons learned along the way, to challenge one another to stay true to the course and to invest in helping people fulfil their God given calling. We believe that by journeying together we can see God do great things in our nation and around the world.'
+	},
+	policies: {
+		privacyPolicy: {
+			title: 'Privacy Policy',
+			content: '<p>This is the privacy policy content. Edit this in the admin area.</p>',
+			lastUpdated: new Date().toISOString()
+		},
+		termsAndConditions: {
+			title: 'Terms and Conditions',
+			content: '<p>This is the terms and conditions content. Edit this in the admin area.</p>',
+			lastUpdated: new Date().toISOString()
+		},
+		cookiePolicy: {
+			title: 'Cookie Policy',
+			content: '<p>This is the cookie policy content. Edit this in the admin area.</p>',
+			lastUpdated: new Date().toISOString()
+		}
 	}
 };
 
@@ -152,13 +179,45 @@ export function savePage(page) {
 		// Only update fields that are actually provided in the page object
 		const existingPage = db.pages[index];
 		
+		// Special handling for churches page: preserve the churches-grid section content
+		// This section is managed separately in the church management area, but order can be changed
+		let mergedSections = [];
+		if (page.id === 'churches') {
+			// Find the existing churches-grid section to preserve its content (columns)
+			const existingChurchesGrid = existingPage.sections?.find(s => s.id === 'churches-grid');
+			
+			// Use incoming sections to preserve order, but merge churches-grid content
+			if (page.sections !== undefined) {
+				mergedSections = page.sections.map(section => {
+					// If this is the churches-grid section, preserve the columns from existing
+					if (section.id === 'churches-grid' && existingChurchesGrid) {
+						return {
+							...section, // Keep the new position and other properties
+							columns: existingChurchesGrid.columns || section.columns // Preserve the actual church data
+						};
+					}
+					return section;
+				});
+				
+				// If churches-grid wasn't in incoming sections but exists, add it at the end
+				if (existingChurchesGrid && !mergedSections.find(s => s.id === 'churches-grid')) {
+					mergedSections.push(existingChurchesGrid);
+				}
+			} else {
+				// No sections provided, keep existing ones
+				mergedSections = existingPage.sections || [];
+			}
+		} else {
+			// For other pages, use the incoming sections if provided
+			mergedSections = page.sections !== undefined ? page.sections : (existingPage.sections || []);
+		}
+		
 		// Merge the page data, but explicitly handle sections and other complex fields
 		const updatedPage = {
 			...existingPage,
 			...page,
-			// Always use the incoming sections if provided (even if empty array)
-			// This allows clearing sections if needed
-			sections: page.sections !== undefined ? page.sections : (existingPage.sections || []),
+			// Use the merged sections (which preserves churches-grid for churches page)
+			sections: mergedSections,
 			// Preserve other important fields
 			heroMessages: page.heroMessages !== undefined ? page.heroMessages : (existingPage.heroMessages || []),
 			heroButtons: page.heroButtons !== undefined ? page.heroButtons : (existingPage.heroButtons || []),
@@ -170,7 +229,8 @@ export function savePage(page) {
 		
 		console.log('[DB] Updated page sections:', {
 			before: existingPage.sections?.length || 0,
-			after: updatedPage.sections?.length || 0
+			after: updatedPage.sections?.length || 0,
+			preservedChurchesGrid: page.id === 'churches' ? !!updatedPage.sections.find(s => s.id === 'churches-grid') : 'N/A'
 		});
 		
 		db.pages[index] = updatedPage;
@@ -233,10 +293,52 @@ export function deleteTeamMember(id) {
 	writeDatabase(db);
 }
 
+// CRUD operations for Navigation Links
+export function getNavigationLinks() {
+	const db = readDatabase();
+	return db.navigationLinks || [];
+}
+
+export function getNavigationLink(id) {
+	const db = readDatabase();
+	return db.navigationLinks?.find((link) => link.id === id);
+}
+
+export function saveNavigationLink(link) {
+	const db = readDatabase();
+	if (!db.navigationLinks) {
+		db.navigationLinks = [];
+	}
+	const index = db.navigationLinks.findIndex((l) => l.id === link.id);
+	if (index >= 0) {
+		db.navigationLinks[index] = link;
+	} else {
+		// Generate ID if not provided
+		if (!link.id) {
+			link.id = `nav-link-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+		}
+		db.navigationLinks.push(link);
+	}
+	writeDatabase(db);
+}
+
+export function deleteNavigationLink(id) {
+	const db = readDatabase();
+	if (db.navigationLinks) {
+		db.navigationLinks = db.navigationLinks.filter((l) => l.id !== id);
+		writeDatabase(db);
+	}
+}
+
 // CRUD operations for Services
 export function getServices() {
 	const db = readDatabase();
 	return db.services || [];
+}
+
+export function getService(id) {
+	const db = readDatabase();
+	return db.services?.find((s) => s.id === id);
 }
 
 export function saveService(service) {
@@ -502,6 +604,478 @@ export function deleteEvent(id) {
 		db.events = db.events.filter((e) => e.id !== id);
 		writeDatabase(db);
 	}
+}
+
+// CRUD operations for Churches
+export function getChurches(options = {}) {
+	const db = readDatabase();
+	// Get churches from the churches page section
+	const churchesPage = db.pages?.find((p) => p.id === 'churches');
+	if (churchesPage && churchesPage.sections) {
+		const churchesSection = churchesPage.sections.find((s) => s.id === 'churches-grid');
+		if (churchesSection && churchesSection.columns) {
+			let churches = churchesSection.columns.map((col, index) => ({
+				id: col.id || `church-${index}`,
+				title: col.title || '',
+				link: col.link || col.content?.match(/href="([^"]*)"/)?.[1] || '',
+				image: col.image || '',
+				content: col.content || '',
+				showOnFrontEnd: col.showOnFrontEnd !== undefined ? col.showOnFrontEnd : true,
+				showInConference: col.showInConference !== undefined ? col.showInConference : false,
+				hideFromAll: col.hideFromAll !== undefined ? col.hideFromAll : false
+			}));
+			
+			// Apply filters based on options
+			if (options.frontEndOnly) {
+				churches = churches.filter(c => c.showOnFrontEnd && !c.hideFromAll);
+			}
+			if (options.conferenceOnly) {
+				churches = churches.filter(c => c.showInConference && !c.hideFromAll);
+			}
+			if (options.excludeHidden) {
+				churches = churches.filter(c => !c.hideFromAll);
+			}
+			
+			return churches;
+		}
+	}
+	return [];
+}
+
+export function getChurch(id) {
+	const churches = getChurches();
+	return churches.find((c) => c.id === id);
+}
+
+export function saveChurch(church) {
+	const db = readDatabase();
+	
+	// Find or create churches page
+	let churchesPage = db.pages?.find((p) => p.id === 'churches');
+	if (!churchesPage) {
+		churchesPage = {
+			id: 'churches',
+			title: 'The Churches',
+			heroTitle: 'The <span style="color:#0693ad;">Churches</span>',
+			heroSubtitle: 'Churches in the Mission Life Grace Network',
+			heroImage: '',
+			heroOverlay: 40,
+			metaDescription: 'The churches in the Mission Life Grace network',
+			content: '',
+			published: true,
+			order: 2,
+			sections: [],
+			navigationOrder: 1,
+			showInNavigation: true,
+			navigationLabel: 'Churches'
+		};
+		if (!db.pages) db.pages = [];
+		db.pages.push(churchesPage);
+	}
+	
+	// Find or create churches-grid section
+	let churchesSection = churchesPage.sections?.find((s) => s.id === 'churches-grid');
+	if (!churchesSection) {
+		churchesSection = {
+			type: 'columns',
+			id: 'churches-grid',
+			backgroundColor: 'gray-50',
+			padding: 'large',
+			columnCount: 3,
+			maxWidth: 'full',
+			columns: []
+		};
+		if (!churchesPage.sections) churchesPage.sections = [];
+		churchesPage.sections.push(churchesSection);
+	}
+	
+	// Generate content HTML from link if not provided
+	if (!church.content && church.link) {
+		const domain = church.link.replace(/^https?:\/\//, '').replace(/\/$/, '');
+		church.content = `<p><a href="${church.link}" target="_blank">www.${domain}</a></p>`;
+	}
+	
+	// Generate ID if not provided
+	if (!church.id) {
+		church.id = `church-${church.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`;
+	}
+	
+	// Update or add church
+	if (!churchesSection.columns) churchesSection.columns = [];
+	const index = churchesSection.columns.findIndex((c) => c.id === church.id);
+	const churchData = {
+		id: church.id,
+		title: church.title,
+		link: church.link,
+		image: church.image,
+		content: church.content,
+		showOnFrontEnd: church.showOnFrontEnd !== undefined ? church.showOnFrontEnd : true,
+		showInConference: church.showInConference !== undefined ? church.showInConference : false,
+		hideFromAll: church.hideFromAll !== undefined ? church.hideFromAll : false
+	};
+	if (index >= 0) {
+		churchesSection.columns[index] = churchData;
+	} else {
+		churchesSection.columns.push(churchData);
+	}
+	
+	writeDatabase(db);
+}
+
+export function deleteChurch(id) {
+	const db = readDatabase();
+	const churchesPage = db.pages?.find((p) => p.id === 'churches');
+	if (churchesPage && churchesPage.sections) {
+		const churchesSection = churchesPage.sections.find((s) => s.id === 'churches-grid');
+		if (churchesSection && churchesSection.columns) {
+			churchesSection.columns = churchesSection.columns.filter((c) => c.id !== id);
+			writeDatabase(db);
+		}
+	}
+}
+
+// ========== CONFERENCE MANAGEMENT FUNCTIONS ==========
+
+// CRUD operations for Conferences
+export function getConferences() {
+	const db = readDatabase();
+	if (!db.conferences) {
+		db.conferences = [];
+	}
+	return db.conferences || [];
+}
+
+export function getConference(id) {
+	const db = readDatabase();
+	return db.conferences?.find((c) => c.id === id);
+}
+
+export function getConferenceBySlug(slug) {
+	const db = readDatabase();
+	return db.conferences?.find((c) => c.slug === slug);
+}
+
+export function saveConference(conference) {
+	const db = readDatabase();
+	if (!db.conferences) {
+		db.conferences = [];
+	}
+	const index = db.conferences.findIndex((c) => c.id === conference.id);
+	if (index >= 0) {
+		db.conferences[index] = conference;
+	} else {
+		// Generate slug if not provided
+		if (!conference.slug && conference.title) {
+			conference.slug = conference.title.toLowerCase()
+				.replace(/[^a-z0-9]+/g, '-')
+				.replace(/^-+|-+$/g, '');
+		}
+		db.conferences.push(conference);
+	}
+	writeDatabase(db);
+}
+
+export function deleteConference(id) {
+	const db = readDatabase();
+	if (db.conferences) {
+		db.conferences = db.conferences.filter((c) => c.id !== id);
+		writeDatabase(db);
+	}
+}
+
+// CRUD operations for Conference Ticket Types
+export function getConferenceTicketTypes(conferenceId) {
+	const db = readDatabase();
+	if (!db.conferenceTicketTypes) {
+		db.conferenceTicketTypes = [];
+	}
+	return db.conferenceTicketTypes.filter((t) => t.conferenceId === conferenceId) || [];
+}
+
+export function getConferenceTicketType(id) {
+	const db = readDatabase();
+	return db.conferenceTicketTypes?.find((t) => t.id === id);
+}
+
+export function saveConferenceTicketType(ticketType) {
+	const db = readDatabase();
+	if (!db.conferenceTicketTypes) {
+		db.conferenceTicketTypes = [];
+	}
+	const index = db.conferenceTicketTypes.findIndex((t) => t.id === ticketType.id);
+	if (index >= 0) {
+		db.conferenceTicketTypes[index] = ticketType;
+	} else {
+		db.conferenceTicketTypes.push(ticketType);
+	}
+	writeDatabase(db);
+}
+
+export function deleteConferenceTicketType(id) {
+	const db = readDatabase();
+	if (db.conferenceTicketTypes) {
+		db.conferenceTicketTypes = db.conferenceTicketTypes.filter((t) => t.id !== id);
+		writeDatabase(db);
+	}
+}
+
+// CRUD operations for Conference Bookings
+export function getConferenceBookings(conferenceId = null) {
+	const db = readDatabase();
+	if (!db.conferenceBookings) {
+		db.conferenceBookings = [];
+	}
+	if (conferenceId) {
+		return db.conferenceBookings.filter((b) => b.conferenceId === conferenceId) || [];
+	}
+	return db.conferenceBookings || [];
+}
+
+export function getConferenceBooking(id) {
+	const db = readDatabase();
+	return db.conferenceBookings?.find((b) => b.id === id);
+}
+
+export function saveConferenceBooking(booking) {
+	const db = readDatabase();
+	if (!db.conferenceBookings) {
+		db.conferenceBookings = [];
+	}
+	const index = db.conferenceBookings.findIndex((b) => b.id === booking.id);
+	if (index >= 0) {
+		db.conferenceBookings[index] = booking;
+	} else {
+		// Generate booking ID if not provided
+		if (!booking.id) {
+			booking.id = `booking-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+		}
+		// Generate booking reference
+		if (!booking.bookingReference) {
+			booking.bookingReference = `CONF-${Date.now().toString(36).toUpperCase()}`;
+		}
+		db.conferenceBookings.push(booking);
+	}
+	writeDatabase(db);
+}
+
+export function deleteConferenceBooking(id) {
+	const db = readDatabase();
+	if (db.conferenceBookings) {
+		db.conferenceBookings = db.conferenceBookings.filter((b) => b.id !== id);
+		writeDatabase(db);
+	}
+}
+
+// CRUD operations for Conference Attendees
+export function getConferenceAttendees(bookingId = null) {
+	const db = readDatabase();
+	if (!db.conferenceAttendees) {
+		db.conferenceAttendees = [];
+	}
+	if (bookingId) {
+		return db.conferenceAttendees.filter((a) => a.bookingId === bookingId) || [];
+	}
+	return db.conferenceAttendees || [];
+}
+
+export function getConferenceAttendee(id) {
+	const db = readDatabase();
+	return db.conferenceAttendees?.find((a) => a.id === id);
+}
+
+export function saveConferenceAttendee(attendee) {
+	const db = readDatabase();
+	if (!db.conferenceAttendees) {
+		db.conferenceAttendees = [];
+	}
+	const index = db.conferenceAttendees.findIndex((a) => a.id === attendee.id);
+	if (index >= 0) {
+		db.conferenceAttendees[index] = attendee;
+	} else {
+		// Generate attendee ID if not provided
+		if (!attendee.id) {
+			attendee.id = `attendee-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+		}
+		// Generate ticket ID
+		if (!attendee.ticketId) {
+			attendee.ticketId = `TICKET-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+		}
+		db.conferenceAttendees.push(attendee);
+	}
+	writeDatabase(db);
+}
+
+export function deleteConferenceAttendee(id) {
+	const db = readDatabase();
+	if (db.conferenceAttendees) {
+		db.conferenceAttendees = db.conferenceAttendees.filter((a) => a.id !== id);
+		writeDatabase(db);
+	}
+}
+
+// CRUD operations for Conference Discount Codes
+export function getConferenceDiscountCodes(conferenceId = null) {
+	const db = readDatabase();
+	if (!db.conferenceDiscountCodes) {
+		db.conferenceDiscountCodes = [];
+	}
+	if (conferenceId) {
+		return db.conferenceDiscountCodes.filter((d) => d.conferenceId === conferenceId) || [];
+	}
+	return db.conferenceDiscountCodes || [];
+}
+
+export function getConferenceDiscountCode(code, conferenceId = null) {
+	const db = readDatabase();
+	return db.conferenceDiscountCodes?.find((d) => {
+		if (d.code.toLowerCase() !== code.toLowerCase()) return false;
+		if (conferenceId && d.conferenceId !== conferenceId) return false;
+		return true;
+	});
+}
+
+export function saveConferenceDiscountCode(discountCode) {
+	const db = readDatabase();
+	if (!db.conferenceDiscountCodes) {
+		db.conferenceDiscountCodes = [];
+	}
+	const index = db.conferenceDiscountCodes.findIndex((d) => d.id === discountCode.id);
+	if (index >= 0) {
+		db.conferenceDiscountCodes[index] = discountCode;
+	} else {
+		db.conferenceDiscountCodes.push(discountCode);
+	}
+	writeDatabase(db);
+}
+
+export function deleteConferenceDiscountCode(id) {
+	const db = readDatabase();
+	if (db.conferenceDiscountCodes) {
+		db.conferenceDiscountCodes = db.conferenceDiscountCodes.filter((d) => d.id !== id);
+		writeDatabase(db);
+	}
+}
+
+// CRUD operations for Conference Payment Schedules
+export function getConferencePaymentSchedules(bookingId = null) {
+	const db = readDatabase();
+	if (!db.conferencePaymentSchedules) {
+		db.conferencePaymentSchedules = [];
+	}
+	if (bookingId) {
+		return db.conferencePaymentSchedules.filter((p) => p.bookingId === bookingId) || [];
+	}
+	return db.conferencePaymentSchedules || [];
+}
+
+export function getConferencePaymentSchedule(id) {
+	const db = readDatabase();
+	return db.conferencePaymentSchedules?.find((p) => p.id === id);
+}
+
+export function saveConferencePaymentSchedule(paymentSchedule) {
+	const db = readDatabase();
+	if (!db.conferencePaymentSchedules) {
+		db.conferencePaymentSchedules = [];
+	}
+	const index = db.conferencePaymentSchedules.findIndex((p) => p.id === paymentSchedule.id);
+	if (index >= 0) {
+		db.conferencePaymentSchedules[index] = paymentSchedule;
+	} else {
+		db.conferencePaymentSchedules.push(paymentSchedule);
+	}
+	writeDatabase(db);
+}
+
+export function deleteConferencePaymentSchedule(id) {
+	const db = readDatabase();
+	if (db.conferencePaymentSchedules) {
+		db.conferencePaymentSchedules = db.conferencePaymentSchedules.filter((p) => p.id !== id);
+		writeDatabase(db);
+	}
+}
+
+// CRUD operations for Conference Form Fields
+export function getConferenceFormFields(formType = null) {
+	const db = readDatabase();
+	if (!db.conferenceFormFields) {
+		db.conferenceFormFields = [];
+	}
+	if (formType) {
+		return db.conferenceFormFields.filter((f) => f.formType === formType) || [];
+	}
+	return db.conferenceFormFields || [];
+}
+
+export function getConferenceFormField(id) {
+	const db = readDatabase();
+	return db.conferenceFormFields?.find((f) => f.id === id);
+}
+
+export function saveConferenceFormField(formField) {
+	const db = readDatabase();
+	if (!db.conferenceFormFields) {
+		db.conferenceFormFields = [];
+	}
+	const index = db.conferenceFormFields.findIndex((f) => f.id === formField.id);
+	if (index >= 0) {
+		db.conferenceFormFields[index] = formField;
+	} else {
+		if (!formField.id) {
+			formField.id = `field-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+		}
+		// Set order if not provided
+		if (formField.order === undefined) {
+			const maxOrder = db.conferenceFormFields
+				.filter(f => f.formType === formField.formType)
+				.reduce((max, f) => Math.max(max, f.order || 0), 0);
+			formField.order = maxOrder + 1;
+		}
+		db.conferenceFormFields.push(formField);
+	}
+	writeDatabase(db);
+	return formField;
+}
+
+export function deleteConferenceFormField(id) {
+	const db = readDatabase();
+	if (db.conferenceFormFields) {
+		db.conferenceFormFields = db.conferenceFormFields.filter((f) => f.id !== id);
+		writeDatabase(db);
+	}
+}
+
+// ========== POLICY PAGES FUNCTIONS ==========
+
+export function getPolicy(policyType) {
+	const db = readDatabase();
+	if (!db.policies) {
+		db.policies = defaultDatabase.policies;
+		writeDatabase(db);
+	}
+	return db.policies[policyType] || null;
+}
+
+export function savePolicy(policyType, policyData) {
+	const db = readDatabase();
+	if (!db.policies) {
+		db.policies = {};
+	}
+	db.policies[policyType] = {
+		...policyData,
+		lastUpdated: new Date().toISOString()
+	};
+	writeDatabase(db);
+	return db.policies[policyType];
+}
+
+export function getAllPolicies() {
+	const db = readDatabase();
+	if (!db.policies) {
+		db.policies = defaultDatabase.policies;
+		writeDatabase(db);
+	}
+	return db.policies;
 }
 
 // Health check

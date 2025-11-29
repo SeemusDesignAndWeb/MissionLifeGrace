@@ -30,10 +30,10 @@
 		<div class="text-center mb-16">
 			<span class="text-primary text-sm font-semibold uppercase tracking-wider mb-2 block">What We Offer</span>
 			<h2 class="text-4xl md:text-5xl font-bold text-white mb-4">
-				Our Services & Programs
+				Training & Networking Events
 			</h2>
 			<p class="text-xl text-gray-300 max-w-2xl mx-auto">
-				Worship, Community & Growth
+				Equipping Leaders, Building Community
 			</p>
 		</div>
 

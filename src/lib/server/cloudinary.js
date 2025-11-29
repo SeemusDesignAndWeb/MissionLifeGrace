@@ -6,7 +6,7 @@ import { env } from '$env/dynamic/private';
  * Called on each upload to ensure we have the latest config
  */
 function configureCloudinary() {
-	const cloudName = env.CLOUDINARY_CLOUD_NAME || 'dl8kjhwjs';
+	const cloudName = env.CLOUDINARY_CLOUD_NAME || 'dsnceqtza';
 	const apiKey = env.CLOUDINARY_API_KEY;
 	const apiSecret = env.CLOUDINARY_API_SECRET;
 
@@ -65,7 +65,7 @@ export async function uploadImage(file, filename, options = {}) {
 			delete uploadOptions.unique_filename;
 		} else if (!uploadOptions.public_id) {
 			// No public_id provided, use folder option
-			uploadOptions.folder = 'egcc';
+			uploadOptions.folder = 'mission-life-grace';
 			uploadOptions.use_filename = false;
 			uploadOptions.unique_filename = true;
 		}
@@ -138,7 +138,7 @@ export async function uploadImage(file, filename, options = {}) {
 			message: error.message,
 			hasApiSecret: !!env.CLOUDINARY_API_SECRET,
 			hasApiKey: !!env.CLOUDINARY_API_KEY,
-			cloudName: env.CLOUDINARY_CLOUD_NAME || 'dl8kjhwjs'
+			cloudName: env.CLOUDINARY_CLOUD_NAME || 'dsnceqtza'
 		});
 		throw error;
 	}
@@ -184,7 +184,7 @@ export function getImageUrl(publicId, options = {}) {
 		? publicId.split('/').pop().split('.')[0] 
 		: publicId;
 
-	const cloudName = env.CLOUDINARY_CLOUD_NAME || 'dl8kjhwjs';
+	const cloudName = env.CLOUDINARY_CLOUD_NAME || 'dsnceqtza';
 	
 	// Build transformations with default optimizations
 	const transformations = [];

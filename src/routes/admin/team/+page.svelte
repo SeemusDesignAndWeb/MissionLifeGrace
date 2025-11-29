@@ -26,15 +26,23 @@
 	}
 
 
+	const categories = [
+		'Leadership Team',
+		'Network Development Team',
+		'Conference Development Team',
+		'Conference Ministry Team'
+	];
+
 	function startEdit(member) {
 		editing = member
-			? { ...member, social: member.social || {} }
+			? { ...member, social: member.social || {}, category: member.category || 'Leadership Team' }
 			: {
 					id: '',
 					name: '',
 					role: '',
 					image: '',
 					quote: '',
+					category: 'Leadership Team',
 					social: { facebook: '', twitter: '', instagram: '', linkedin: '' }
 				};
 		showForm = true;
@@ -103,7 +111,7 @@
 		<h2 class="text-2xl font-bold">Team Members</h2>
 		<button
 			on:click={() => startEdit()}
-			class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+			class="px-4 py-2 bg-primary text-white rounded-full hover:bg-primary-dark transition-colors"
 		>
 			Add New Member
 		</button>
@@ -118,13 +126,13 @@
 				<div class="flex gap-2">
 					<button
 						on:click={saveMember}
-						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+						class="px-4 py-2 bg-primary text-white rounded-full hover:bg-primary-dark transition-colors"
 					>
 						Save
 					</button>
 					<button
 						on:click={cancelEdit}
-						class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+						class="px-4 py-2 bg-gray-300 rounded-full hover:bg-gray-400 transition-colors"
 					>
 						Cancel
 					</button>
@@ -136,7 +144,7 @@
 					<input
 						type="text"
 						bind:value={editing.id}
-						class="w-full px-3 py-2 border rounded"
+						class="w-full px-3 py-2 border rounded-lg"
 						placeholder="e.g., john-watson"
 					/>
 				</div>
@@ -145,15 +153,26 @@
 					<input
 						type="text"
 						bind:value={editing.name}
-						class="w-full px-3 py-2 border rounded"
+						class="w-full px-3 py-2 border rounded-lg"
 					/>
+				</div>
+				<div>
+					<label class="block text-sm font-medium mb-1">Category</label>
+					<select
+						bind:value={editing.category}
+						class="w-full px-3 py-2 border rounded-lg"
+					>
+						{#each categories as cat}
+							<option value={cat}>{cat}</option>
+						{/each}
+					</select>
 				</div>
 				<div>
 					<label class="block text-sm font-medium mb-1">Role</label>
 					<input
 						type="text"
 						bind:value={editing.role}
-						class="w-full px-3 py-2 border rounded"
+						class="w-full px-3 py-2 border rounded-lg"
 					/>
 				</div>
 				<div>
@@ -190,7 +209,7 @@
 					<textarea
 						bind:value={editing.quote}
 						rows="3"
-						class="w-full px-3 py-2 border rounded"
+						class="w-full px-3 py-2 border rounded-lg"
 					></textarea>
 				</div>
 				<div>
@@ -227,13 +246,13 @@
 				<div class="flex gap-2">
 					<button
 						on:click={saveMember}
-						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+						class="px-4 py-2 bg-primary text-white rounded-full hover:bg-primary-dark transition-colors"
 					>
 						Save
 					</button>
 					<button
 						on:click={cancelEdit}
-						class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+						class="px-4 py-2 bg-gray-300 rounded-full hover:bg-gray-400 transition-colors"
 					>
 						Cancel
 					</button>
@@ -255,6 +274,9 @@
 							Name
 						</th>
 						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+							Category
+						</th>
+						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
 							Role
 						</th>
 						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -263,10 +285,18 @@
 					</tr>
 				</thead>
 				<tbody class="bg-white divide-y divide-gray-200">
-					{#each team as member}
+					{#each team.sort((a, b) => {
+						const catOrder = categories.indexOf(a.category || 'Leadership Team') - categories.indexOf(b.category || 'Leadership Team');
+						return catOrder !== 0 ? catOrder : (a.name || '').localeCompare(b.name || '');
+					}) as member}
 						<tr>
 							<td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
 								{member.name}
+							</td>
+							<td class="px-6 py-4 whitespace-nowrap text-sm">
+								<span class="px-2 py-1 text-xs font-medium rounded-full bg-primary/10 text-primary">
+									{member.category || 'Leadership Team'}
+								</span>
 							</td>
 							<td class="px-6 py-4 whitespace-nowrap text-sm">{member.role}</td>
 							<td class="px-6 py-4 whitespace-nowrap text-sm font-medium">

@@ -54,7 +54,11 @@
 
 			// Set initial content
 			const initialValue = value || '';
-			quill.root.innerHTML = initialValue;
+			if (initialValue) {
+				// Use Quill's clipboard to properly parse HTML
+				const delta = quill.clipboard.convert({ html: initialValue });
+				quill.setContents(delta, 'silent');
+			}
 			lastExternalValue = initialValue;
 
 			// Update value when content changes
@@ -87,7 +91,13 @@
 		// Only update if the value is actually different from what we have
 		if (currentContent !== newValue) {
 			isUpdating = true;
-			quill.root.innerHTML = newValue;
+			// Use Quill's clipboard to properly parse HTML
+			if (newValue) {
+				const delta = quill.clipboard.convert({ html: newValue });
+				quill.setContents(delta, 'silent');
+			} else {
+				quill.setText('');
+			}
 			lastExternalValue = newValue;
 			setTimeout(() => {
 				isUpdating = false;

@@ -71,7 +71,7 @@
 				title: '',
 				description: '',
 				speaker: '',
-				series: '',
+				speakerEmail: '',
 				audioUrl: '',
 				filename: '',
 				originalName: '',
@@ -284,7 +284,7 @@
 					type="text"
 					bind:value={podcastSettings.podcastAuthor}
 					class="w-full px-3 py-2 border rounded"
-					placeholder="Eltham Green Community Church"
+					placeholder="Mission Life Grace"
 				/>
 				<p class="text-xs text-gray-500 mt-1">
 					The name of the podcast author/owner (appears in iTunes/Apple Podcasts)
@@ -310,7 +310,7 @@
 					type="url"
 					bind:value={podcastSettings.podcastImage}
 					class="w-full px-3 py-2 border rounded"
-					placeholder="http://www.egcc.co.uk/company/egcc/images/EGCC-Audio.png"
+					placeholder="https://www.missionlifegrace.net/images/podcast-image.png"
 				/>
 				<p class="text-xs text-gray-500 mt-1">
 					URL to the podcast cover art image (should be at least 1400x1400px for Apple Podcasts)
@@ -323,13 +323,13 @@
 					bind:value={podcastSettings.podcastDescription}
 					rows="3"
 					class="w-full px-3 py-2 border rounded"
-					placeholder="Latest sermons from Eltham Green Community Church"
+					placeholder="Latest sermons from Mission Life Grace"
 				></textarea>
 				<p class="text-xs text-gray-500 mt-1">
 					Brief description of your podcast (appears in podcast directories)
 				</p>
 			</div>
-			<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+			<div class="bg-primary/10 border border-primary/20 rounded-lg p-4">
 				<h3 class="font-bold mb-2">RSS Feed URL</h3>
 				<p class="text-sm text-gray-700 mb-2">
 					Your podcast RSS feed is available at:
@@ -344,7 +344,7 @@
 			<button
 				on:click={savePodcastSettings}
 				disabled={savingSettings}
-				class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+				class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark disabled:opacity-50"
 			>
 				{savingSettings ? 'Saving...' : 'Save Podcast Settings'}
 			</button>
@@ -356,7 +356,7 @@
 		<h2 class="text-2xl font-bold">Podcasts</h2>
 		<button
 			on:click={() => startEdit()}
-			class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+			class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
 		>
 			Add New Podcast
 		</button>
@@ -371,7 +371,7 @@
 				<div class="flex gap-2">
 					<button
 						on:click={savePodcast}
-						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
 					>
 						Save
 					</button>
@@ -402,26 +402,25 @@
 						placeholder="By John Watson"
 					></textarea>
 				</div>
-				<div>
-					<label class="block text-sm font-medium mb-1">Speaker *</label>
-					<input
-						type="text"
-						bind:value={editing.speaker}
-						class="w-full px-3 py-2 border rounded"
-						placeholder="e.g., John Watson"
-					/>
-				</div>
-				<div>
-					<label class="block text-sm font-medium mb-1">Series</label>
-					<input
-						type="text"
-						bind:value={editing.series}
-						class="w-full px-3 py-2 border rounded"
-						placeholder="e.g., Nehemiah, What Would Jesus Do?, Seeds of Revival"
-					/>
-					<p class="text-xs text-gray-500 mt-1">
-						Group related podcasts together (e.g., sermon series)
-					</p>
+				<div class="grid grid-cols-2 gap-4">
+					<div>
+						<label class="block text-sm font-medium mb-1">Speaker *</label>
+						<input
+							type="text"
+							bind:value={editing.speaker}
+							class="w-full px-3 py-2 border rounded"
+							placeholder="e.g., John Watson"
+						/>
+					</div>
+					<div>
+						<label class="block text-sm font-medium mb-1">Speaker Email</label>
+						<input
+							type="email"
+							bind:value={editing.speakerEmail}
+							class="w-full px-3 py-2 border rounded"
+							placeholder="johnawatson72@gmail.com"
+						/>
+					</div>
 				</div>
 				<div>
 					<label class="block text-sm font-medium mb-1">Audio File *</label>
@@ -471,7 +470,7 @@
 				<div class="flex gap-2">
 					<button
 						on:click={savePodcast}
-						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
 					>
 						Save
 					</button>

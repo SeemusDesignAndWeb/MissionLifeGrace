@@ -119,7 +119,7 @@
 								<a
 									href={button.link}
 									target={button.target || '_self'}
-									class="px-6 py-3 {button.style === 'secondary' ? 'bg-white text-primary hover:bg-gray-100' : 'bg-primary text-white hover:bg-opacity-90'} rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg text-sm"
+									class="px-6 py-3 {button.style === 'secondary' ? 'bg-white text-primary hover:bg-gray-100' : 'bg-primary text-white hover:bg-opacity-90'} rounded-full font-semibold transition-all transform hover:scale-105 shadow-lg text-sm"
 								>
 									{button.text}
 								</a>
@@ -134,45 +134,72 @@
 
 <!-- History Section -->
 {#if historySection}
-	<section class="py-20 bg-gradient-to-b from-white to-gray-50">
-		<div class="container mx-auto px-4">
-			<div class="max-w-6xl mx-auto">
-				<div class="grid md:grid-cols-2 gap-12 items-center">
-					<div class="order-2 md:order-1">
-						<div class="inline-block mb-4">
-							<span class="text-primary text-sm font-semibold uppercase tracking-wider">Our Story</span>
+	<section class="relative py-24 md:py-32 overflow-hidden">
+		<!-- Background with gradient overlay -->
+		<div class="absolute inset-0 bg-gradient-to-br from-primary/5 via-white to-brand-blue/5"></div>
+		
+		<!-- Decorative elements -->
+		<div class="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+		<div class="absolute bottom-0 left-0 w-96 h-96 bg-brand-blue/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+		
+		<div class="relative container mx-auto px-4">
+			<div class="max-w-7xl mx-auto">
+				<div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+					<!-- Content Side - Left -->
+					<div class="order-2 lg:order-1">
+						<div class="space-y-6 text-left">
+							<!-- Label -->
+							<div class="inline-flex items-center gap-2">
+								<div class="h-px w-12 bg-gradient-to-r from-primary to-brand-blue"></div>
+								<span class="text-primary text-sm font-semibold uppercase tracking-wider">Our Story</span>
+							</div>
+							
+							<!-- Title -->
+							{#if historySection.title}
+								<h2 class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight text-left">
+									{@html historySection.title}
+								</h2>
+							{/if}
+							
+							<!-- Content -->
+							{#if historySection.content}
+								<div class="prose prose-lg max-w-none text-gray-700 leading-relaxed [&_p]:text-left [&_h1]:text-left [&_h2]:text-left [&_h3]:text-left [&_h4]:text-left [&_ul]:text-left [&_ol]:text-left [&_li]:text-left">
+									{@html historySection.content}
+								</div>
+							{/if}
+							
+							<!-- Decorative line -->
+							<div class="pt-6">
+								<div class="h-1 w-24 bg-gradient-to-r from-primary via-brand-blue to-brand-cyan rounded-full"></div>
+							</div>
 						</div>
-						{#if historySection.title}
-							<h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-								{@html historySection.title}
-							</h2>
-						{/if}
-						{#if historySection.content}
-							<div class="prose prose-lg max-w-none text-gray-700 leading-relaxed">
-								{@html historySection.content}
-							</div>
-						{/if}
 					</div>
-					<div class="order-1 md:order-2 flex justify-center md:justify-end">
-						{#if historySection.image}
-							<div class="relative w-full max-w-lg">
-								<div class="absolute -inset-4 bg-primary/20 rounded-2xl transform rotate-3"></div>
-								<img
-									src={historySection.image}
-									alt={historySection.title || "Eltham Green Community Church"}
-									class="relative rounded-2xl shadow-2xl w-full h-auto"
-								/>
+					
+					<!-- Image Side - Right -->
+					<div class="order-1 lg:order-2">
+						<div class="relative group">
+							<!-- Main Image Container -->
+							<div class="relative overflow-hidden rounded-3xl shadow-2xl transform transition-all duration-500 group-hover:scale-[1.02]">
+								{#if historySection.image}
+									<img
+										src={historySection.image}
+										alt={historySection.title || "Eltham Green Community Church"}
+										class="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
+									/>
+								{:else}
+									<img
+										src="https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066407/egcc/egcc/page-hero-church.jpg"
+										alt="Eltham Green Community Church"
+										class="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
+									/>
+								{/if}
+								<!-- Gradient overlay on hover -->
+								<div class="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 							</div>
-						{:else}
-							<div class="relative w-full max-w-lg">
-								<div class="absolute -inset-4 bg-primary/20 rounded-2xl transform rotate-3"></div>
-								<img
-									src="https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066407/egcc/egcc/page-hero-church.jpg"
-									alt="Eltham Green Community Church"
-									class="relative rounded-2xl shadow-2xl w-full h-auto"
-								/>
-							</div>
-						{/if}
+							
+							<!-- Decorative accent -->
+							<div class="absolute -bottom-6 -left-6 w-32 h-32 bg-gradient-to-br from-primary to-brand-blue rounded-2xl opacity-20 blur-xl transform -rotate-12 group-hover:-rotate-6 transition-transform duration-500"></div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -180,75 +207,6 @@
 	</section>
 {/if}
 
-<!-- Other Sections - Card Grid -->
-{#if otherSections.length > 0}
-	<section class="py-20 bg-gray-900">
-		<div class="container mx-auto px-4">
-			<div class="max-w-6xl mx-auto">
-				<div class="text-center mb-16">
-					<span class="text-primary text-sm font-semibold uppercase tracking-wider mb-2 block">Who We Are</span>
-					<h2 class="text-4xl md:text-5xl font-bold text-white mb-4">
-						Our Identity
-					</h2>
-					<p class="text-xl text-gray-300 max-w-2xl mx-auto">
-						Discover what makes us who we are
-					</p>
-				</div>
-				<div class="grid md:grid-cols-3 gap-8">
-					{#each otherSections as section, index}
-						<div
-							class="group relative animate-fade-in-up bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl transform hover:-translate-y-2 flex flex-col"
-							style="animation-delay: {index * 0.1}s"
-						>
-							<div class="relative overflow-hidden aspect-[2/1]">
-								{#if section.image}
-									<img
-										src={section.image}
-										alt={section.title || "Section Image"}
-										class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-									/>
-								{:else}
-									<!-- Fallback images if no image is set -->
-									{#if index === 0}
-										<img
-											src="https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066390/egcc/egcc/img-church-bg.jpg"
-											alt="Church Community"
-											class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-										/>
-									{:else if index === 1}
-										<img
-											src="https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066391/egcc/egcc/img-community-groups-bg.jpg"
-											alt="Church Family"
-											class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-										/>
-									{:else}
-										<img
-											src="https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066391/egcc/egcc/img-community-groups-bg.jpg"
-											alt="Community Groups"
-											class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-										/>
-									{/if}
-								{/if}
-							</div>
-							<div class="p-6 flex-1 flex flex-col">
-								{#if section.title}
-									<h3 class="text-xl font-bold mb-4 text-white">
-										{@html section.title}
-									</h3>
-								{/if}
-								{#if section.content}
-									<div class="prose prose-sm max-w-none text-gray-300 leading-relaxed flex-1 [&_a]:text-brand-yellow [&_a:hover]:text-yellow-400 [&_a]:underline [&_a]:font-medium [&_a]:transition-colors">
-										{@html section.content}
-									</div>
-								{/if}
-							</div>
-						</div>
-					{/each}
-				</div>
-			</div>
-		</div>
-	</section>
-{/if}
 
 <!-- Values Section -->
 {#if valuesSection}
@@ -314,7 +272,7 @@
 						href="https://www.eauk.org/about-us/how-we-work/basis-of-faith"
 						target="_blank"
 						rel="noopener noreferrer"
-						class="inline-block px-8 py-4 bg-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg"
+						class="inline-block px-8 py-4 bg-primary text-white rounded-full font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg"
 					>
 						Read Statement of Faith
 					</a>
@@ -360,7 +318,7 @@
 						href="https://www.missionlifegrace.net/"
 						target="_blank"
 						rel="noopener noreferrer"
-						class="inline-block px-8 py-4 bg-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg"
+						class="inline-block px-8 py-4 bg-primary text-white rounded-full font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg"
 					>
 						{mlgSection.buttonText || 'Visit Mission Life Grace'}
 					</a>
@@ -401,7 +359,7 @@
 						href="https://www.missionlifegrace.net/"
 						target="_blank"
 						rel="noopener noreferrer"
-						class="inline-block px-8 py-4 bg-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg"
+						class="inline-block px-8 py-4 bg-primary text-white rounded-full font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg"
 					>
 						Visit Mission Life Grace
 					</a>

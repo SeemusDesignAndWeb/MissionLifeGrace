@@ -1,5 +1,6 @@
 <script lang="js">
 	import { onMount } from 'svelte';
+	import { notifyError, notifySuccess } from '$lib/utils/notify';
 
 	export let params = {};
 
@@ -46,7 +47,7 @@
 		if (!editing) return;
 
 		if (!editing.id || !editing.day || !editing.time) {
-			alert('Please fill in ID, Day, and Time');
+			notifyError('Please fill in ID, Day, and Time');
 			return;
 		}
 
@@ -60,13 +61,14 @@
 			if (response.ok) {
 				await loadGroups();
 				cancelEdit();
+				notifySuccess('Community group saved successfully');
 			} else {
 				const error = await response.json();
-				alert(error.error || 'Failed to save community group');
+				notifyError(error.error || 'Failed to save community group');
 			}
 		} catch (error) {
 			console.error('Failed to save community group:', error);
-			alert('Failed to save community group');
+			notifyError('Failed to save community group');
 		}
 	}
 
@@ -80,12 +82,13 @@
 
 			if (response.ok) {
 				await loadGroups();
+				notifySuccess('Community group deleted successfully');
 			} else {
-				alert('Failed to delete community group');
+				notifyError('Failed to delete community group');
 			}
 		} catch (error) {
 			console.error('Failed to delete community group:', error);
-			alert('Failed to delete community group');
+			notifyError('Failed to delete community group');
 		}
 	}
 
@@ -137,7 +140,7 @@
 		<h1 class="text-3xl font-bold">Manage Community Groups</h1>
 		<button
 			on:click={() => startEdit()}
-			class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+			class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
 		>
 			Add New Group
 		</button>
@@ -152,7 +155,7 @@
 				<div class="flex gap-2">
 					<button
 						on:click={saveGroup}
-						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
 					>
 						Save
 					</button>
@@ -235,7 +238,7 @@
 				<div class="flex gap-2">
 					<button
 						on:click={saveGroup}
-						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
 					>
 						Save
 					</button>

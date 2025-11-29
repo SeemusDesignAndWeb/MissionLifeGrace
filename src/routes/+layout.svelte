@@ -3,6 +3,7 @@
 	import Preloader from '$lib/components/Preloader.svelte';
 	import EventHighlightBanner from '$lib/components/EventHighlightBanner.svelte';
 	import Navbar from '$lib/components/Navbar.svelte';
+	import NotificationContainer from '$lib/components/NotificationContainer.svelte';
 	import { onMount, setContext } from 'svelte';
 	import { writable } from 'svelte/store';
 	import { page } from '$app/stores';
@@ -70,4 +71,7 @@
 <div class="transition-all duration-300" class:pt-[110px]={showHighlightBanner && !isAdminArea} class:pt-[80px]={!showHighlightBanner && !isAdminArea} class:pt-0={isAdminArea}>
 	<slot />
 </div>
+
+<!-- Notification Container -->
+<NotificationContainer />
 

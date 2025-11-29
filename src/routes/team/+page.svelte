@@ -26,8 +26,8 @@
 </script>
 
 <svelte:head>
-	<title>{data.page?.title || 'Our Team'} - Eltham Green Community Church</title>
-	<meta name="description" content={data.page?.metaDescription || "Meet the leadership team of Eltham Green Community Church"} />
+	<title>{data.page?.title || 'Our Team'} - Mission Life Grace</title>
+	<meta name="description" content={data.page?.metaDescription || "Meet the MLG Leadership Team"} />
 </svelte:head>
 
 <!-- Hero Section -->
@@ -61,7 +61,7 @@
 								<a
 									href={button.link}
 									target={button.target || '_self'}
-									class="px-6 py-3 {button.style === 'secondary' ? 'bg-white text-brand-blue hover:bg-gray-100' : 'bg-brand-blue text-white hover:bg-opacity-90'} rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg text-sm"
+									class="px-6 py-3 {button.style === 'secondary' ? 'bg-white text-brand-blue hover:bg-gray-100' : 'bg-brand-blue text-white hover:bg-opacity-90'} rounded-full font-semibold transition-all transform hover:scale-105 shadow-lg text-sm"
 								>
 									{button.text}
 								</a>
@@ -75,7 +75,7 @@
 {/if}
 
 <!-- Team Members Section -->
-<Team teamDescription={data.page?.teamDescription || ''} team={data.team} />
+<Team teamDescription={data.page?.teamDescription || ''} team={data.team} teamTitle={data.page?.heroTitle || data.page?.title || ''} />
 
 <!-- Page Sections -->
 {#each sections as section, sectionIndex}
@@ -101,7 +101,7 @@
 										<a
 											href={section.cta.link}
 											target={section.cta.target || '_self'}
-											class="inline-block px-6 py-3 bg-brand-blue text-white rounded-lg font-semibold hover:bg-opacity-90 transition-colors"
+											class="inline-block px-6 py-3 bg-brand-blue text-white rounded-full font-semibold hover:bg-opacity-90 transition-colors"
 										>
 											{section.cta.text}
 										</a>
@@ -110,7 +110,9 @@
 							</div>
 							<div class="order-1 md:order-2 flex justify-center md:justify-end">
 								<div class="relative w-full max-w-lg">
-									<div class="absolute -inset-4 bg-primary/20 rounded-2xl transform rotate-3"></div>
+									<div class="absolute -inset-4 bg-primary/20 rounded-full transform rotate-3"></div>
+									<!-- Circular accent -->
+									<div class="absolute top-4 right-4 w-20 h-20 bg-primary/10 rounded-full blur-2xl"></div>
 									<img
 										src={section.image}
 										alt={section.title || "Section image"}
@@ -136,7 +138,7 @@
 									<a
 										href={section.cta.link}
 										target={section.cta.target || '_self'}
-										class="inline-block px-6 py-3 bg-brand-blue text-white rounded-lg font-semibold hover:bg-opacity-90 transition-colors"
+										class="inline-block px-6 py-3 bg-brand-blue text-white rounded-full font-semibold hover:bg-opacity-90 transition-colors"
 									>
 										{section.cta.text}
 									</a>

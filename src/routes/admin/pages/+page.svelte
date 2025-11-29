@@ -14,6 +14,9 @@
 	let currentImageIndex = null;
 	let draggedIndex = null;
 	let draggedOverIndex = null;
+	let draggedSectionIndex = null;
+	let draggedOverSectionIndex = null;
+	let expandedSections = new Set(); // Track which sections are expanded
 
 	onMount(async () => {
 		await loadPages();
@@ -30,6 +33,34 @@
 			const response = await fetch('/api/content?type=pages');
 			let loadedPages = await response.json();
 			
+			// Load home page data and add it to the list
+			const homeResponse = await fetch('/api/content?type=home');
+			const homeData = await homeResponse.json();
+			const homePageExists = loadedPages.some(p => p.id === 'home');
+			if (!homePageExists && homeData) {
+				const homePage = {
+					id: 'home',
+					title: 'Home Page',
+					heroTitle: '',
+					heroSubtitle: '',
+					heroButtons: [],
+					heroImage: '',
+					heroOverlay: 40,
+					aboutLabel: homeData.aboutLabel || '',
+					aboutTitle: homeData.aboutTitle || '',
+					aboutContent: homeData.aboutContent || '',
+					aboutImage: homeData.aboutImage || '',
+					visionLabel: homeData.visionLabel || '',
+					visionTitle: homeData.visionTitle || '',
+					visionText: homeData.visionText || '',
+					sections: [],
+					metaDescription: 'Home page content and hero slides',
+					showInNavigation: false,
+					navigationLabel: 'Home'
+				};
+				loadedPages = [homePage, ...loadedPages];
+			}
+			
 			// Ensure team page exists in the list
 			const teamPageExists = loadedPages.some(p => p.id === 'team');
 			if (!teamPageExists) {
@@ -44,11 +75,11 @@
 					heroTitle: settings.teamHeroTitle || 'Developing leaders of tomorrow',
 					heroSubtitle: settings.teamHeroSubtitle || '',
 					heroButtons: settings.teamHeroButtons || [],
-					heroImage: settings.teamHeroImage || 'https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066390/egcc/egcc/img-church-bg.jpg',
+					heroImage: settings.teamHeroImage || 'https://res.cloudinary.com/dsnceqtza/image/upload/v1763390998/mission-life-grace/375d5fb3-6856-49be-a8d1-48859a442bca.jpg',
 					heroOverlay: 40,
 					teamDescription: settings.teamDescription || '',
 					sections: [],
-					metaDescription: 'Meet the leadership team of Eltham Green Community Church'
+					metaDescription: 'Meet the leadership team of Mission Life Grace'
 				};
 				
 				// Add to the list
@@ -72,6 +103,8 @@
 	}
 
 	function startEdit(page) {
+		// Reset expanded sections when starting to edit
+		expandedSections = new Set();
 		editing = page
 			? { 
 				...page, 
@@ -80,12 +113,25 @@
 				heroSubtitle: page.heroSubtitle || '',
 				heroButtons: page.heroButtons || [],
 				heroOverlay: page.heroOverlay || 40,
+				// Include all sections (churches-grid will be protected but visible for reordering)
 				sections: page.sections || [],
 				teamDescription: page.teamDescription || '',
-			showInNavigation: page.showInNavigation !== undefined ? page.showInNavigation : true,
-			navigationLabel: page.navigationLabel || '',
-			navigationOrder: page.navigationOrder !== undefined ? page.navigationOrder : 999,
-				navigationOrder: page.navigationOrder !== undefined ? page.navigationOrder : (existingPage.navigationOrder !== undefined ? existingPage.navigationOrder : 999)
+				aboutLabel: page.aboutLabel || '',
+				aboutTitle: page.aboutTitle || '',
+				aboutContent: page.aboutContent || '',
+				aboutImage: page.aboutImage || '',
+				visionLabel: page.visionLabel || '',
+				visionTitle: page.visionTitle || '',
+				visionText: page.visionText || '',
+				eventsSectionLabel: page.eventsSectionLabel || '',
+				eventsSectionTitle: page.eventsSectionTitle || '',
+				eventsSectionDescription: page.eventsSectionDescription || '',
+				isLink: page.isLink || false,
+				linkUrl: page.linkUrl || '',
+				linkTarget: page.linkTarget || '_self',
+				showInNavigation: page.showInNavigation !== undefined ? page.showInNavigation : true,
+				navigationLabel: page.navigationLabel || '',
+				navigationOrder: page.navigationOrder !== undefined ? page.navigationOrder : 999
 			}
 			: {
 					id: '',
@@ -100,6 +146,19 @@
 					heroMessages: [],
 					sections: [],
 					teamDescription: '',
+				aboutLabel: '',
+				aboutTitle: '',
+				aboutContent: '',
+				aboutImage: '',
+				visionLabel: '',
+				visionTitle: '',
+				visionText: '',
+				eventsSectionLabel: '',
+				eventsSectionTitle: '',
+				eventsSectionDescription: '',
+				isLink: false,
+				linkUrl: '',
+				linkTarget: '_self',
 					showInNavigation: true,
 					navigationLabel: ''
 				};
@@ -146,7 +205,11 @@
 	}
 
 	function handleImageSelect(imagePath) {
-		if (currentSectionIndex !== null && editing && editing.sections) {
+		if (currentSectionIndex === 'about' && editing) {
+			// Setting image for home page about section
+			editing.aboutImage = imagePath;
+			currentSectionIndex = null;
+		} else if (currentSectionIndex !== null && editing && editing.sections) {
 			// Setting image/logo for a section
 			const section = editing.sections[currentSectionIndex];
 			if (section.type === 'mlg') {
@@ -161,6 +224,11 @@
 				} else {
 					// Add new image
 					section.images = [...section.images, imagePath];
+				}
+			} else if (section.type === 'columns' && currentImageIndex !== null && section.columns) {
+				// For columns sections, set the image on the specific column
+				if (currentImageIndex < section.columns.length) {
+					section.columns[currentImageIndex].image = imagePath;
 				}
 			} else {
 				// For other sections, set the image
@@ -179,10 +247,12 @@
 		if (!editing) return;
 
 		try {
+			// If it's the home page, save it as 'home' type, otherwise as 'page' type
+			const saveType = editing.id === 'home' ? 'home' : 'page';
 			const response = await fetch('/api/content', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ type: 'page', data: editing })
+				body: JSON.stringify({ type: saveType, data: editing })
 			});
 
 			if (response.ok) {
@@ -231,16 +301,20 @@
 		}
 	}
 
-	function handleDragStart(index) {
+	function handleDragStart(event, index) {
+		// Don't preventDefault on dragstart - it prevents the drag from starting
 		draggedIndex = index;
 	}
 
 	function handleDragOver(event, index) {
 		event.preventDefault();
+		event.stopPropagation();
 		draggedOverIndex = index;
 	}
 
-	function handleDragLeave() {
+	function handleDragLeave(event) {
+		event.preventDefault();
+		event.stopPropagation();
 		draggedOverIndex = null;
 	}
 
@@ -253,13 +327,18 @@
 			return;
 		}
 
+		// Sort pages by navigationOrder first to match the displayed order
+		const sortedPages = [...pages].sort((a, b) => 
+			(a.navigationOrder !== undefined ? a.navigationOrder : 999) - 
+			(b.navigationOrder !== undefined ? b.navigationOrder : 999)
+		);
+
 		// Reorder pages array
-		const reorderedPages = [...pages];
-		const [draggedPage] = reorderedPages.splice(draggedIndex, 1);
-		reorderedPages.splice(dropIndex, 0, draggedPage);
+		const [draggedPage] = sortedPages.splice(draggedIndex, 1);
+		sortedPages.splice(dropIndex, 0, draggedPage);
 
 		// Update navigationOrder for all affected pages
-		const updates = reorderedPages.map((page, index) => ({
+		const updates = sortedPages.map((page, index) => ({
 			...page,
 			navigationOrder: index
 		}));
@@ -288,6 +367,67 @@
 		draggedIndex = null;
 		draggedOverIndex = null;
 	}
+
+	function handleSectionDragStart(event, index) {
+		// Don't preventDefault on dragstart - it prevents the drag from starting
+		draggedSectionIndex = index;
+	}
+
+	function handleSectionDragOver(event, index) {
+		event.preventDefault();
+		event.stopPropagation();
+		draggedOverSectionIndex = index;
+	}
+
+	function handleSectionDragLeave(event) {
+		event.preventDefault();
+		event.stopPropagation();
+		draggedOverSectionIndex = null;
+	}
+
+	function handleSectionDrop(event, dropIndex) {
+		event.preventDefault();
+		event.stopPropagation();
+		
+		if (draggedSectionIndex === null || draggedSectionIndex === dropIndex || !editing || !editing.sections) {
+			draggedSectionIndex = null;
+			draggedOverSectionIndex = null;
+			return;
+		}
+
+		// Reorder sections array
+		const [draggedSection] = editing.sections.splice(draggedSectionIndex, 1);
+		editing.sections.splice(dropIndex, 0, draggedSection);
+		
+		// Trigger reactivity
+		editing = editing;
+
+		draggedSectionIndex = null;
+		draggedOverSectionIndex = null;
+	}
+
+	function handleSectionDragEnd() {
+		draggedSectionIndex = null;
+		draggedOverSectionIndex = null;
+	}
+
+	function toggleSection(index) {
+		if (expandedSections.has(index)) {
+			expandedSections.delete(index);
+		} else {
+			expandedSections.add(index);
+		}
+		expandedSections = expandedSections; // Trigger reactivity
+	}
+
+	function expandAllSections() {
+		if (!editing || !editing.sections) return;
+		expandedSections = new Set(editing.sections.map((_, i) => i));
+	}
+
+	function collapseAllSections() {
+		expandedSections = new Set();
+	}
 </script>
 
 <svelte:head>
@@ -298,8 +438,9 @@
 	<div class="flex justify-between items-center mb-6">
 		<h1 class="text-3xl font-bold">Manage Pages</h1>
 		<button
+			type="button"
 			on:click={() => startEdit()}
-			class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+			class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
 		>
 			Add New Page
 		</button>
@@ -313,12 +454,14 @@
 				</h2>
 				<div class="flex gap-2">
 					<button
+						type="button"
 						on:click={savePage}
-						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
 					>
 						Save
 					</button>
 					<button
+						type="button"
 						on:click={cancelEdit}
 						class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
 					>
@@ -351,13 +494,49 @@
 							<label class="flex items-center gap-2">
 								<input
 									type="checkbox"
+									bind:checked={editing.isLink}
+									class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+								/>
+								<span class="text-sm font-medium">This is a Link (not a page)</span>
+							</label>
+							<p class="text-xs text-gray-500 mt-1 ml-6">
+								When checked, this will be a navigation link instead of a page. Use for external URLs, anchor links, or custom paths.
+							</p>
+						</div>
+						{#if editing.isLink}
+							<div>
+								<label class="block text-sm font-medium mb-1">Link URL *</label>
+								<input
+									type="text"
+									bind:value={editing.linkUrl}
+									class="w-full px-3 py-2 border rounded"
+									placeholder="e.g., /contact, https://example.com, /#section, or /page#section"
+								/>
+								<div class="text-xs text-gray-500 mt-1 space-y-1">
+									<p><strong>Anchor Links:</strong> <code class="bg-gray-100 px-1 rounded">/#section-id</code> (home page) or <code class="bg-gray-100 px-1 rounded">/page-id#section-id</code> (other pages)</p>
+									<p><strong>Other:</strong> Relative path (<code class="bg-gray-100 px-1 rounded">/page</code>) or external URL (<code class="bg-gray-100 px-1 rounded">https://example.com</code>)</p>
+								</div>
+							</div>
+							<div>
+								<label class="block text-sm font-medium mb-1">Link Target</label>
+								<select bind:value={editing.linkTarget} class="w-full px-3 py-2 border rounded">
+									<option value="_self">Same Window</option>
+									<option value="_blank">New Window</option>
+								</select>
+								<p class="text-xs text-gray-500 mt-1">How the link should open (usually "New Window" for external URLs)</p>
+							</div>
+						{/if}
+						<div>
+							<label class="flex items-center gap-2">
+								<input
+									type="checkbox"
 									bind:checked={editing.showInNavigation}
-									class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+									class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
 								/>
 								<span class="text-sm font-medium">Show in Navigation Menu</span>
 							</label>
 							<p class="text-xs text-gray-500 mt-1 ml-6">
-								When enabled, this page will appear in the main website navigation menu.
+								When enabled, this page/link will appear in the main website navigation menu.
 							</p>
 						</div>
 						{#if editing.showInNavigation}
@@ -485,8 +664,113 @@
 						+ Add Message
 					</button>
 				</div>
-				{#if !editing.sections || editing.sections.length === 0}
-					{#if editing.id !== 'team'}
+				{#if editing.id === 'home'}
+					<!-- Home Page About Section -->
+					<div class="border-t border-gray-200 pt-6 mt-6">
+						<h3 class="text-lg font-bold text-gray-900 mb-4">About Section</h3>
+						<div class="space-y-4">
+							<div>
+								<label class="block text-sm font-medium mb-1">About Label</label>
+								<p class="text-xs text-gray-500 mb-2">Small text that appears above the about title</p>
+								<input
+									type="text"
+									bind:value={editing.aboutLabel}
+									class="w-full px-3 py-2 border rounded"
+									placeholder="e.g., About Us"
+								/>
+							</div>
+							<div>
+								<label class="block text-sm font-medium mb-1">About Title</label>
+								<input
+									type="text"
+									bind:value={editing.aboutTitle}
+									class="w-full px-3 py-2 border rounded"
+									placeholder="e.g., Welcome to Mission Life Grace"
+								/>
+							</div>
+							<div>
+								<label class="block text-sm font-medium mb-1">About Content</label>
+								<div class="relative" style="height: 400px;">
+									<RichTextEditor bind:value={editing.aboutContent} height="400px" />
+								</div>
+							</div>
+							<div>
+								<label class="block text-sm font-medium mb-1">About Image</label>
+								<div class="flex gap-2 mb-2">
+									<input
+										type="text"
+										bind:value={editing.aboutImage}
+										class="flex-1 px-3 py-2 border rounded"
+										placeholder="About section image URL"
+									/>
+									<button
+										type="button"
+										on:click={() => {
+											showImagePicker = true;
+											currentImageIndex = null;
+											currentSectionIndex = 'about';
+										}}
+										class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm"
+									>
+										Select Image
+									</button>
+								</div>
+								{#if editing.aboutImage}
+									<div class="mt-2">
+										<img
+											src={editing.aboutImage}
+											alt="About section preview"
+											class="max-w-xs h-48 object-cover rounded border"
+											on:error={(e) => { e.currentTarget.style.display = 'none'; }}
+										/>
+									</div>
+								{/if}
+							</div>
+						</div>
+						<div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+							<p class="text-sm text-blue-800">
+								<strong>Hero Slides:</strong> Hero slides are managed separately. You can manage them from the <a href="/admin/home" class="underline font-semibold">Home Page admin</a> or they will be integrated here in a future update.
+							</p>
+						</div>
+					</div>
+
+					<!-- Home Page Vision Section -->
+					<div class="border-t border-gray-200 pt-6 mt-6">
+						<h3 class="text-lg font-bold text-gray-900 mb-4">Vision Section</h3>
+						<div class="space-y-4">
+							<div>
+								<label class="block text-sm font-medium mb-1">Vision Label</label>
+								<p class="text-xs text-gray-500 mb-2">Small text that appears above the vision title</p>
+								<input
+									type="text"
+									bind:value={editing.visionLabel}
+									class="w-full px-3 py-2 border rounded"
+									placeholder="e.g., Our Vision"
+								/>
+							</div>
+							<div>
+								<label class="block text-sm font-medium mb-1">Vision Title</label>
+								<input
+									type="text"
+									bind:value={editing.visionTitle}
+									class="w-full px-3 py-2 border rounded"
+									placeholder="e.g., We Believe"
+								/>
+							</div>
+							<div>
+								<label class="block text-sm font-medium mb-1">Vision Text</label>
+								<p class="text-xs text-gray-500 mb-2">The main vision statement text</p>
+								<textarea
+									bind:value={editing.visionText}
+									rows="6"
+									class="w-full px-3 py-2 border rounded"
+									placeholder="Enter your vision statement..."
+								></textarea>
+							</div>
+						</div>
+					</div>
+				{:else if !editing.sections || editing.sections.length === 0}
+					{#if editing.id !== 'team' && !editing.isLink}
 						<div class="relative mb-4">
 							<label class="block text-sm font-medium mb-1">Content</label>
 							<div class="relative" style="height: 400px;">
@@ -494,31 +778,127 @@
 							</div>
 						</div>
 					{/if}
+					{#if editing.isLink}
+						<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+							<p class="text-sm text-blue-800">
+								<strong>Note:</strong> This is a link, not a page. No content editor is needed. The link URL is configured in the Navigation Settings above.
+							</p>
+						</div>
+					{/if}
+				{/if}
+				
+				{#if editing.id === 'churches'}
+					<div class="border-t pt-6 mt-6">
+						<div class="mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+							<p class="text-sm text-blue-800 font-medium mb-2">ℹ️ Churches Management</p>
+							<p class="text-xs text-blue-700 mb-3">
+								The churches displayed on this page are managed separately. Use the <a href="/admin/churches" class="underline font-semibold">Churches Management</a> page to add, edit, or remove churches.
+							</p>
+							<a
+								href="/admin/churches"
+								class="inline-block px-4 py-2 bg-primary text-white rounded-full hover:bg-primary-dark transition-colors text-sm font-medium"
+							>
+								Go to Churches Management →
+							</a>
+						</div>
+					</div>
 				{/if}
 				
 				{#if editing.sections && editing.sections.length > 0}
 					<div class="border-t pt-6 mt-6">
-						<h3 class="text-lg font-semibold mb-4">Page Sections</h3>
+						<div class="flex justify-between items-center mb-4">
+							<h3 class="text-lg font-semibold">Page Sections</h3>
+							<div class="flex gap-2">
+								<button
+									type="button"
+									on:click={expandAllSections}
+									class="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+								>
+									Expand All
+								</button>
+								<button
+									type="button"
+									on:click={collapseAllSections}
+									class="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+								>
+									Collapse All
+								</button>
+							</div>
+						</div>
+						<p class="text-sm text-gray-600 mb-4">
+							💡 Drag sections by the handle (☰) to reorder them. Click the arrow to expand/collapse section content.
+						</p>
 						
 						{#each editing.sections as section, sectionIndex}
-							<div class="mb-6 p-4 bg-gray-50 rounded border">
+							{@const isChurchesGrid = editing.id === 'churches' && section.id === 'churches-grid'}
+							<div 
+								on:dragover={(e) => handleSectionDragOver(e, sectionIndex)}
+								on:dragleave={(e) => handleSectionDragLeave(e)}
+								on:drop={(e) => handleSectionDrop(e, sectionIndex)}
+								class="mb-6 p-4 bg-gray-50 rounded border transition-colors {draggedOverSectionIndex === sectionIndex ? 'bg-blue-100 border-blue-300' : ''}"
+							>
 								<div class="flex justify-between items-center mb-3">
-									<h4 class="text-sm font-semibold text-gray-700">
-										Section {sectionIndex + 1}: {section.type || 'text'}
-									</h4>
-									<button
-										type="button"
-										on:click={() => {
-											editing.sections = editing.sections.filter((_, i) => i !== sectionIndex);
-											editing = editing;
-										}}
-										class="text-red-600 hover:text-red-800 text-xs px-2 py-1 bg-red-50 rounded"
-									>
-										Remove
-									</button>
+									<div class="flex items-center gap-3 flex-1">
+										<div 
+											draggable="true"
+											on:dragstart={(e) => handleSectionDragStart(e, sectionIndex)}
+											on:dragend={handleSectionDragEnd}
+											class="text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing {draggedSectionIndex === sectionIndex ? 'opacity-50' : ''}"
+										>
+											<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+											</svg>
+										</div>
+										<button
+											type="button"
+											on:click={(e) => {
+												e.preventDefault();
+												e.stopPropagation();
+												toggleSection(sectionIndex);
+											}}
+											class="text-gray-500 hover:text-gray-700 transition-transform {expandedSections.has(sectionIndex) ? 'rotate-90' : ''}"
+										>
+											<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+											</svg>
+										</button>
+										<h4 class="text-sm font-semibold text-gray-700">
+											Section {sectionIndex + 1}: {section.type || 'text'}
+											{#if isChurchesGrid}
+												<span class="ml-2 text-xs text-blue-600 font-normal">(Managed separately)</span>
+											{/if}
+										</h4>
+									</div>
+									{#if !isChurchesGrid}
+										<button
+											type="button"
+											on:click={() => {
+												editing.sections = editing.sections.filter((_, i) => i !== sectionIndex);
+												editing = editing;
+											}}
+											on:click|stopPropagation
+											class="text-red-600 hover:text-red-800 text-xs px-2 py-1 bg-red-50 rounded"
+										>
+											Remove
+										</button>
+									{:else}
+										<span class="text-xs text-gray-500 italic">Cannot remove - managed in Churches</span>
+									{/if}
 								</div>
 								
+								{#if expandedSections.has(sectionIndex)}
+								<div class="mt-4">
 								{#if section.type === 'text'}
+									<div class="mb-3">
+										<label class="block text-xs font-medium mb-1 text-gray-600">Label (optional - appears above title)</label>
+										<p class="text-xs text-gray-500 mb-1">Small text that appears above the title, like "About Us" on the home page</p>
+										<input
+											type="text"
+											bind:value={section.label}
+											class="w-full px-3 py-2 border rounded"
+											placeholder="e.g., About Us, Our Story"
+										/>
+									</div>
 									<div class="mb-3">
 										<label class="block text-xs font-medium mb-1 text-gray-600">Title</label>
 										<input
@@ -623,6 +1003,21 @@
 										<RichTextEditor bind:value={section.content} height="280px" />
 									</div>
 								{:else if section.type === 'columns' && section.columns}
+									{@const isChurchesPage = editing.id === 'churches' && section.id === 'churches-grid'}
+									{#if isChurchesPage}
+										<div class="mb-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+											<p class="text-sm text-blue-800 font-medium mb-2">⚠️ Churches Management</p>
+											<p class="text-xs text-blue-700 mb-3">
+												Churches are now managed separately. Please use the <a href="/admin/churches" class="underline font-semibold">Churches Management</a> page to add, edit, or remove churches.
+											</p>
+											<a
+												href="/admin/churches"
+												class="inline-block px-4 py-2 bg-primary text-white rounded-full hover:bg-primary-dark transition-colors text-sm font-medium"
+											>
+												Go to Churches Management →
+											</a>
+										</div>
+									{/if}
 									<label class="block text-xs font-medium mb-2 text-gray-600">Columns</label>
 									{#each section.columns as column, colIndex}
 										<div class="mb-4 p-3 bg-white rounded border">
@@ -653,17 +1048,19 @@
 											</div>
 										</div>
 									{/each}
-									<button
-										type="button"
-										on:click={() => {
-											if (!section.columns) section.columns = [];
-											section.columns = [...section.columns, { title: '', content: '' }];
-											editing = editing;
-										}}
-										class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-xs"
-									>
-										+ Add Column
-									</button>
+									{#if !isChurchesPage}
+										<button
+											type="button"
+											on:click={() => {
+												if (!section.columns) section.columns = [];
+												section.columns = [...section.columns, { title: '', content: '' }];
+												editing = editing;
+											}}
+											class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-xs"
+										>
+											+ Add Column
+										</button>
+									{/if}
 								{:else if section.type === 'values'}
 									<div class="mb-3">
 										<label class="block text-xs font-medium mb-1 text-gray-600">Section Title</label>
@@ -963,7 +1360,7 @@
 											<input
 												type="checkbox"
 												bind:checked={section.startFullscreenSlideshow}
-												class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+												class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
 											/>
 											<span class="text-sm font-medium text-gray-700">Start fullscreen slideshow</span>
 										</label>
@@ -1050,12 +1447,14 @@
 													currentSectionIndex = sectionIndex;
 													currentImageIndex = null; // Adding new image
 												}}
-												class="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+												class="w-full px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark text-sm"
 											>
 												+ Select from Library
 											</button>
 										</div>
 									</div>
+								{/if}
+								</div>
 								{/if}
 							</div>
 						{/each}
@@ -1143,7 +1542,7 @@
 										if (!editing.sections) editing.sections = [];
 										editing.sections = [...editing.sections, { 
 											type: 'mlg', 
-											logo: 'https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763397479/egcc/d79861b6-c071-4bb9-9665-299a4a7d20bf.svg',
+											logo: '',
 											label: 'Partnership',
 											title: 'Part of the MissionLifeGrace Network',
 											content: '<p>Our aim is to see the Kingdom of God come, where broken lives are restored, the lost are found and communities transformed. We believe every church exists to be part of God\'s mission to show the world Christ and that we are better equipped to do this in partnership with other churches.</p><p>As a network our focus is to encourage each other through sharing our hearts, ideas and lessons learned along the way, to challenge one another to stay true to the course and to invest in helping people fulfil their God given calling. We believe that by journeying together we can see God do great things in our nation and around the world.</p>',
@@ -1290,7 +1689,7 @@
 										if (!editing.sections) editing.sections = [];
 										editing.sections = [...editing.sections, { 
 											type: 'mlg', 
-											logo: 'https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763397479/egcc/d79861b6-c071-4bb9-9665-299a4a7d20bf.svg',
+											logo: '',
 											label: 'Partnership',
 											title: 'Part of the MissionLifeGrace Network',
 											content: '<p>Our aim is to see the Kingdom of God come, where broken lives are restored, the lost are found and communities transformed. We believe every church exists to be part of God\'s mission to show the world Christ and that we are better equipped to do this in partnership with other churches.</p><p>As a network our focus is to encourage each other through sharing our hearts, ideas and lessons learned along the way, to challenge one another to stay true to the course and to invest in helping people fulfil their God given calling. We believe that by journeying together we can see God do great things in our nation and around the world.</p>',
@@ -1365,6 +1764,45 @@
 					</div>
 				{/if}
 				
+				{#if editing.id === 'events'}
+					<!-- Events Page Section Header -->
+					<div class="border-t border-gray-200 pt-6 mt-6">
+						<h3 class="text-lg font-bold text-gray-900 mb-4">Events Section Header</h3>
+						<div class="space-y-4">
+							<div>
+								<label class="block text-sm font-medium mb-1">Section Label</label>
+								<p class="text-xs text-gray-500 mb-2">Small text that appears above the section title (e.g., "What's Happening")</p>
+								<input
+									type="text"
+									bind:value={editing.eventsSectionLabel}
+									class="w-full px-3 py-2 border rounded"
+									placeholder="What's Happening"
+								/>
+							</div>
+							<div>
+								<label class="block text-sm font-medium mb-1">Section Title</label>
+								<p class="text-xs text-gray-500 mb-2">Main title for the events section (e.g., "Events & Activities")</p>
+								<input
+									type="text"
+									bind:value={editing.eventsSectionTitle}
+									class="w-full px-3 py-2 border rounded"
+									placeholder="Events & Activities"
+								/>
+							</div>
+							<div>
+								<label class="block text-sm font-medium mb-1">Section Description</label>
+								<p class="text-xs text-gray-500 mb-2">Description text below the section title</p>
+								<input
+									type="text"
+									bind:value={editing.eventsSectionDescription}
+									class="w-full px-3 py-2 border rounded"
+									placeholder="Join us for training, networking, and community events"
+								/>
+							</div>
+						</div>
+					</div>
+				{/if}
+				
 				<div class="mt-6">
 					<label class="block text-sm font-medium mb-1">Hero Image URL</label>
 					<div class="space-y-2">
@@ -1417,12 +1855,14 @@
 				</div>
 				<div class="flex gap-2">
 					<button
+						type="button"
 						on:click={savePage}
-						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
 					>
 						Save
 					</button>
 					<button
+						type="button"
 						on:click={cancelEdit}
 						class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
 					>
@@ -1438,8 +1878,8 @@
 	{:else if pages.length === 0}
 		<p class="text-gray-600">No pages found. Create your first page!</p>
 	{:else}
-		<div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-			<p class="text-sm text-blue-800">
+		<div class="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-lg">
+			<p class="text-sm text-primary-dark">
 				💡 <strong>Tip:</strong> Drag rows by the handle (☰) to reorder pages in the navigation menu. Use the checkbox to show/hide pages from navigation.
 			</p>
 		</div>
@@ -1457,6 +1897,9 @@
 							Title
 						</th>
 						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+							Type / URL
+						</th>
+						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
 							Show in Nav
 						</th>
 						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -1465,25 +1908,41 @@
 					</tr>
 				</thead>
 				<tbody class="bg-white divide-y divide-gray-200">
-					{#each pages as page, index}
+					{#each pages.sort((a, b) => (a.navigationOrder !== undefined ? a.navigationOrder : 999) - (b.navigationOrder !== undefined ? b.navigationOrder : 999)) as page, index}
 						<tr
-							draggable="true"
-							on:dragstart={() => handleDragStart(index)}
 							on:dragover={(e) => handleDragOver(e, index)}
-							on:dragleave={handleDragLeave}
+							on:dragleave={(e) => handleDragLeave(e)}
 							on:drop={(e) => handleDrop(e, index)}
-							on:dragend={handleDragEnd}
-							class="cursor-move transition-colors {draggedOverIndex === index ? 'bg-blue-50' : ''} {draggedIndex === index ? 'opacity-50' : ''}"
+							class="transition-colors {draggedOverIndex === index ? 'bg-primary/10' : ''}"
 						>
 							<td class="px-6 py-4 whitespace-nowrap">
-								<div class="flex items-center text-gray-400 hover:text-gray-600">
+								<div 
+									draggable="true"
+									on:dragstart={(e) => handleDragStart(e, index)}
+									on:dragend={handleDragEnd}
+									class="flex items-center text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing {draggedIndex === index ? 'opacity-50' : ''}"
+								>
 									<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
 									</svg>
 								</div>
 							</td>
 							<td class="px-6 py-4 whitespace-nowrap text-sm font-medium">{page.id}</td>
-							<td class="px-6 py-4 whitespace-nowrap text-sm">{page.title}</td>
+							<td class="px-6 py-4 whitespace-nowrap text-sm">
+								{page.title}
+								{#if page.isLink}
+									<span class="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded">Link</span>
+								{/if}
+							</td>
+							<td class="px-6 py-4 text-sm">
+								{#if page.isLink}
+									<a href={page.linkUrl} target={page.linkTarget} class="text-primary hover:underline text-xs break-all" rel="noopener noreferrer">
+										{page.linkUrl || 'No URL'}
+									</a>
+								{:else}
+									<span class="text-gray-500 text-xs">Page</span>
+								{/if}
+							</td>
 							<td class="px-6 py-4 whitespace-nowrap text-sm">
 								<label class="flex items-center cursor-pointer">
 									<input
@@ -1491,7 +1950,7 @@
 										checked={page.showInNavigation !== false}
 										on:change={() => toggleNavigationVisibility(page)}
 										on:click|stopPropagation
-										class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+										class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer"
 									/>
 									<span class="ml-2 text-sm text-gray-700">
 										{page.showInNavigation !== false ? 'Visible' : 'Hidden'}

@@ -13,7 +13,7 @@ dotenv.config({ path: join(__dirname, '../.env') });
 
 // Configure Cloudinary
 cloudinary.config({
-	cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dl8kjhwjs',
+	cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dsnceqtza',
 	api_key: process.env.CLOUDINARY_API_KEY,
 	api_secret: process.env.CLOUDINARY_API_SECRET
 });

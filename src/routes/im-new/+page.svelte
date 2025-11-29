@@ -89,13 +89,13 @@
 					<div class="flex flex-wrap gap-3 mt-4">
 						<a
 							href="#welcome"
-							class="px-6 py-3 bg-brand-blue text-white rounded-lg font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg text-sm"
+							class="px-6 py-3 bg-brand-blue text-white rounded-full font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg text-sm"
 						>
 							Get Started
 						</a>
 						<a
 							href="#contact"
-							class="px-6 py-3 bg-white text-brand-blue rounded-lg font-semibold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg text-sm"
+							class="px-6 py-3 bg-white text-brand-blue rounded-full font-semibold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg text-sm"
 						>
 							Get in Touch
 						</a>
@@ -346,7 +346,7 @@
 			</p>
 			<a
 				href="/community-groups"
-				class="inline-block px-8 py-4 bg-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg"
+				class="inline-block px-8 py-4 bg-primary text-white rounded-full font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg"
 			>
 				Explore Community Groups
 			</a>

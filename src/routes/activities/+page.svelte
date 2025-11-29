@@ -37,7 +37,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.page.title} - Eltham Green Community Church</title>
+	<title>{data.page.title} - Mission Life Grace</title>
 	<meta name="description" content={data.page.metaDescription || data.page.title} />
 </svelte:head>
 
@@ -70,7 +70,7 @@
 								<a
 									href={button.link}
 									target={button.target || '_self'}
-									class="px-6 py-3 {button.style === 'secondary' ? 'bg-white text-brand-blue hover:bg-gray-100' : 'bg-brand-blue text-white hover:bg-opacity-90'} rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg text-sm"
+									class="px-6 py-3 {button.style === 'secondary' ? 'bg-white text-brand-blue hover:bg-gray-100' : 'bg-brand-blue text-white hover:bg-opacity-90'} rounded-full font-semibold transition-all transform hover:scale-105 shadow-lg text-sm"
 								>
 									{button.text}
 								</a>
@@ -133,7 +133,7 @@
 				Our Activities
 			</h2>
 			<p class="text-xl text-gray-300 max-w-2xl mx-auto">
-				Join us for community activities designed to serve and connect
+				Building community through shared activities
 			</p>
 		</div>
 
@@ -218,7 +218,7 @@
 			</p>
 			<a
 				href="#contact"
-				class="inline-block px-8 py-4 bg-brand-blue text-white rounded-lg font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg"
+				class="inline-block px-8 py-4 bg-brand-blue text-white rounded-full font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg"
 			>
 				Get in Touch
 			</a>

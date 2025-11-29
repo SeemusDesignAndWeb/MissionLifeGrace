@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import ImagePicker from '$lib/components/ImagePicker.svelte';
+	import { notifyError, notifySuccess } from '$lib/utils/notify';
 
 	export let params = {};
 
@@ -64,7 +65,7 @@
 		if (!editing) return;
 
 		if (!editing.id || !editing.title) {
-			alert('Please fill in ID and Title');
+			notifyError('Please fill in ID and Title');
 			return;
 		}
 
@@ -78,13 +79,14 @@
 			if (response.ok) {
 				await loadActivities();
 				cancelEdit();
+				notifySuccess('Activity saved successfully');
 			} else {
 				const error = await response.json();
-				alert(error.error || 'Failed to save activity');
+				notifyError(error.error || 'Failed to save activity');
 			}
 		} catch (error) {
 			console.error('Failed to save activity:', error);
-			alert('Failed to save activity');
+			notifyError('Failed to save activity');
 		}
 	}
 
@@ -98,12 +100,13 @@
 
 			if (response.ok) {
 				await loadActivities();
+				notifySuccess('Activity deleted successfully');
 			} else {
-				alert('Failed to delete activity');
+				notifyError('Failed to delete activity');
 			}
 		} catch (error) {
 			console.error('Failed to delete activity:', error);
-			alert('Failed to delete activity');
+			notifyError('Failed to delete activity');
 		}
 	}
 
@@ -141,7 +144,7 @@
 		<h1 class="text-3xl font-bold">Manage Community Activities</h1>
 		<button
 			on:click={() => startEdit()}
-			class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+			class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
 		>
 			Add New Activity
 		</button>
@@ -156,7 +159,7 @@
 				<div class="flex gap-2">
 					<button
 						on:click={saveActivity}
-						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
 					>
 						Save
 					</button>
@@ -279,7 +282,7 @@
 				<div class="flex gap-2">
 					<button
 						on:click={saveActivity}
-						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
 					>
 						Save
 					</button>

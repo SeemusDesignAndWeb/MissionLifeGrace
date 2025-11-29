@@ -13,7 +13,7 @@ export async function load() {
 		heroTitle: settings.teamHeroTitle || 'Developing leaders of tomorrow',
 		heroSubtitle: settings.teamHeroSubtitle || '',
 		heroButtons: settings.teamHeroButtons || [],
-		heroImage: settings.teamHeroImage || 'https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066390/egcc/egcc/img-church-bg.jpg',
+		heroImage: settings.teamHeroImage || 'https://res.cloudinary.com/dsnceqtza/image/upload/v1763390998/mission-life-grace/375d5fb3-6856-49be-a8d1-48859a442bca.jpg',
 		heroOverlay: 40,
 		teamDescription: settings.teamDescription || '',
 		sections: []

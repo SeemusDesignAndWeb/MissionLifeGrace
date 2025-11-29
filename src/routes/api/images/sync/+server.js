@@ -7,7 +7,7 @@ import { randomUUID } from 'crypto';
 
 // Configure Cloudinary
 function configureCloudinary() {
-	const cloudName = env.CLOUDINARY_CLOUD_NAME || 'dl8kjhwjs';
+	const cloudName = env.CLOUDINARY_CLOUD_NAME || 'dsnceqtza';
 	const apiKey = env.CLOUDINARY_API_KEY;
 	const apiSecret = env.CLOUDINARY_API_SECRET;
 
@@ -180,25 +180,36 @@ export const POST = async ({ request, cookies }) => {
 		const db = readDatabase();
 		const existingImages = db.images || [];
 
-		// Create a map of existing images by Cloudinary public ID
+		// Create maps for duplicate checking by both public ID and path
 		const existingByPublicId = new Map();
+		const existingByPath = new Map();
 		existingImages.forEach(img => {
 			if (img.cloudinaryPublicId) {
 				existingByPublicId.set(img.cloudinaryPublicId, img);
+			}
+			if (img.path) {
+				existingByPath.set(img.path, img);
 			}
 		});
 
 		let added = 0;
 		let updated = 0;
+		let skipped = 0;
 
 		// Process each selected Cloudinary image
 		for (const cloudinaryImg of selectedImages) {
 			const publicId = cloudinaryImg.public_id;
+			const secureUrl = cloudinaryImg.secure_url;
+			
+			// Check for existing image by public ID (preferred method)
 			const existingImage = existingByPublicId.get(publicId);
+			
+			// Also check by path as a fallback
+			const existingByPathImage = existingByPath.get(secureUrl);
 
 			if (existingImage) {
 				// Update existing image metadata
-				existingImage.path = cloudinaryImg.secure_url;
+				existingImage.path = secureUrl;
 				existingImage.width = cloudinaryImg.width;
 				existingImage.height = cloudinaryImg.height;
 				existingImage.size = cloudinaryImg.bytes || existingImage.size;
@@ -210,14 +221,42 @@ export const POST = async ({ request, cookies }) => {
 				}
 
 				updated++;
+			} else if (existingByPathImage) {
+				// Found by path but not by public ID - update the public ID
+				existingByPathImage.cloudinaryPublicId = publicId;
+				existingByPathImage.path = secureUrl;
+				existingByPathImage.width = cloudinaryImg.width;
+				existingByPathImage.height = cloudinaryImg.height;
+				existingByPathImage.size = cloudinaryImg.bytes || existingByPathImage.size;
+				existingByPathImage.mimeType = cloudinaryImg.format ? `image/${cloudinaryImg.format}` : existingByPathImage.mimeType;
+
+				const index = existingImages.findIndex(img => img.id === existingByPathImage.id);
+				if (index >= 0) {
+					existingImages[index] = existingByPathImage;
+				}
+
+				// Update the maps
+				existingByPublicId.set(publicId, existingByPathImage);
+
+				updated++;
 			} else {
+				// Check if this image already exists in the array (additional safety check)
+				const alreadyExists = existingImages.some(img => 
+					img.cloudinaryPublicId === publicId || img.path === secureUrl
+				);
+
+				if (alreadyExists) {
+					skipped++;
+					continue;
+				}
+
 				// Add new image
 				const filename = cloudinaryImg.filename || publicId.split('/').pop();
 				const newImage = {
 					id: randomUUID(),
 					filename: filename,
 					originalName: filename,
-					path: cloudinaryImg.secure_url,
+					path: secureUrl,
 					cloudinaryPublicId: publicId,
 					size: cloudinaryImg.bytes || 0,
 					mimeType: cloudinaryImg.format ? `image/${cloudinaryImg.format}` : 'image/jpeg',
@@ -227,6 +266,9 @@ export const POST = async ({ request, cookies }) => {
 				};
 
 				existingImages.push(newImage);
+				// Update maps for future checks in this batch
+				existingByPublicId.set(publicId, newImage);
+				existingByPath.set(secureUrl, newImage);
 				added++;
 			}
 		}
@@ -240,6 +282,7 @@ export const POST = async ({ request, cookies }) => {
 			message: `Successfully imported ${selectedImages.length} images from Cloudinary`,
 			added,
 			updated,
+			skipped,
 			total: existingImages.length
 		});
 	} catch (error) {

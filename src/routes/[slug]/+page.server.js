@@ -6,17 +6,22 @@ const reservedRoutes = [
 	'admin',
 	'api',
 	'events',
+	'conferences',
+	'conference',
 	'audio',
 	'media',
 	'activities',
 	'community-groups',
 	'im-new',
 	'church',
+	'churches',
 	'team',
 	'new-at-egcc',
 	'policy',
 	'the-church',
-	'the-team'
+	'the-team',
+	'vision',
+	'values'
 ];
 
 export const load = async ({ params }) => {

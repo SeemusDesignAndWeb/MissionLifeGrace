@@ -41,7 +41,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.event.title} - Eltham Green Community Church</title>
+	<title>{data.event.title} - Mission Life Grace</title>
 	<meta name="description" content={data.event.description ? data.event.description.replace(/<[^>]*>/g, '').substring(0, 160) : data.event.title} />
 </svelte:head>
 
@@ -182,7 +182,7 @@
 							<h3 class="font-semibold text-gray-900 mb-3">Need more information?</h3>
 							<a
 								href="/#contact"
-								class="block w-full text-center px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition-all"
+								class="block w-full text-center px-6 py-3 bg-primary text-white rounded-full font-semibold hover:bg-opacity-90 transition-all"
 							>
 								Contact Us
 							</a>
@@ -194,5 +194,5 @@
 	</div>
 </section>
 
-<Footer contactInfo={data.contactInfo} serviceTimes={data.serviceTimes} />
+<Footer contactInfo={data.contactInfo} />
 

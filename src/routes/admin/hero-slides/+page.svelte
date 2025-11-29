@@ -112,7 +112,7 @@
 		<h1 class="text-3xl font-bold">Manage Hero Slides</h1>
 		<button
 			on:click={() => startEdit()}
-			class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+			class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
 		>
 			Add New Slide
 		</button>
@@ -127,7 +127,7 @@
 				<div class="flex gap-2">
 					<button
 						on:click={saveSlide}
-						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
 					>
 						Save
 					</button>
@@ -218,7 +218,7 @@
 				<div class="flex gap-2">
 					<button
 						on:click={saveSlide}
-						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
 					>
 						Save
 					</button>

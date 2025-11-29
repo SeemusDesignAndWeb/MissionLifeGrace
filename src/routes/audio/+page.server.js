@@ -1,16 +1,6 @@
 import { getPage, getPodcasts, getContactInfo, getSettings } from '$lib/server/database';
 
-export const load = async ({ setHeaders, depends }) => {
-	// Invalidate cache to ensure fresh podcast data
-	depends('podcasts');
-	
-	// Disable caching for this page to ensure fresh podcast data
-	setHeaders({
-		'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-		'Pragma': 'no-cache',
-		'Expires': '0'
-	});
-
+export const load = async () => {
 	const page = getPage('audio');
 	const podcasts = getPodcasts();
 	const contactInfo = getContactInfo();
@@ -19,7 +9,7 @@ export const load = async ({ setHeaders, depends }) => {
 		page: page || {
 			id: 'audio',
 			title: 'Audio',
-			heroTitle: 'Sermons & Audio',
+			heroTitle: 'Messages & Audio',
 			heroImage: '/images/audio-bg.jpg',
 			content: '',
 			sections: []

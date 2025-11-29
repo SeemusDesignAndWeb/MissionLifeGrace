@@ -1,11 +1,11 @@
-import { getHeroSlides, getContactInfo, getServiceTimes, getEvents, getServices, getHome, getSettings } from '$lib/server/database';
+import { getHeroSlides, getContactInfo, getEvents, getConferences, getServices, getHome, getSettings, getPage } from '$lib/server/database';
 import { getPlaylistVideos, getChannelVideos } from '$lib/server/youtube';
 
 export const load = async () => {
 	const heroSlides = getHeroSlides();
 	const contactInfo = getContactInfo();
-	const serviceTimes = getServiceTimes();
 	const allEvents = getEvents();
+	const allConferences = getConferences();
 	const services = getServices().sort((a, b) => (a.order || 0) - (b.order || 0));
 	const settings = getSettings();
 	
@@ -19,6 +19,17 @@ export const load = async () => {
 		});
 	// For hero sidebar, show up to 3
 	const heroEvents = featuredEvents.slice(0, 3);
+	
+	// Get featured conferences that are published and registration is open, sorted by start date
+	const featuredConferences = allConferences
+		.filter(c => c.published && c.registrationOpen)
+		.sort((a, b) => {
+			const dateA = new Date(a.startDate || '9999-12-31');
+			const dateB = new Date(b.startDate || '9999-12-31');
+			return dateA.getTime() - dateB.getTime();
+		});
+	// Show up to 3 featured conferences
+	const heroConferences = featuredConferences.slice(0, 3);
 	
 	// Get highlighted event (for popup)
 	const highlightedEvents = allEvents.filter(e => e.highlighted && e.published);
@@ -88,13 +99,15 @@ export const load = async () => {
 	}
 	
 	const home = getHome();
+	
 	return {
 		heroSlides: heroSlides.length > 0 ? heroSlides : null,
 		contactInfo,
-		serviceTimes,
 		services,
 		featuredEvents: featuredEvents.length > 0 ? featuredEvents : [],
 		heroEvents: heroEvents.length > 0 ? heroEvents : null,
+		featuredConferences: featuredConferences.length > 0 ? featuredConferences : [],
+		heroConferences: heroConferences.length > 0 ? heroConferences : null,
 		home,
 		settings,
 		latestVideo,

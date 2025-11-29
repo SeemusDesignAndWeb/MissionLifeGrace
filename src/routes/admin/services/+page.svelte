@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import ImagePicker from '$lib/components/ImagePicker.svelte';
+	import { notifyError, notifySuccess } from '$lib/utils/notify';
 
 	export let params = {};
 
@@ -10,6 +11,8 @@
 	let editing = null;
 	let showForm = false;
 	let showImagePicker = false;
+	let draggedIndex = null;
+	let dragOverIndex = null;
 
 	onMount(async () => {
 		await loadServices();
@@ -42,44 +45,59 @@
 		showForm = true;
 	}
 
-	async function moveUp(index) {
-		if (index === 0) return;
-		const sorted = [...services].sort((a, b) => (a.order || 0) - (b.order || 0));
-		[sorted[index - 1], sorted[index]] = [sorted[index], sorted[index - 1]];
-		// Update order values
-		for (let i = 0; i < sorted.length; i++) {
-			sorted[i].order = i;
-		}
-		// Save all services with updated order
-		try {
-			for (const s of sorted) {
-				await saveServiceData(s);
-			}
-			await loadServices();
-		} catch (error) {
-			console.error('Failed to reorder services:', error);
-			alert('Failed to reorder services');
-		}
+	function handleDragStart(event, index) {
+		draggedIndex = index;
+		event.dataTransfer.effectAllowed = 'move';
+		event.dataTransfer.setData('text/html', event.target);
 	}
 
-	async function moveDown(index) {
+	function handleDragOver(event, index) {
+		event.preventDefault();
+		event.dataTransfer.dropEffect = 'move';
+		dragOverIndex = index;
+	}
+
+	function handleDragLeave() {
+		dragOverIndex = null;
+	}
+
+	async function handleDrop(event, dropIndex) {
+		event.preventDefault();
+		
+		if (draggedIndex === null || draggedIndex === dropIndex) {
+			draggedIndex = null;
+			dragOverIndex = null;
+			return;
+		}
+
 		const sorted = [...services].sort((a, b) => (a.order || 0) - (b.order || 0));
-		if (index === sorted.length - 1) return;
-		[sorted[index], sorted[index + 1]] = [sorted[index + 1], sorted[index]];
+		const draggedItem = sorted[draggedIndex];
+		
+		// Remove dragged item from array
+		sorted.splice(draggedIndex, 1);
+		
+		// Insert at new position
+		sorted.splice(dropIndex, 0, draggedItem);
+		
 		// Update order values
 		for (let i = 0; i < sorted.length; i++) {
 			sorted[i].order = i;
 		}
+		
 		// Save all services with updated order
 		try {
 			for (const s of sorted) {
 				await saveServiceData(s);
 			}
 			await loadServices();
+			notifySuccess('Order updated successfully');
 		} catch (error) {
 			console.error('Failed to reorder services:', error);
-			alert('Failed to reorder services');
+			notifyError('Failed to reorder services');
 		}
+		
+		draggedIndex = null;
+		dragOverIndex = null;
 	}
 
 	function cancelEdit() {
@@ -126,7 +144,7 @@
 			cancelEdit();
 		} catch (error) {
 			console.error('Failed to save service:', error);
-			alert('Failed to save service');
+			notifyError('Failed to save service');
 		}
 	}
 
@@ -148,15 +166,15 @@
 </script>
 
 <svelte:head>
-	<title>Manage Services - Admin</title>
+	<title>Manage Training and Networking - Admin</title>
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8">
 	<div class="flex justify-between items-center mb-6">
-		<h1 class="text-3xl font-bold">Manage Services</h1>
+		<h1 class="text-3xl font-bold">Manage Training and Networking</h1>
 		<button
 			on:click={() => startEdit()}
-			class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+			class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
 		>
 			Add New Service
 		</button>
@@ -171,7 +189,7 @@
 				<div class="flex gap-2">
 					<button
 						on:click={saveService}
-						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
 					>
 						Save
 					</button>
@@ -276,7 +294,7 @@
 				<div class="flex gap-2">
 					<button
 						on:click={saveService}
-						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
 					>
 						Save
 					</button>
@@ -316,26 +334,19 @@
 				</thead>
 				<tbody class="bg-white divide-y divide-gray-200">
 					{#each services.sort((a, b) => (a.order || 0) - (b.order || 0)) as service, index}
-						<tr>
+						<tr
+							draggable="true"
+							on:dragstart={(e) => handleDragStart(e, index)}
+							on:dragover={(e) => handleDragOver(e, index)}
+							on:dragleave={handleDragLeave}
+							on:drop={(e) => handleDrop(e, index)}
+							class="cursor-move transition-all {draggedIndex === index ? 'opacity-50' : ''} {dragOverIndex === index && draggedIndex !== index ? 'bg-blue-50 border-l-4 border-blue-500' : ''}"
+						>
 							<td class="px-6 py-4 whitespace-nowrap">
 								<div class="flex items-center gap-2">
-									<button
-										on:click={() => moveUp(index)}
-										disabled={index === 0}
-										class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-										aria-label="Move up"
-									>
-										↑
-									</button>
-									<button
-										on:click={() => moveDown(index)}
-										disabled={index === services.length - 1}
-										class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-										aria-label="Move down"
-									>
-										↓
-									</button>
-									<span class="ml-2">{service.order || 0}</span>
+									<span class="text-gray-400 text-lg cursor-grab active:cursor-grabbing">☰</span>
+									<span class="text-sm text-gray-500 ml-2">Drag to reorder</span>
+									<span class="ml-4 text-xs text-gray-400">({service.order || 0})</span>
 								</div>
 							</td>
 							<td class="px-6 py-4 whitespace-nowrap text-sm font-medium">{service.title}</td>

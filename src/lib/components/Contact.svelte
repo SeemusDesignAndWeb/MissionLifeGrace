@@ -1,7 +1,6 @@
 <script>
 	export let contactInfo = {
 		address: '542 Westhorne Avenue, Eltham, London, SE9 6RR',
-		phone: '020 8850 1331',
 		email: 'enquiries@egcc.co.uk'
 	};
 
@@ -9,8 +8,11 @@
 		name: '',
 		email: '',
 		phone: '',
-		message: ''
+		message: '',
+		website: '' // Honeypot field - bots will fill this, humans won't see it
 	};
+	
+	let formStartTime = Date.now();
 
 	let success = false;
 	let error = '';
@@ -72,8 +74,24 @@
 		success = false;
 		error = '';
 
+		// Honeypot check - if this field is filled, it's a bot
+		if (formData.website && formData.website.trim() !== '') {
+			// Silently fail - don't let bots know they were caught
+			submitting = false;
+			return;
+		}
+
+		// Check minimum time - humans need at least 3 seconds to fill the form
+		const timeSpent = (Date.now() - formStartTime) / 1000;
+		if (timeSpent < 3) {
+			error = 'Please take your time filling out the form.';
+			submitting = false;
+			return;
+		}
+
 		const errors = {};
-		Object.keys(formData).forEach((field) => {
+		// Don't validate honeypot field
+		['name', 'email', 'phone', 'message'].forEach((field) => {
 			const fieldError = validateField(field, formData[field]);
 			if (fieldError) {
 				errors[field] = fieldError;
@@ -92,15 +110,22 @@
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify(formData)
+				body: JSON.stringify({
+					name: formData.name,
+					email: formData.email,
+					phone: formData.phone,
+					message: formData.message,
+					formTime: timeSpent // Send time spent for server-side validation
+				})
 			});
 
 			const result = await response.json();
 
 			if (response.ok && result.success) {
 				success = true;
-				formData = { name: '', email: '', phone: '', message: '' };
+				formData = { name: '', email: '', phone: '', message: '', website: '' };
 				fieldErrors = {};
+				formStartTime = Date.now(); // Reset timer for next submission
 				setTimeout(() => {
 					success = false;
 				}, 5000);
@@ -133,12 +158,6 @@
 						<div>
 							<p class="text-sm text-gray-500 mb-1">Address</p>
 							<p class="text-gray-900">{contactInfo.address}</p>
-						</div>
-						<div>
-							<p class="text-sm text-gray-500 mb-1">Phone</p>
-							<a href="tel:{contactInfo.phone}" class="text-gray-900 hover:text-primary">
-								{contactInfo.phone}
-							</a>
 						</div>
 						<div>
 							<p class="text-sm text-gray-500 mb-1">Email</p>
@@ -193,7 +212,7 @@
 							on:blur={() => handleBlur('name', formData.name)}
 							on:input={(e) => handleInput('name', e.currentTarget.value)}
 							required
-							class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent {fieldErrors.name
+							class="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent {fieldErrors.name
 								? 'border-red-500'
 								: ''}"
 						/>
@@ -214,7 +233,7 @@
 							on:blur={() => handleBlur('email', formData.email)}
 							on:input={(e) => handleInput('email', e.currentTarget.value)}
 							required
-							class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent {fieldErrors.email
+							class="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent {fieldErrors.email
 								? 'border-red-500'
 								: ''}"
 						/>
@@ -235,7 +254,7 @@
 							on:blur={() => handleBlur('phone', formData.phone)}
 							on:input={(e) => handleInput('phone', e.currentTarget.value)}
 							required
-							class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent {fieldErrors.phone
+							class="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent {fieldErrors.phone
 								? 'border-red-500'
 								: ''}"
 						/>
@@ -256,7 +275,7 @@
 							on:input={(e) => handleInput('message', e.currentTarget.value)}
 							rows="5"
 							required
-							class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none {fieldErrors.message
+							class="w-full px-4 py-2 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none {fieldErrors.message
 								? 'border-red-500'
 								: ''}"
 						></textarea>
@@ -265,11 +284,24 @@
 						{/if}
 					</div>
 
+					<!-- Honeypot field - hidden from users but visible to bots -->
+					<div style="position: absolute; left: -9999px; opacity: 0; pointer-events: none;" aria-hidden="true">
+						<label for="website">Website (leave blank)</label>
+						<input
+							type="text"
+							id="website"
+							name="website"
+							tabindex="-1"
+							autocomplete="off"
+							bind:value={formData.website}
+						/>
+					</div>
+
 					<!-- Submit Button -->
 					<button
 						type="submit"
 						disabled={submitting}
-						class="w-full bg-primary text-white px-6 py-3 rounded font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+						class="w-full bg-primary text-white px-6 py-3 rounded-full font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 					>
 						{#if submitting}
 							Sending...
