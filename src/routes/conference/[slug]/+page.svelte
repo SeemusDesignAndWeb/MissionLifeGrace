@@ -6,8 +6,40 @@
 	export let data;
 
 	let showBookingForm = false;
-	let conference = data.conference;
-	let ticketTypes = data.ticketTypes;
+	let conference;
+	let ticketTypes;
+	let isAuthenticated;
+	
+	$: conference = data.conference;
+	$: ticketTypes = data.ticketTypes;
+	$: isAuthenticated = data.isAuthenticated;
+	
+	let formKey = 0; // Key to force component remount
+
+	// Ensure modal is closed on mount (prevent state persistence issues)
+	onMount(() => {
+		showBookingForm = false;
+		// Clear any invalid drafts that might have step 4/5 without orderSummary
+		if (conference?.id) {
+			try {
+				const draftKey = `conference-booking-draft-${conference.id}`;
+				const draftJson = localStorage.getItem(draftKey);
+				if (draftJson) {
+					const draft = JSON.parse(draftJson);
+				if ((draft.currentStep === 4 || draft.currentStep === 5) && !draft.orderSummary) {
+					localStorage.removeItem(draftKey);
+				}
+				}
+			} catch (e) {
+				console.error('Error checking draft:', e);
+			}
+		}
+	});
+	
+	// Reset form when modal opens by remounting the component
+	$: if (showBookingForm) {
+		formKey += 1; // Force component remount
+	}
 
 	function formatDate(dateString) {
 		if (!dateString) return '';
@@ -18,6 +50,54 @@
 	function formatTime(timeString) {
 		if (!timeString) return '';
 		return timeString;
+	}
+
+	function isEarlyBirdActive() {
+		if (!conference) return false;
+		const now = new Date();
+		const startDate = conference.earlyBirdStartDate ? new Date(conference.earlyBirdStartDate) : null;
+		const endDate = conference.earlyBirdEndDate ? new Date(conference.earlyBirdEndDate) : null;
+		const discountAmount = conference.earlyBirdDiscountAmount || 0;
+
+		if (!startDate || !endDate || discountAmount <= 0) return false;
+
+		// Set time to start of day for comparison
+		const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+		const start = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+		const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+		end.setHours(23, 59, 59, 999); // End of day
+
+		return nowDate >= start && nowDate <= end;
+	}
+
+	function isEarlyBirdEndingSoon() {
+		if (!isEarlyBirdActive()) return false;
+		const now = new Date();
+		const endDate = conference.earlyBirdEndDate ? new Date(conference.earlyBirdEndDate) : null;
+		if (!endDate) return false;
+
+		const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+		const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+		const daysUntilEnd = Math.ceil((end - nowDate) / (1000 * 60 * 60 * 24));
+
+		// Show "ending soon" if 7 days or less remaining
+		return daysUntilEnd <= 7 && daysUntilEnd > 0;
+	}
+
+	function getCurrentPrice(ticketType) {
+		// Check conference-level early bird pricing first
+		if (isEarlyBirdActive() && conference.earlyBirdDiscountAmount > 0) {
+			const discount = conference.earlyBirdDiscountAmount || 0;
+			return Math.max(0, ticketType.price - discount);
+		}
+
+		// Fall back to ticket-level early bird pricing (for backward compatibility)
+		const now = new Date();
+		if (ticketType.earlyBirdEndDate && new Date(ticketType.earlyBirdEndDate) > now && ticketType.earlyBirdPrice > 0) {
+			return ticketType.earlyBirdPrice;
+		}
+
+		return ticketType.price;
 	}
 
 
@@ -108,7 +188,7 @@
 						</div>
 					{/if}
 					{#if conference.registrationOpen}
-						<div class="mt-6">
+						<div class="mt-6 flex gap-3">
 							<button
 								on:click={() => showBookingForm = true}
 								class="inline-flex items-center gap-2 px-8 py-4 bg-primary hover:bg-primary-dark text-white text-lg font-bold rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
@@ -118,6 +198,27 @@
 								</svg>
 								Book Now
 							</button>
+							{#if isAuthenticated}
+								<a
+									href="/my-account"
+									class="inline-flex items-center gap-2 px-6 py-4 bg-white/20 hover:bg-white/30 text-white text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 border border-white/30"
+								>
+									<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+									</svg>
+									My Account
+								</a>
+							{:else}
+								<a
+									href="/my-account/login"
+									class="inline-flex items-center gap-2 px-6 py-4 bg-white/20 hover:bg-white/30 text-white text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 border border-white/30"
+								>
+									<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+									</svg>
+									Login
+								</a>
+							{/if}
 						</div>
 					{/if}
 				</div>
@@ -172,7 +273,7 @@
 							</div>
 						{/if}
 						{#if conference.registrationOpen}
-							<div class="mt-6">
+							<div class="mt-6 flex gap-3">
 								<button
 									on:click={() => showBookingForm = true}
 									class="inline-flex items-center gap-2 px-8 py-4 bg-white hover:bg-gray-100 text-primary text-lg font-bold rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
@@ -182,6 +283,27 @@
 									</svg>
 									Book Now
 								</button>
+								{#if isAuthenticated}
+									<a
+										href="/my-account"
+										class="inline-flex items-center gap-2 px-6 py-4 bg-white/20 hover:bg-white/30 text-white text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 border border-white/30"
+									>
+										<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+										</svg>
+										My Account
+									</a>
+								{:else}
+									<a
+										href="/my-account/login"
+										class="inline-flex items-center gap-2 px-6 py-4 bg-white/20 hover:bg-white/30 text-white text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 border border-white/30"
+									>
+										<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+										</svg>
+										Login
+									</a>
+								{/if}
 							</div>
 						{/if}
 					</div>
@@ -280,6 +402,27 @@
 							>
 								Register for Conference
 							</button>
+							{#if isAuthenticated}
+								<a
+									href="/my-account"
+									class="w-full px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold text-center inline-flex items-center justify-center gap-2"
+								>
+									<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+									</svg>
+									My Account
+								</a>
+							{:else}
+								<a
+									href="/my-account/login"
+									class="w-full px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold text-center inline-flex items-center justify-center gap-2"
+								>
+									<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+									</svg>
+									Login
+								</a>
+							{/if}
 						</div>
 					{/if}
 				</div>
@@ -300,7 +443,21 @@
 											{/if}
 										</div>
 										<div class="text-right">
-											<p class="font-bold">£{ticketType.price.toFixed(2)}</p>
+											<div class="flex items-center gap-2 justify-end mb-1">
+												{#if isEarlyBirdActive()}
+													{#if isEarlyBirdEndingSoon()}
+														<span class="px-2 py-1 text-xs font-semibold bg-orange-100 text-orange-800 rounded">Early Bird Ending Soon</span>
+													{:else}
+														<span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded">Early Bird</span>
+													{/if}
+												{/if}
+											</div>
+											<div class="flex items-baseline gap-2 justify-end">
+												{#if isEarlyBirdActive() && getCurrentPrice(ticketType) < ticketType.price}
+													<p class="text-sm text-gray-400 line-through">£{ticketType.price.toFixed(2)}</p>
+												{/if}
+												<p class="font-bold">£{getCurrentPrice(ticketType).toFixed(2)}</p>
+											</div>
 											{#if ticketType.capacity}
 												<p class="text-xs text-gray-500">{ticketType.capacity - (ticketType.sold || 0)} remaining</p>
 											{/if}
@@ -318,23 +475,37 @@
 
 <!-- Booking Form Modal -->
 {#if showBookingForm}
-	<div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-		<div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+	<div 
+		class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" 
+		on:click={() => showBookingForm = false} 
+		role="button" 
+		tabindex="0" 
+		on:keydown={(e) => e.key === 'Escape' && (showBookingForm = false)}
+	>
+		<div 
+			class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto" 
+			on:click|stopPropagation 
+			role="dialog"
+		>
+			<div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center z-10">
+				<h2 class="text-2xl font-bold">Register for {conference.title}</h2>
+				<button
+					on:click={() => showBookingForm = false}
+					class="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+					aria-label="Close registration form"
+				>
+					×
+				</button>
+			</div>
 			<div class="p-6">
-				<div class="flex justify-between items-center mb-4">
-					<h2 class="text-2xl font-bold">Register for {conference.title}</h2>
-					<button
-						on:click={() => showBookingForm = false}
-						class="text-gray-500 hover:text-gray-700 text-2xl"
-					>
-						×
-					</button>
-				</div>
-				<ConferenceBookingForm
-					conference={conference}
-					ticketTypes={ticketTypes}
-					on:close={() => showBookingForm = false}
-				/>
+				{#key formKey}
+					<ConferenceBookingForm
+						conference={conference}
+						ticketTypes={ticketTypes}
+						isAuthenticated={isAuthenticated}
+						on:close={() => showBookingForm = false}
+					/>
+				{/key}
 			</div>
 		</div>
 	</div>

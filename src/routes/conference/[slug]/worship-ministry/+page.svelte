@@ -10,6 +10,7 @@
 	let pageTitle = data.pageTitle;
 	let supportingPages = data.supportingPages || [];
 	let ticketTypes = data.ticketTypes || [];
+	let isAuthenticated = data.isAuthenticated;
 	
 	function formatDate(dateString) {
 		if (!dateString) return '';
@@ -57,7 +58,7 @@
 						</div>
 					{/if}
 					{#if conference.registrationOpen}
-						<div class="mt-6">
+						<div class="mt-6 flex gap-3">
 							<button
 								on:click={() => showBookingForm = true}
 								class="inline-flex items-center gap-2 px-8 py-4 bg-primary hover:bg-primary-dark text-white text-lg font-bold rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
@@ -67,6 +68,27 @@
 								</svg>
 								Book Now
 							</button>
+							{#if isAuthenticated}
+								<a
+									href="/my-account"
+									class="inline-flex items-center gap-2 px-6 py-4 bg-white/20 hover:bg-white/30 text-white text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 border border-white/30"
+								>
+									<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+									</svg>
+									My Account
+								</a>
+							{:else}
+								<a
+									href="/my-account/login"
+									class="inline-flex items-center gap-2 px-6 py-4 bg-white/20 hover:bg-white/30 text-white text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 border border-white/30"
+								>
+									<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+									</svg>
+									Login
+								</a>
+							{/if}
 						</div>
 					{/if}
 				</div>
@@ -121,7 +143,7 @@
 							</div>
 						{/if}
 						{#if conference.registrationOpen}
-							<div class="mt-6">
+							<div class="mt-6 flex gap-3">
 								<button
 									on:click={() => showBookingForm = true}
 									class="inline-flex items-center gap-2 px-8 py-4 bg-white hover:bg-gray-100 text-primary text-lg font-bold rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
@@ -131,6 +153,27 @@
 									</svg>
 									Book Now
 								</button>
+								{#if isAuthenticated}
+									<a
+										href="/my-account"
+										class="inline-flex items-center gap-2 px-6 py-4 bg-white/20 hover:bg-white/30 text-white text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 border border-white/30"
+									>
+										<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+										</svg>
+										My Account
+									</a>
+								{:else}
+									<a
+										href="/my-account/login"
+										class="inline-flex items-center gap-2 px-6 py-4 bg-white/20 hover:bg-white/30 text-white text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 border border-white/30"
+									>
+										<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+										</svg>
+										Login
+									</a>
+								{/if}
 							</div>
 						{/if}
 					</div>

@@ -45,6 +45,9 @@ const defaultDatabase = {
 	conferenceDiscountCodes: [],
 	conferencePaymentSchedules: [],
 	conferenceFormFields: [],
+	userAccounts: [],
+	emailVerificationCodes: [],
+	passwordResetTokens: [],
 	contact: {
 		address: '542 Westhorne Avenue, Eltham, London, SE9 6RR',
 		email: 'enquiries@egcc.co.uk',
@@ -1090,4 +1093,148 @@ export function checkDatabaseHealth() {
 		isAbsolute,
 		volumeMounted: isAbsolute && exists
 	};
+}
+
+// ========== USER ACCOUNT MANAGEMENT FUNCTIONS ==========
+
+// CRUD operations for User Accounts
+export function getUserAccounts() {
+	const db = readDatabase();
+	if (!db.userAccounts) {
+		db.userAccounts = [];
+	}
+	return db.userAccounts || [];
+}
+
+export function getUserAccountByEmail(email) {
+	const db = readDatabase();
+	return db.userAccounts?.find((u) => u.email.toLowerCase() === email.toLowerCase());
+}
+
+export function getUserAccount(id) {
+	const db = readDatabase();
+	return db.userAccounts?.find((u) => u.id === id);
+}
+
+export function getUserAccountByBookingId(bookingId) {
+	const db = readDatabase();
+	return db.userAccounts?.find((u) => u.bookingIds?.includes(bookingId));
+}
+
+export function saveUserAccount(userAccount) {
+	const db = readDatabase();
+	if (!db.userAccounts) {
+		db.userAccounts = [];
+	}
+	const index = db.userAccounts.findIndex((u) => u.id === userAccount.id);
+	if (index >= 0) {
+		db.userAccounts[index] = userAccount;
+	} else {
+		db.userAccounts.push(userAccount);
+	}
+	writeDatabase(db);
+}
+
+export function deleteUserAccount(id) {
+	const db = readDatabase();
+	if (db.userAccounts) {
+		db.userAccounts = db.userAccounts.filter((u) => u.id !== id);
+		writeDatabase(db);
+	}
+}
+
+// Email Verification Codes
+export function getEmailVerificationCodes() {
+	const db = readDatabase();
+	if (!db.emailVerificationCodes) {
+		db.emailVerificationCodes = [];
+	}
+	return db.emailVerificationCodes || [];
+}
+
+export function getEmailVerificationCode(email, code) {
+	const db = readDatabase();
+	return db.emailVerificationCodes?.find(
+		(v) => v.email.toLowerCase() === email.toLowerCase() && v.code === code && !v.used
+	);
+}
+
+export function saveEmailVerificationCode(verificationCode) {
+	const db = readDatabase();
+	if (!db.emailVerificationCodes) {
+		db.emailVerificationCodes = [];
+	}
+	const index = db.emailVerificationCodes.findIndex(
+		(v) => v.email.toLowerCase() === verificationCode.email.toLowerCase() && v.code === verificationCode.code
+	);
+	if (index >= 0) {
+		db.emailVerificationCodes[index] = verificationCode;
+	} else {
+		db.emailVerificationCodes.push(verificationCode);
+	}
+	// Clean up old codes (older than 24 hours)
+	const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+	db.emailVerificationCodes = db.emailVerificationCodes.filter(
+		(v) => new Date(v.createdAt).getTime() > oneDayAgo || v.used
+	);
+	writeDatabase(db);
+}
+
+export function deleteEmailVerificationCode(email, code) {
+	const db = readDatabase();
+	if (db.emailVerificationCodes) {
+		db.emailVerificationCodes = db.emailVerificationCodes.filter(
+			(v) => !(v.email.toLowerCase() === email.toLowerCase() && v.code === code)
+		);
+		writeDatabase(db);
+	}
+}
+
+// Password Reset Tokens
+export function getPasswordResetTokens() {
+	const db = readDatabase();
+	if (!db.passwordResetTokens) {
+		db.passwordResetTokens = [];
+	}
+	return db.passwordResetTokens || [];
+}
+
+export function getPasswordResetToken(email, token) {
+	const db = readDatabase();
+	return db.passwordResetTokens?.find(
+		(t) => t.email.toLowerCase() === email.toLowerCase() && t.token === token && !t.used
+	);
+}
+
+export function savePasswordResetToken(tokenData) {
+	const db = readDatabase();
+	if (!db.passwordResetTokens) {
+		db.passwordResetTokens = [];
+	}
+	// Remove any existing tokens for this email to invalidate them
+	db.passwordResetTokens = db.passwordResetTokens.filter(
+		(t) => t.email.toLowerCase() !== tokenData.email.toLowerCase()
+	);
+	
+	db.passwordResetTokens.push(tokenData);
+	
+	// Clean up old tokens (older than 1 hour)
+	const oneHourAgo = Date.now() - 60 * 60 * 1000;
+	db.passwordResetTokens = db.passwordResetTokens.filter(
+		(t) => new Date(t.createdAt).getTime() > oneHourAgo && !t.used
+	);
+	writeDatabase(db);
+}
+
+export function markPasswordResetTokenUsed(email, token) {
+	const db = readDatabase();
+	if (db.passwordResetTokens) {
+		const index = db.passwordResetTokens.findIndex(
+			(t) => t.email.toLowerCase() === email.toLowerCase() && t.token === token
+		);
+		if (index >= 0) {
+			db.passwordResetTokens[index].used = true;
+			writeDatabase(db);
+		}
+	}
 }

@@ -7,9 +7,13 @@ import {
 	getConference,
 	getConferenceTicketType,
 	saveConferenceTicketType,
-	getConferenceAttendees
+	getConferenceAttendees,
+	getUserAccountByEmail,
+	saveUserAccount,
+	saveEmailVerificationCode
 } from '$lib/server/database';
-import { sendBookingConfirmationEmail, sendChildRegistrationNotification } from '$lib/server/conference-emails';
+import { sendBookingConfirmationEmail, sendChildRegistrationNotification, sendVerificationCodeEmail } from '$lib/server/conference-emails';
+import { generateVerificationCode as genCode } from '$lib/server/user-auth';
 
 export const POST = async ({ request }) => {
 	try {
@@ -40,6 +44,9 @@ export const POST = async ({ request }) => {
 		}
 
 		// Validate ticket types and capacity
+		// Also recalculate subtotal here to ensure integrity
+		let calculatedSubtotal = 0;
+		
 		for (const attendee of attendees) {
 			if (attendee.ticketTypeId) {
 				const ticketType = getConferenceTicketType(attendee.ticketTypeId);
@@ -49,11 +56,69 @@ export const POST = async ({ request }) => {
 				if (ticketType.capacity > 0 && (ticketType.sold || 0) >= ticketType.capacity) {
 					return json({ error: `Ticket type ${ticketType.name} is sold out` }, { status: 400 });
 				}
+				
+				// Calculate price for this ticket
+				// Use the same logic as frontend: Conference Early Bird -> Ticket Early Bird -> Ticket Late -> Standard
+				let price = ticketType.price;
+				const now = new Date();
+				
+				// 1. Conference-level Early Bird
+				if (conference.earlyBirdStartDate && conference.earlyBirdEndDate && conference.earlyBirdDiscountAmount > 0) {
+					const startDate = new Date(conference.earlyBirdStartDate);
+					const endDate = new Date(conference.earlyBirdEndDate);
+					// Set end date to end of day
+					endDate.setHours(23, 59, 59, 999);
+					
+					if (now >= startDate && now <= endDate) {
+						price = Math.max(0, ticketType.price - conference.earlyBirdDiscountAmount);
+					}
+				} else {
+					// 2. Ticket-level Early Bird (fallback)
+					if (ticketType.earlyBirdEndDate && new Date(ticketType.earlyBirdEndDate) > now && ticketType.earlyBirdPrice > 0) {
+						price = ticketType.earlyBirdPrice;
+					}
+					// 3. Ticket-level Late Price
+					else if (ticketType.latePriceStartDate && new Date(ticketType.latePriceStartDate) <= now && ticketType.latePrice > 0) {
+						price = ticketType.latePrice;
+					}
+				}
+				
+				calculatedSubtotal += price;
 			}
 		}
 
+		// Recalculate totals
+		let calculatedDiscountAmount = 0;
+		if (discountCodeData) {
+			if (discountCodeData.type === 'percentage') {
+				calculatedDiscountAmount = calculatedSubtotal * (discountCodeData.value / 100);
+			} else {
+				calculatedDiscountAmount = discountCodeData.value;
+			}
+		}
+		
+		const calculatedTotalAmount = Math.max(0, calculatedSubtotal - calculatedDiscountAmount);
+
+		// Secure the booking object
+		// Overwrite client-provided values with server-calculated ones
+		// Generate new ID and Reference to prevent overwrites
+		const secureBooking = {
+			...booking,
+			id: `booking-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+			bookingReference: `CONF-${Date.now().toString(36).toUpperCase()}`,
+			subtotal: calculatedSubtotal,
+			discountAmount: calculatedDiscountAmount,
+			totalAmount: calculatedTotalAmount,
+			// Force payment status to initial state
+			paymentStatus: booking.paymentMethod === 'deposit20' ? 'partial' : 'unpaid',
+			paidAmount: 0, // Always start with 0 paid
+			createdAt: new Date().toISOString(),
+			archived: false,
+			archivedAt: null
+		};
+
 		// Save booking
-		saveConferenceBooking(booking);
+		saveConferenceBooking(secureBooking);
 
 		// Save attendees
 		for (const attendee of attendees) {
@@ -69,11 +134,19 @@ export const POST = async ({ request }) => {
 				}
 			}
 
+			// Create attendee data
 			const attendeeData = {
 				...attendee,
-				bookingId: booking.id,
+				bookingId: secureBooking.id,
 				age
 			};
+
+			// Ensure unique ID: Remove ALL client-provided IDs to force new records
+			// This prevents overwriting existing attendees of other bookings
+			if (attendeeData.id) {
+				delete attendeeData.id;
+			}
+
 			saveConferenceAttendee(attendeeData);
 
 			// Update ticket type sold count
@@ -92,13 +165,75 @@ export const POST = async ({ request }) => {
 			saveConferenceDiscountCode(discountCodeData);
 		}
 
+		// Check if account setup is needed (for partial/unpaid bookings)
+		// Don't create account automatically - let user set their own password
+		let accountNeedsSetup = false;
+		let accountExists = false;
+		let accountVerified = false;
+		
+		// Link booking to existing account if found, regardless of payment status
+		if (secureBooking.groupLeaderEmail) {
+			try {
+				const userAccount = getUserAccountByEmail(secureBooking.groupLeaderEmail);
+				
+				if (!userAccount) {
+					// Account doesn't exist
+					if (secureBooking.paymentStatus !== 'paid') {
+						// Only flag for setup if not paid
+						accountNeedsSetup = true;
+					}
+				} else {
+					// Account exists
+					accountExists = true;
+					accountVerified = userAccount.verified;
+
+					// Link booking
+					if (!userAccount.bookingIds) {
+						userAccount.bookingIds = [];
+					}
+					if (!userAccount.bookingIds.includes(secureBooking.id)) {
+						userAccount.bookingIds.push(secureBooking.id);
+						saveUserAccount(userAccount);
+					}
+					
+					// Check verification status
+					if (!userAccount.verified && secureBooking.paymentStatus !== 'paid') {
+						accountNeedsSetup = true;
+						
+						// Resend verification code if needed
+						const verificationCode = genCode();
+						const verification = {
+							email: secureBooking.groupLeaderEmail.toLowerCase(),
+							code: verificationCode,
+							used: false,
+							createdAt: new Date().toISOString()
+						};
+						saveEmailVerificationCode(verification);
+						
+						// Send verification email
+						try {
+							await sendVerificationCodeEmail({
+								email: secureBooking.groupLeaderEmail,
+								code: verificationCode,
+								name: secureBooking.groupLeaderName
+							});
+						} catch (emailError) {
+							console.error('Failed to send verification email:', emailError);
+						}
+					}
+				}
+			} catch (accountError) {
+				console.error('Failed to check/link user account:', accountError);
+			}
+		}
+
 		// Send confirmation emails (async, don't wait for completion)
 		try {
-			const savedAttendees = getConferenceAttendees(booking.id);
+			const savedAttendees = getConferenceAttendees(secureBooking.id);
 			
 			// Send booking confirmation email
 			await sendBookingConfirmationEmail({
-				booking,
+				booking: secureBooking,
 				conference,
 				attendees: savedAttendees
 			});
@@ -118,7 +253,7 @@ export const POST = async ({ request }) => {
 				};
 
 				await sendChildRegistrationNotification({
-					booking,
+					booking: secureBooking,
 					conference,
 					childAttendees,
 					childGroupLeaders
@@ -129,7 +264,14 @@ export const POST = async ({ request }) => {
 			console.error('Failed to send confirmation emails:', emailError);
 		}
 
-		return json({ success: true, bookingId: booking.id, bookingReference: booking.bookingReference });
+		return json({ 
+			success: true, 
+			bookingId: secureBooking.id, 
+			bookingReference: secureBooking.bookingReference,
+			accountNeedsSetup,
+			accountExists,
+			accountVerified
+		});
 	} catch (error) {
 		console.error('Failed to process booking:', error);
 		return json({ error: 'Failed to process booking' }, { status: 500 });

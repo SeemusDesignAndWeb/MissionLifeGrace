@@ -1,9 +1,13 @@
 <script lang="js">
 	import { onMount } from 'svelte';
 
+	export let data;
+
 	let conferences = [];
-	let bookings = [];
+	let bookings = data.bookings || [];
 	let selectedConferenceId = '';
+	let searchQuery = '';
+	let showArchived = false;
 	let loading = true;
 	let selectedBooking = null;
 	let selectedBookingAttendees = [];
@@ -31,8 +35,13 @@
 
 	async function loadBookings() {
 		try {
-			const response = await fetch('/api/content?type=conference-bookings');
-			bookings = await response.json();
+			// Use server data if available, otherwise fetch
+			if (data && data.bookings) {
+				bookings = data.bookings;
+			} else {
+				const response = await fetch('/api/content?type=conference-bookings');
+				bookings = await response.json();
+			}
 		} catch (error) {
 			console.error('Failed to load bookings:', error);
 		} finally {
@@ -76,8 +85,81 @@
 	}
 
 	function filterBookings() {
-		if (!selectedConferenceId) return bookings;
-		return bookings.filter(booking => booking.conferenceId === selectedConferenceId);
+		let filtered = bookings;
+		
+		// Filter by archived status
+		if (!showArchived) {
+			filtered = filtered.filter(booking => !booking.archived);
+		} else {
+			filtered = filtered.filter(booking => booking.archived);
+		}
+		
+		// Filter by conference
+		if (selectedConferenceId) {
+			filtered = filtered.filter(booking => booking.conferenceId === selectedConferenceId);
+		}
+		
+		// Filter by search query
+		if (searchQuery.trim()) {
+			const query = searchQuery.toLowerCase().trim();
+			filtered = filtered.filter(booking => {
+				// Search in booking reference
+				if (booking.bookingReference?.toLowerCase().includes(query)) return true;
+				
+				// Search in group leader name
+				if (booking.groupLeaderName?.toLowerCase().includes(query)) return true;
+				
+				// Search in group leader email
+				if (booking.groupLeaderEmail?.toLowerCase().includes(query)) return true;
+				
+				// Search in conference name
+				const conferenceName = getConferenceName(booking.conferenceId);
+				if (conferenceName.toLowerCase().includes(query)) return true;
+				
+				return false;
+			});
+		}
+		
+		return filtered;
+	}
+
+	async function toggleArchive(booking, event) {
+		event.stopPropagation(); // Prevent opening booking details
+		
+		try {
+			const updatedBooking = {
+				...booking,
+				archived: !booking.archived,
+				archivedAt: !booking.archived ? new Date().toISOString() : null
+			};
+
+			const response = await fetch('/api/content', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					type: 'conference-booking',
+					data: updatedBooking
+				})
+			});
+
+			if (response.ok) {
+				// Update local bookings array
+				const index = bookings.findIndex(b => b.id === booking.id);
+				if (index >= 0) {
+					bookings[index] = updatedBooking;
+					bookings = [...bookings]; // Trigger reactivity
+				}
+				
+				// Update selected booking if it's the same one
+				if (selectedBooking && selectedBooking.id === booking.id) {
+					selectedBooking = updatedBooking;
+				}
+			} else {
+				console.error('Failed to archive/unarchive booking');
+			}
+		} catch (error) {
+			console.error('Error archiving booking:', error);
+		}
 	}
 
 	function getConferenceName(id) {
@@ -142,18 +224,71 @@
 <div class="container mx-auto px-4 py-8 admin-page">
 	<h1 class="text-3xl font-bold mb-6">Conference Bookings</h1>
 
-	<div class="mb-4">
-		<label class="block text-sm font-medium mb-1">Filter by Conference</label>
-		<select
-			bind:value={selectedConferenceId}
-			on:change={loadBookings}
-			class="px-3 py-2 border rounded"
-		>
-			<option value="">All Conferences</option>
-			{#each conferences as conf}
-				<option value={conf.id}>{conf.title}</option>
-			{/each}
-		</select>
+	<div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+		<div>
+			<label for="search" class="block text-sm font-medium mb-1">Search Bookings</label>
+			<div class="relative">
+				<input
+					id="search"
+					type="text"
+					bind:value={searchQuery}
+					placeholder="Search by reference, name, email, or conference..."
+					class="w-full px-3 py-2 pl-10 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+				/>
+				<svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+				</svg>
+				{#if searchQuery}
+					<button
+						on:click={() => searchQuery = ''}
+						class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+						aria-label="Clear search"
+					>
+						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+						</svg>
+					</button>
+				{/if}
+			</div>
+		</div>
+		<div>
+			<label for="conference-filter" class="block text-sm font-medium mb-1">Filter by Conference</label>
+			<select
+				id="conference-filter"
+				bind:value={selectedConferenceId}
+				on:change={loadBookings}
+				class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+			>
+				<option value="">All Conferences</option>
+				{#each conferences as conf}
+					<option value={conf.id}>{conf.title}</option>
+				{/each}
+			</select>
+		</div>
+		<div class="flex items-end">
+			<label class="flex items-center space-x-2 cursor-pointer">
+				<input
+					type="checkbox"
+					bind:checked={showArchived}
+					class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+				/>
+				<span class="text-sm font-medium">Show Archived</span>
+			</label>
+		</div>
+	</div>
+
+	<div class="mb-4 text-sm text-gray-600">
+		Showing {filterBookings().length} {showArchived ? 'archived' : 'active'} booking{filterBookings().length !== 1 ? 's' : ''}
+		{#if !showArchived}
+			<span class="text-gray-400">
+				({bookings.filter(b => b.archived).length} archived)
+			</span>
+		{/if}
+		{#if searchQuery}
+			<span class="ml-2">
+				matching "<strong>{searchQuery}</strong>"
+			</span>
+		{/if}
 	</div>
 
 	{#if loading}
@@ -170,14 +305,18 @@
 						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Group Leader</th>
 						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Attendees</th>
 						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paid</th>
 						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Account</th>
+						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Booking Date</th>
+						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment Date</th>
+						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
 					</tr>
 				</thead>
 				<tbody class="bg-white divide-y divide-gray-200">
 					{#each filterBookings() as booking}
 						<tr 
-							class="cursor-pointer hover:bg-gray-50 transition-colors"
+							class="cursor-pointer hover:bg-gray-50 transition-colors {booking.archived ? 'opacity-60 bg-gray-50' : ''}"
 							on:click={() => viewBookingDetails(booking)}
 							role="button"
 							tabindex="0"
@@ -189,7 +328,14 @@
 							}}
 						>
 							<td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-								{booking.bookingReference}
+								<div class="flex items-center gap-2">
+									{booking.bookingReference}
+									{#if booking.archived}
+										<span class="px-2 py-0.5 text-xs rounded-full bg-gray-200 text-gray-600">
+											Archived
+										</span>
+									{/if}
+								</div>
 							</td>
 							<td class="px-6 py-4 text-sm">{getConferenceName(booking.conferenceId)}</td>
 							<td class="px-6 py-4 text-sm">
@@ -200,6 +346,15 @@
 							<td class="px-6 py-4 text-sm">{booking.attendeeCount || 0}</td>
 							<td class="px-6 py-4 whitespace-nowrap text-sm">{formatCurrency(booking.totalAmount || 0)}</td>
 							<td class="px-6 py-4 whitespace-nowrap text-sm">
+								{formatCurrency(booking.paidAmount || 0)}
+								{#if booking.paidAmount && booking.totalAmount && booking.paidAmount < booking.totalAmount}
+									<br />
+									<span class="text-xs text-gray-500">
+										Balance: {formatCurrency(booking.totalAmount - booking.paidAmount)}
+									</span>
+								{/if}
+							</td>
+							<td class="px-6 py-4 whitespace-nowrap text-sm">
 								{#each [booking] as b}
 									{@const status = getPaymentStatus(b)}
 									<span class="px-3 py-1 text-xs rounded-full {status.class}">
@@ -207,7 +362,32 @@
 									</span>
 								{/each}
 							</td>
-							<td class="px-6 py-4 whitespace-nowrap text-sm">{formatDate(booking.createdAt)}</td>
+							<td class="px-6 py-4 whitespace-nowrap text-sm">
+								{#if booking.hasAccount}
+									<span class="px-2 py-1 text-xs rounded-full {
+										booking.accountVerified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+									}">
+										{booking.accountVerified ? '✓ Verified' : 'Pending'}
+									</span>
+								{:else}
+									<span class="text-xs text-gray-400">No account</span>
+								{/if}
+							</td>
+							<td class="px-6 py-4 whitespace-nowrap text-sm">{formatDateTime(booking.createdAt)}</td>
+							<td class="px-6 py-4 whitespace-nowrap text-sm">{booking.paymentDate ? formatDateTime(booking.paymentDate) : '-'}</td>
+							<td class="px-6 py-4 whitespace-nowrap text-sm">
+								<button
+									on:click={(e) => toggleArchive(booking, e)}
+									class="px-3 py-1 text-xs rounded {
+										booking.archived 
+											? 'bg-green-100 text-green-800 hover:bg-green-200' 
+											: 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+									}"
+									title={booking.archived ? 'Unarchive booking' : 'Archive booking'}
+								>
+									{booking.archived ? 'Unarchive' : 'Archive'}
+								</button>
+							</td>
 						</tr>
 					{/each}
 				</tbody>
@@ -244,7 +424,14 @@
 							<div class="bg-gray-50 rounded-lg p-4 space-y-4">
 								<div>
 									<label class="text-xs font-semibold text-gray-500 uppercase">Booking Reference</label>
-									<p class="text-sm font-medium text-gray-900">{selectedBooking.bookingReference}</p>
+									<div class="flex items-center gap-2">
+										<p class="text-sm font-medium text-gray-900">{selectedBooking.bookingReference}</p>
+										{#if selectedBooking.archived}
+											<span class="px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">
+												Archived
+											</span>
+										{/if}
+									</div>
 								</div>
 								<div>
 									<label class="text-xs font-semibold text-gray-500 uppercase">Conference</label>
@@ -280,8 +467,55 @@
 									<p class="text-lg font-bold text-gray-900">{formatCurrency(selectedBooking.totalAmount || 0)}</p>
 								</div>
 								<div>
+									<label class="text-xs font-semibold text-gray-500 uppercase">Amount Paid</label>
+									<p class="text-sm font-medium text-gray-900">{formatCurrency(selectedBooking.paidAmount || 0)}</p>
+									{#if selectedBooking.paidAmount && selectedBooking.totalAmount && selectedBooking.paidAmount < selectedBooking.totalAmount}
+										<p class="text-xs text-gray-500 mt-1">
+											Balance: {formatCurrency(selectedBooking.totalAmount - selectedBooking.paidAmount)}
+										</p>
+									{/if}
+								</div>
+								<div>
+									<label class="text-xs font-semibold text-gray-500 uppercase">User Account</label>
+									{#if selectedBooking.hasAccount}
+										<div class="mt-1">
+											<span class="px-2 py-1 text-xs rounded-full {
+												selectedBooking.accountVerified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+											}">
+												{selectedBooking.accountVerified ? '✓ Verified Account' : 'Pending Verification'}
+											</span>
+											{#if selectedBooking.accountEmail}
+												<p class="text-xs text-gray-600 mt-1">{selectedBooking.accountEmail}</p>
+											{/if}
+										</div>
+									{:else}
+										<p class="text-sm text-gray-500">No account created</p>
+									{/if}
+								</div>
+								<div>
 									<label class="text-xs font-semibold text-gray-500 uppercase">Booking Date</label>
 									<p class="text-sm font-medium text-gray-900">{formatDateTime(selectedBooking.createdAt)}</p>
+								</div>
+								{#if selectedBooking.archivedAt}
+									<div>
+										<label class="text-xs font-semibold text-gray-500 uppercase">Archived Date</label>
+										<p class="text-sm font-medium text-gray-900">{formatDateTime(selectedBooking.archivedAt)}</p>
+									</div>
+								{/if}
+								<div>
+									<button
+										on:click={(e) => {
+											e.stopPropagation();
+											toggleArchive(selectedBooking, e);
+										}}
+										class="px-4 py-2 text-sm rounded {
+											selectedBooking.archived 
+												? 'bg-green-100 text-green-800 hover:bg-green-200' 
+												: 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+										}"
+									>
+										{selectedBooking.archived ? 'Unarchive Booking' : 'Archive Booking'}
+									</button>
 								</div>
 							</div>
 						</div>

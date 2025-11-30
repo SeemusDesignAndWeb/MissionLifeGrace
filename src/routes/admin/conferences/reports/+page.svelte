@@ -54,6 +54,11 @@
 		return filtered.bookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
 	}
 
+	function getTotalReceived() {
+		const filtered = filterData();
+		return filtered.bookings.reduce((sum, b) => sum + (b.paidAmount || 0), 0);
+	}
+
 	function getChildAttendees() {
 		const filtered = filterData();
 		return filtered.attendees.filter(a => {
@@ -80,6 +85,41 @@
 				conferenceName: getConferenceName(booking.conferenceId)
 			};
 		});
+	}
+
+	function getFinancials() {
+		const filtered = filterData();
+		return filtered.bookings.map(booking => ({
+			...booking,
+			conferenceName: getConferenceName(booking.conferenceId),
+			balance: (booking.totalAmount || 0) - (booking.paidAmount || 0)
+		}));
+	}
+
+	function exportFinancialsCSV() {
+		const financials = getFinancials();
+		const headers = ['Booking Reference', 'Conference', 'Group Leader', 'Total Amount', 'Paid Amount', 'Balance', 'Payment Status', 'Payment Method', 'Payment Date', 'PayPal Order ID'];
+		const rows = financials.map(f => [
+			f.bookingReference,
+			f.conferenceName,
+			f.groupLeaderName || '',
+			f.totalAmount || 0,
+			f.paidAmount || 0,
+			f.balance || 0,
+			f.paymentStatus || 'unpaid',
+			f.paymentMethod || 'full',
+			f.paymentDate ? new Date(f.paymentDate).toLocaleString() : '',
+			f.paypalOrderId || ''
+		]);
+		
+		const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+		const blob = new Blob([csv], { type: 'text/csv' });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = `financials-${selectedConferenceId || 'all'}-${Date.now()}.csv`;
+		a.click();
+		URL.revokeObjectURL(url);
 	}
 
 	function exportGroupLeadersCSV() {
@@ -203,10 +243,12 @@
 	}
 
 	$: filteredData = loading ? { bookings: [], attendees: [] } : filterData();
-	$: revenue = loading ? 0 : getRevenue();
+	$: totalValue = loading ? 0 : getRevenue();
+	$: totalReceived = loading ? 0 : getTotalReceived();
 	$: childAttendees = loading ? [] : getChildAttendees();
 	$: teenAttendees = loading ? [] : getTeenAttendees();
 	$: groupLeaders = loading ? [] : getGroupLeaders();
+	$: financials = loading ? [] : getFinancials();
 </script>
 
 <svelte:head>
@@ -234,7 +276,7 @@
 		<p>Loading...</p>
 	{:else}
 		<!-- Summary Cards -->
-		<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+		<div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
 			<div class="bg-white p-6 rounded-lg shadow">
 				<h3 class="text-sm font-medium text-gray-600 mb-1">Total Bookings</h3>
 				<p class="text-3xl font-bold">{filteredData.bookings.length}</p>
@@ -244,23 +286,66 @@
 				<p class="text-3xl font-bold">{filteredData.attendees.length}</p>
 			</div>
 			<div class="bg-white p-6 rounded-lg shadow">
-				<h3 class="text-sm font-medium text-gray-600 mb-1">Total Revenue</h3>
-				<p class="text-3xl font-bold">£{revenue.toFixed(2)}</p>
+				<h3 class="text-sm font-medium text-gray-600 mb-1">Total Value</h3>
+				<p class="text-3xl font-bold">£{totalValue.toFixed(2)}</p>
 			</div>
 			<div class="bg-white p-6 rounded-lg shadow">
-				<h3 class="text-sm font-medium text-gray-600 mb-1">Child Attendees</h3>
-				<p class="text-3xl font-bold">{childAttendees.length}</p>
+				<h3 class="text-sm font-medium text-gray-600 mb-1">Total Received</h3>
+				<p class="text-3xl font-bold text-green-600">£{totalReceived.toFixed(2)}</p>
+			</div>
+			<div class="bg-white p-6 rounded-lg shadow">
+				<h3 class="text-sm font-medium text-gray-600 mb-1">Outstanding</h3>
+				<p class="text-3xl font-bold text-red-600">£{(totalValue - totalReceived).toFixed(2)}</p>
 			</div>
 		</div>
 
-		<!-- Export Button -->
-		<div class="mb-6">
-			<button
-				on:click={exportToCSV}
-				class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
-			>
-				Export to CSV
-			</button>
+		<!-- Financial Report -->
+		<div class="bg-white rounded-lg shadow overflow-hidden mb-6">
+			<div class="flex items-center justify-between p-4 border-b">
+				<h2 class="text-xl font-bold">Financial Report</h2>
+				<button
+					on:click={exportFinancialsCSV}
+					class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark text-sm"
+				>
+					Export Financials CSV
+				</button>
+			</div>
+			<div class="overflow-x-auto">
+				<table class="min-w-full divide-y divide-gray-200">
+					<thead class="bg-gray-50">
+						<tr>
+							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Booking Ref</th>
+							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Conference</th>
+							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Group Leader</th>
+							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paid</th>
+							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Balance</th>
+							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Method</th>
+							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment Date</th>
+						</tr>
+					</thead>
+					<tbody class="bg-white divide-y divide-gray-200">
+						{#each financials as f}
+							<tr>
+								<td class="px-6 py-4 whitespace-nowrap text-sm font-medium">{f.bookingReference}</td>
+								<td class="px-6 py-4 whitespace-nowrap text-sm">{f.conferenceName}</td>
+								<td class="px-6 py-4 whitespace-nowrap text-sm">{f.groupLeaderName || 'N/A'}</td>
+								<td class="px-6 py-4 whitespace-nowrap text-sm">£{(f.totalAmount || 0).toFixed(2)}</td>
+								<td class="px-6 py-4 whitespace-nowrap text-sm">£{(f.paidAmount || 0).toFixed(2)}</td>
+								<td class="px-6 py-4 whitespace-nowrap text-sm">£{(f.balance || 0).toFixed(2)}</td>
+								<td class="px-6 py-4 whitespace-nowrap text-sm">
+									<span class="px-2 py-1 text-xs rounded {f.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' : f.paymentStatus === 'partial' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}">
+										{f.paymentStatus || 'unpaid'}
+									</span>
+								</td>
+								<td class="px-6 py-4 whitespace-nowrap text-sm capitalize">{f.paymentMethod === 'deposit20' ? '20% Deposit' : f.paymentMethod || '-'}</td>
+								<td class="px-6 py-4 whitespace-nowrap text-sm">{f.paymentDate ? new Date(f.paymentDate).toLocaleDateString() : '-'}</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
 		</div>
 
 		<!-- Group Leaders Report -->

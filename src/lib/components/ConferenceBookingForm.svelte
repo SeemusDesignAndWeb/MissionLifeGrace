@@ -1,15 +1,53 @@
 <script lang="js">
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { env } from '$env/dynamic/public';
-	import { notifyError, notifyWarning } from '$lib/utils/notify';
+	import { notifyError, notifyWarning, notifySuccess } from '$lib/utils/notify';
 	import ConfirmationDialog from './ConfirmationDialog.svelte';
 
 	export let conference;
-	export let ticketTypes;
+	export let ticketTypes = [];
+	export let isAuthenticated = false;
 
 	const dispatch = createEventDispatcher();
 
 	let currentStep = 1;
+	
+	// Login Modal State
+	let showLoginModal = false;
+	let loginEmail = '';
+	let loginPassword = '';
+	let loginLoading = false;
+	let loginError = '';
+	let showForgotPassword = false;
+	let forgotPasswordLoading = false;
+	let forgotPasswordSuccess = false;
+	let forgotPasswordError = '';
+	
+	// Immediately check and fix invalid currentStep whenever it changes
+	$: {
+		// Check if we're on confirmation step but orderSummary is missing or invalid
+		// Confirmation step is 5 if we have teen/child forms, otherwise 4
+		const confirmationStep = hasTeenOrChild ? 5 : 4;
+		const isConfirmationStep = currentStep === confirmationStep;
+		const isOrderInvalid = !orderSummary || !orderSummary.bookingReference || !orderSummary.id;
+		
+		if (isConfirmationStep && isOrderInvalid) {
+			// Use a flag to prevent infinite loops
+			if (typeof window !== 'undefined') {
+				// Only reset if we're not already resetting
+				const resetKey = `resetting-${conference?.id || 'default'}`;
+				if (!sessionStorage.getItem(resetKey)) {
+					sessionStorage.setItem(resetKey, 'true');
+					currentStep = 1;
+					clearDraft();
+					setTimeout(() => sessionStorage.removeItem(resetKey), 100);
+				}
+			} else {
+				currentStep = 1;
+				clearDraft();
+			}
+		}
+	}
 	let totalSteps = 4; // Will be adjusted based on whether Teen/Child forms are needed
 
 	// Booking data
@@ -23,6 +61,30 @@
 	let orderSummary = null;
 	let paypalOrderId = null;
 	let processingPayment = false;
+	let showAccountSetup = false;
+	let accountSetupEmail = '';
+	let accountSetupPassword = '';
+	let accountSetupConfirmPassword = '';
+	let accountSetupCode = '';
+	let accountSetupLoading = false;
+	let accountSetupError = '';
+	let accountSetupStep = 'verify'; // 'verify' (email verification) or 'setPassword' (create password after verification)
+
+	// Separate Group Leader (if no adult attendee)
+	let separateGroupLeader = {
+		fullName: '',
+		email: '',
+		phone: '',
+		address: {
+			line1: '',
+			line2: '',
+			city: '',
+			postcode: '',
+			country: 'UK'
+		},
+		homeChurch: '',
+		homeChurchOther: ''
+	};
 
 	// Form validation
 	let errors = {};
@@ -33,25 +95,51 @@
 	let showDraftDialog = false;
 
 	// Auto-save draft when data changes (debounced)
-	$: if (currentStep < 5 && (selectedTickets.length > 0 || attendees.length > 0)) {
-		if (autoSaveTimer) {
-			clearTimeout(autoSaveTimer);
-		}
-		autoSaveTimer = setTimeout(() => {
-			saveDraft();
-			lastSaved = new Date().toLocaleTimeString();
-		}, 1000); // Debounce for 1 second
-	}
+	// $: if (currentStep < 5 && (selectedTickets.length > 0 || attendees.length > 0)) {
+	// 	if (autoSaveTimer) {
+	// 		clearTimeout(autoSaveTimer);
+	// 	}
+	// 	autoSaveTimer = setTimeout(() => {
+	// 		saveDraft();
+	// 		lastSaved = new Date().toLocaleTimeString();
+	// 	}, 1000); // Debounce for 1 second
+	// }
 
 	// Calculate if we have teen/child attendees and total steps
 	let hasTeenOrChild = false;
 	let actualSteps = 4;
+	
+	// Reactive calculation of hasTeenOrChild and actualSteps
 	$: {
-		hasTeenOrChild = attendees.some(a => {
+		const hasTeen = attendees.some(a => {
+			if (!ticketTypes || !Array.isArray(ticketTypes)) return false;
 			const tt = ticketTypes.find(t => t.id === a.ticketTypeId);
 			return tt && (tt.type === 'teen' || tt.type === 'child');
 		});
-		actualSteps = hasTeenOrChild ? 5 : 4;
+		
+		if (hasTeen !== hasTeenOrChild) {
+			hasTeenOrChild = hasTeen;
+			actualSteps = hasTeenOrChild ? 5 : 4;
+			// Validate step whenever actualSteps changes
+			if (currentStep > actualSteps) {
+				currentStep = actualSteps;
+			}
+		}
+	}
+	
+	// This reactive statement is handled above in the main $: block
+
+	// Step 1: Ticket Selection
+	let availableTickets = [];
+	$: if (ticketTypes) {
+		try {
+			availableTickets = Array.isArray(ticketTypes) 
+				? ticketTypes.filter(t => t && t.enabled !== false) 
+				: [];
+		} catch (e) {
+			console.error('Error filtering tickets:', e);
+			availableTickets = [];
+		}
 	}
 
 	function addTicket(ticketType) {
@@ -66,6 +154,7 @@
 			});
 		}
 		selectedTickets = [...selectedTickets];
+		// Triggers reactive block above to update hasTeenOrChild/actualSteps
 	}
 
 	function removeTicket(ticketTypeId) {
@@ -85,14 +174,57 @@
 		}
 	}
 
+	function isEarlyBirdActive() {
+		if (!conference) return false;
+		const now = new Date();
+		const startDate = conference.earlyBirdStartDate ? new Date(conference.earlyBirdStartDate) : null;
+		const endDate = conference.earlyBirdEndDate ? new Date(conference.earlyBirdEndDate) : null;
+		const discountAmount = conference.earlyBirdDiscountAmount || 0;
+
+		if (!startDate || !endDate || discountAmount <= 0) return false;
+
+		// Set time to start of day for comparison
+		const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+		const start = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+		const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+		end.setHours(23, 59, 59, 999); // End of day
+
+		return nowDate >= start && nowDate <= end;
+	}
+
+	function isEarlyBirdEndingSoon() {
+		if (!isEarlyBirdActive()) return false;
+		const now = new Date();
+		const endDate = conference.earlyBirdEndDate ? new Date(conference.earlyBirdEndDate) : null;
+		if (!endDate) return false;
+
+		const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+		const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+		const daysUntilEnd = Math.ceil((end - nowDate) / (1000 * 60 * 60 * 24));
+
+		// Show "ending soon" if 7 days or less remaining
+		return daysUntilEnd <= 7 && daysUntilEnd > 0;
+	}
+
 	function getCurrentPrice(ticketType) {
 		const now = new Date();
+		
+		// Check conference-level early bird pricing first
+		if (isEarlyBirdActive() && conference.earlyBirdDiscountAmount > 0) {
+			const discount = conference.earlyBirdDiscountAmount || 0;
+			return Math.max(0, ticketType.price - discount);
+		}
+
+		// Fall back to ticket-level early bird pricing (for backward compatibility)
 		if (ticketType.earlyBirdEndDate && new Date(ticketType.earlyBirdEndDate) > now && ticketType.earlyBirdPrice > 0) {
 			return ticketType.earlyBirdPrice;
 		}
+		
+		// Check late pricing
 		if (ticketType.latePriceStartDate && new Date(ticketType.latePriceStartDate) <= now && ticketType.latePrice > 0) {
 			return ticketType.latePrice;
 		}
+		
 		return ticketType.price;
 	}
 
@@ -101,6 +233,11 @@
 			const price = getCurrentPrice(ticket.ticketType);
 			return sum + (price * ticket.quantity);
 		}, 0);
+	}
+
+	function formatCurrency(amount) {
+		if (amount === undefined || amount === null || isNaN(amount)) return '0.00';
+		return Number(amount).toFixed(2);
 	}
 
 	function calculateDiscount() {
@@ -143,7 +280,7 @@
 		}
 	}
 
-	function nextStep() {
+	async function nextStep(skipLoginCheck = false) {
 		if (currentStep === 1) {
 			// Validate ticket selection
 			if (selectedTickets.length === 0) {
@@ -165,10 +302,9 @@
 			attendees = [];
 			sortedTickets.forEach(ticket => {
 				for (let i = 0; i < ticket.quantity; i++) {
+					// Only adults can be group leaders
 					const isGroupLeader = !groupLeaderAssigned && 
-						(ticket.ticketType.type === 'adult' || 
-						 ticket.ticketType.type === 'teen' || 
-						 !groupLeaderAssigned);
+						ticket.ticketType.type === 'adult';
 					
 					if (isGroupLeader) {
 						groupLeaderAssigned = true;
@@ -213,12 +349,43 @@
 			// Validate attendees
 			errors = {};
 			let hasErrors = false;
+			
+			// Check if we have an internal group leader
+			const hasInternalGroupLeader = attendees.some(a => a.isGroupLeader);
+
+			// Validate separate group leader if needed
+			if (!hasInternalGroupLeader) {
+				if (!separateGroupLeader.fullName.trim()) {
+					errors['group-leader-name'] = 'Group Leader Name is required';
+					hasErrors = true;
+				}
+				if (!separateGroupLeader.email.trim() || !separateGroupLeader.email.includes('@')) {
+					errors['group-leader-email'] = 'Valid Email is required for Group Leader';
+					hasErrors = true;
+				}
+				if (!separateGroupLeader.phone.trim()) {
+					errors['group-leader-phone'] = 'Phone is required for Group Leader';
+					hasErrors = true;
+				}
+				if (!separateGroupLeader.address.line1.trim()) {
+					errors['group-leader-address'] = 'Address is required for Group Leader';
+					hasErrors = true;
+				}
+				if (!separateGroupLeader.homeChurch || separateGroupLeader.homeChurch.trim() === '') {
+					errors['group-leader-church'] = 'Home Church/Group is required';
+					hasErrors = true;
+				} else if (separateGroupLeader.homeChurch === '__OTHER__' && (!separateGroupLeader.homeChurchOther || !separateGroupLeader.homeChurchOther.trim())) {
+					errors['group-leader-church'] = 'Please enter the church/group name';
+					hasErrors = true;
+				}
+			}
+
 			attendees.forEach((attendee, index) => {
 				if (!attendee.fullName.trim()) {
 					errors[`attendee-${index}-name`] = 'Full name is required';
 					hasErrors = true;
 				}
-				// Email is optional for all attendees
+				// Email is optional for all attendees unless they are group leader
 				if (attendee.email.trim() && !attendee.email.includes('@')) {
 					errors[`attendee-${index}-email`] = 'Please enter a valid email address';
 					hasErrors = true;
@@ -248,6 +415,19 @@
 				}
 			});
 			if (hasErrors) return;
+
+			// Check for existing account before proceeding
+			if (!skipLoginCheck && !isAuthenticated) {
+				const groupLeaderEmail = hasInternalGroupLeader 
+					? attendees.find(a => a.isGroupLeader)?.email 
+					: separateGroupLeader.email;
+					
+				if (groupLeaderEmail) {
+					const needsLogin = await checkAccountAndPromptLogin(groupLeaderEmail);
+					if (needsLogin) return; // Stop here, show modal
+				}
+			}
+
 			// Group leader is auto-assigned, no need to validate
 			// Check if we need Teen/Child forms
 			const hasTeenOrChild = attendees.some(a => {
@@ -255,30 +435,34 @@
 				return ticketType && (ticketType.type === 'teen' || ticketType.type === 'child');
 			});
 			if (!hasTeenOrChild) {
-				// Skip Teen/Child forms, go directly to payment summary
-				currentStep = 4; // Will be adjusted to step 3 if no payment needed
+				// Skip Teen/Child forms, go directly to payment (step 3)
+				// Don't set currentStep here, let it increment normally to step 3
 			}
 		} else if (currentStep === 3) {
-			// Validate Teen/Child specific fields
-			errors = {};
-			let hasErrors = false;
-			attendees.forEach((attendee, index) => {
-				const ticketType = ticketTypes.find(t => t.id === attendee.ticketTypeId);
-				if (ticketType && ticketType.type === 'teen') {
-					// Validate teen-specific fields if needed
-					// For now, we'll just check required fields
-				} else if (ticketType && ticketType.type === 'child') {
-					if (!attendee.emergencyContact.name.trim()) {
-						errors[`attendee-${index}-emergency-name`] = 'Emergency contact name is required';
-						hasErrors = true;
+			// If no teen/child, step 3 is payment, so skip validation
+			if (hasTeenOrChild) {
+				// Validate Teen/Child specific fields
+				errors = {};
+				let hasErrors = false;
+				attendees.forEach((attendee, index) => {
+					const ticketType = ticketTypes.find(t => t.id === attendee.ticketTypeId);
+					if (ticketType && ticketType.type === 'teen') {
+						// Validate teen-specific fields if needed
+						// For now, we'll just check required fields
+					} else if (ticketType && ticketType.type === 'child') {
+						if (!attendee.emergencyContact.name.trim()) {
+							errors[`attendee-${index}-emergency-name`] = 'Emergency contact name is required';
+							hasErrors = true;
+						}
+						if (!attendee.emergencyContact.phone.trim()) {
+							errors[`attendee-${index}-emergency-phone`] = 'Emergency contact phone is required';
+							hasErrors = true;
+						}
 					}
-					if (!attendee.emergencyContact.phone.trim()) {
-						errors[`attendee-${index}-emergency-phone`] = 'Emergency contact phone is required';
-						hasErrors = true;
-					}
-				}
-			});
-			if (hasErrors) return;
+				});
+				if (hasErrors) return;
+			}
+			// If no teen/child, step 3 is payment - no validation needed here
 		} else if (currentStep === 4) {
 			// Validate child-specific fields for child tickets
 			errors = {};
@@ -354,6 +538,10 @@
 
 	function saveDraft() {
 		try {
+			// Don't save draft if we're on confirmation step without orderSummary
+			if ((currentStep === 4 || currentStep === 5) && !orderSummary) {
+				return; // Don't save invalid state
+			}
 			const draft = {
 				currentStep,
 				selectedTickets,
@@ -375,6 +563,17 @@
 			const draftJson = localStorage.getItem(getDraftKey());
 			if (draftJson) {
 				const draft = JSON.parse(draftJson);
+				
+				// Validate orderSummary if present
+				const hasValidOrder = draft.orderSummary && draft.orderSummary.bookingReference && draft.orderSummary.id;
+				const isConfirmationStep = draft.currentStep === 4 || draft.currentStep === 5;
+
+				// If draft has step 4 or 5 but no valid orderSummary, it's invalid - clear it immediately
+				if (isConfirmationStep && !hasValidOrder) {
+					localStorage.removeItem(getDraftKey());
+					currentStep = 1; // Reset to step 1
+					return false;
+				}
 				// Check if draft is recent (within 30 days)
 				const lastSaved = new Date(draft.lastSaved);
 				const daysSince = (new Date() - lastSaved) / (1000 * 60 * 60 * 24);
@@ -397,9 +596,34 @@
 			const draftJson = localStorage.getItem(getDraftKey());
 			if (draftJson) {
 				const draft = JSON.parse(draftJson);
-				currentStep = draft.currentStep || 1;
-				selectedTickets = draft.selectedTickets || [];
-				attendees = draft.attendees || [];
+				// Validate and sanitize currentStep
+				const savedStep = draft.currentStep || 1;
+				let newStep = (savedStep >= 1 && savedStep <= 5) ? savedStep : 1;
+				
+				// If step is 4 or 5 (confirmation) but there's no orderSummary, reset to last valid step
+				if ((newStep === 4 || newStep === 5) && !orderSummary) {
+					// Go back to payment step (step 3 if no teen/child, step 4 if teen/child)
+					newStep = hasTeenOrChild ? 4 : 3;
+				}
+				
+				// Sanitize selectedTickets - ensure ticketType objects are valid and up to date
+				const rawSelected = draft.selectedTickets || [];
+				selectedTickets = rawSelected.map(t => {
+					// Try to find the up-to-date ticket type object from props
+					const upToDateType = ticketTypes.find(tt => tt.id === t.ticketTypeId);
+					if (upToDateType) {
+						return { ...t, ticketType: upToDateType };
+					}
+					return null; // Invalid ticket type (maybe removed from conference)
+				}).filter(Boolean);
+				
+				// Sanitize attendees - ensure they map to valid ticket types
+				const rawAttendees = draft.attendees || [];
+				attendees = rawAttendees.filter(a => {
+					return ticketTypes.some(tt => tt.id === a.ticketTypeId);
+				});
+				
+				currentStep = newStep;
 				discountCode = draft.discountCode || '';
 				discountCodeData = draft.discountCodeData || null;
 				groupLeaderIndex = draft.groupLeaderIndex || 0;
@@ -411,6 +635,8 @@
 			}
 		} catch (error) {
 			console.error('Failed to load draft:', error);
+			// Reset to step 1 if draft is corrupted
+			currentStep = 1;
 		}
 		showDraftDialog = false;
 	}
@@ -428,6 +654,14 @@
 			console.error('Failed to clear draft:', error);
 		}
 	}
+	
+	function resetToStep1() {
+		currentStep = 1;
+		clearDraft();
+		if (typeof sessionStorage !== 'undefined') {
+			sessionStorage.removeItem('pendingBookingId');
+		}
+	}
 
 	function getAge(dateOfBirth) {
 		if (!dateOfBirth) return null;
@@ -443,7 +677,14 @@
 
 	async function submitBooking() {
 		// Create booking
-		const groupLeader = attendees.find(a => a.isGroupLeader);
+		let groupLeader = attendees.find(a => a.isGroupLeader);
+		if (!groupLeader) {
+			groupLeader = {
+				...separateGroupLeader,
+				isGroupLeader: true // Temporarily mark as leader for submission logic
+			};
+		}
+
 		const booking = {
 			id: `booking-${Date.now()}`,
 			conferenceId: conference.id,
@@ -457,7 +698,8 @@
 			discountCode: discountCodeData ? discountCodeData.code : null,
 			totalAmount: calculateTotal(),
 			paymentMethod: paymentMethod,
-			paymentStatus: 'unpaid',
+			paymentStatus: paymentMethod === 'deposit20' ? 'partial' : 'unpaid',
+			paidAmount: paymentMethod === 'deposit20' ? calculateTotal() * 0.2 : 0,
 			createdAt: new Date().toISOString()
 		};
 
@@ -491,15 +733,106 @@
 			// Store booking ID for PayPal return
 			sessionStorage.setItem('pendingBookingId', result.bookingId);
 			
-			// If PayPal is enabled, create PayPal order
-			if (conference.paymentSettings?.paypalEnabled && calculateTotal() > 0) {
+			// Check if account setup is needed (for partial/unpaid bookings)
+			if (result.accountExists && result.accountVerified) {
+				// Account exists and is verified - prompt for login instead of setup
+				showAccountSetup = true;
+				accountSetupEmail = booking.groupLeaderEmail;
+				loginEmail = booking.groupLeaderEmail;
+				accountSetupStep = 'login';
+			} else if (result.accountNeedsSetup || (booking.paymentStatus !== 'paid' && booking.groupLeaderEmail)) {
+				showAccountSetup = true;
+				accountSetupEmail = booking.groupLeaderEmail;
+				// Start with verification step - create account and send code
+				accountSetupStep = 'verify';
+				// Automatically send verification code if not already sent by backend
+				if (result.accountNeedsSetup) {
+					try {
+						// The backend might have already sent the code if accountNeedsSetup was true
+						// But let's double check or resend if user requests
+					} catch (error) {
+						console.error('Error initiating account creation:', error);
+					}
+				} else {
+					// If backend didn't flag it but we're showing it due to unpaid status and no account
+					try {
+						const registerResponse = await fetch('/api/user/register', {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								email: booking.groupLeaderEmail,
+								bookingId: result.bookingId,
+								name: booking.groupLeaderName || booking.groupLeaderEmail.split('@')[0]
+							})
+						});
+						if (!registerResponse.ok) {
+							console.error('Failed to initiate account creation');
+						}
+					} catch (error) {
+						console.error('Error initiating account creation:', error);
+					}
+				}
+			}
+			
+			// If PayPal is enabled, create PayPal order (unless in TEST mode)
+			if (conference.paymentSettings?.paypalEnabled && calculateTotal() > 0 && !env.PUBLIC_TEST) {
 				await createPayPalOrder(result.bookingId);
+			} else if (env.PUBLIC_TEST && calculateTotal() > 0) {
+				// TEST mode: Simulate successful payment
+				console.log('🧪 TEST MODE: Bypassing PayPal payment');
+				await simulateTestPayment(result.bookingId);
 			} else {
-				currentStep = 5; // Show confirmation
+				currentStep = hasTeenOrChild ? 5 : 4; // Show confirmation
 			}
 		} catch (error) {
 			console.error('Failed to submit booking:', error);
 			notifyError(error.message || 'Failed to submit booking. Please try again.');
+		}
+	}
+
+	async function simulateTestPayment(bookingId) {
+		try {
+			processingPayment = true;
+			console.log('🧪 TEST MODE: Simulating payment for booking', bookingId);
+			
+			// Call the capture endpoint with test flag
+			const response = await fetch('/api/conference/paypal/capture', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ 
+					orderId: `TEST-${bookingId}`,
+					testMode: true
+				})
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.error || 'Failed to simulate test payment');
+			}
+
+			const result = await response.json();
+			
+			// Update order summary with payment status
+			if (orderSummary) {
+				orderSummary.paymentStatus = result.status || 'paid';
+				orderSummary.paidAmount = result.amountPaid || orderSummary.totalAmount;
+			} else {
+				// If orderSummary doesn't exist yet, reload booking data
+				const bookingResponse = await fetch(`/api/content?type=conference-bookings&id=${bookingId}`);
+				if (bookingResponse.ok) {
+					const booking = await bookingResponse.json();
+					orderSummary = booking;
+				}
+			}
+
+			processingPayment = false;
+			currentStep = hasTeenOrChild ? 5 : 4; // Show confirmation
+			notifySuccess('🧪 TEST MODE: Payment simulated successfully');
+		} catch (error) {
+			console.error('Test payment simulation failed:', error);
+			notifyWarning('Test payment failed. Your booking has been created.');
+			processingPayment = false;
+			currentStep = hasTeenOrChild ? 5 : 4; // Show confirmation anyway
 		}
 	}
 
@@ -522,6 +855,13 @@
 			const { orderId, links } = await response.json();
 			paypalOrderId = orderId;
 
+			// In TEST mode, simulate payment capture instead of redirecting
+			if (env.PUBLIC_TEST) {
+				console.log('🧪 TEST MODE: Simulating payment capture instead of redirecting to PayPal');
+				await capturePayPalPayment(orderId);
+				return;
+			}
+
 			// Find approval link
 			const approvalLink = links.find(link => link.rel === 'approve');
 			if (approvalLink) {
@@ -533,13 +873,24 @@
 		} catch (error) {
 			console.error('PayPal order creation failed:', error);
 			notifyWarning('Payment setup failed. Your booking has been created. Please contact us to complete payment.');
-			currentStep = 5; // Show confirmation anyway
+			currentStep = hasTeenOrChild ? 5 : 4; // Show confirmation anyway
 		} finally {
 			processingPayment = false;
 		}
 	}
 
 	onMount(async () => {
+		// FIRST: Check and fix invalid currentStep IMMEDIATELY before anything else
+		if ((currentStep === 4 || currentStep === 5) && !orderSummary) {
+			currentStep = 1;
+			// Clear any invalid draft immediately
+			try {
+				localStorage.removeItem(getDraftKey());
+			} catch (e) {
+				console.error('Failed to clear draft:', e);
+			}
+		}
+		
 		// Load churches for conference
 		try {
 			const response = await fetch('/api/content?type=churches-for-conference');
@@ -550,16 +901,36 @@
 			console.error('Failed to load churches:', error);
 		}
 		
-		// Try to load draft booking first
+		// Try to load draft booking (loadDraft will also check for invalid steps)
 		const draftExists = loadDraft();
 		
-		// Check if we're returning from PayPal
+		// After draft loading, ensure currentStep is valid one more time
+		if ((currentStep === 4 || currentStep === 5) && !orderSummary) {
+			currentStep = 1;
+			try {
+				localStorage.removeItem(getDraftKey());
+			} catch (e) {
+				console.error('Failed to clear draft:', e);
+			}
+		}
+		
+		// Ensure currentStep is valid on mount
+		if (currentStep < 1 || currentStep > 5) {
+			currentStep = 1;
+		}
+		
+		// Check if we're returning from PayPal (or test mode)
 		const urlParams = new URLSearchParams(window.location.search);
 		const token = urlParams.get('token'); // This is the PayPal order ID
 		
 		if (token) {
 			// We're returning from PayPal, capture the payment
 			await capturePayPalPayment(token);
+		} else if (env.PUBLIC_TEST && sessionStorage.getItem('pendingBookingId') && (currentStep === 3 || currentStep === 4)) {
+			// TEST mode: Auto-complete payment if booking exists AND we are on payment step
+			const bookingId = sessionStorage.getItem('pendingBookingId');
+			console.log('🧪 TEST MODE: Auto-completing payment for booking', bookingId);
+			await simulateTestPayment(bookingId);
 		} else if (!draftExists) {
 			// Auto-save draft periodically if no draft exists
 			setInterval(() => {
@@ -573,10 +944,15 @@
 	async function capturePayPalPayment(orderId) {
 		try {
 			processingPayment = true;
+			
+			// In test mode, use test flag
 			const response = await fetch('/api/conference/paypal/capture', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ orderId })
+				body: JSON.stringify({ 
+					orderId,
+					testMode: env.PUBLIC_TEST || orderId.startsWith('TEST-')
+				})
 			});
 
 			if (!response.ok) {
@@ -591,16 +967,268 @@
 				orderSummary.paidAmount = result.amountPaid;
 			}
 
+			// Check if account setup is needed after payment
+			if (orderSummary && orderSummary.paymentStatus !== 'paid') {
+				if (result.accountExists && result.accountVerified) {
+					// Account exists and is verified - prompt for login
+					showAccountSetup = true;
+					accountSetupEmail = orderSummary.groupLeaderEmail;
+					loginEmail = orderSummary.groupLeaderEmail;
+					accountSetupStep = 'login';
+				} else {
+					showAccountSetup = true;
+					accountSetupEmail = orderSummary.groupLeaderEmail;
+					accountSetupStep = 'verify';
+					
+					// Automatically create account and send verification code
+					try {
+						const registerResponse = await fetch('/api/user/register', {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								email: orderSummary.groupLeaderEmail,
+								bookingId: orderSummary.bookingId || orderSummary.id,
+								name: orderSummary.groupLeaderName || orderSummary.groupLeaderEmail.split('@')[0]
+							})
+						});
+						if (!registerResponse.ok) {
+							console.error('Failed to initiate account creation');
+						}
+					} catch (error) {
+						console.error('Error initiating account creation:', error);
+					}
+				}
+			}
+
 			// Clean URL
 			window.history.replaceState({}, document.title, window.location.pathname);
 			
-			currentStep = 5; // Show confirmation
+			currentStep = hasTeenOrChild ? 5 : 4; // Show confirmation
 		} catch (error) {
 			console.error('Payment capture failed:', error);
 			notifyError('Payment processing failed. Please contact us.');
-			currentStep = 5; // Show confirmation anyway
+			currentStep = hasTeenOrChild ? 5 : 4; // Show confirmation anyway
 		} finally {
 			processingPayment = false;
+		}
+	}
+
+
+	async function handleAccountVerify() {
+		accountSetupError = '';
+		accountSetupLoading = true;
+
+		try {
+			const response = await fetch('/api/user/verify', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					email: accountSetupEmail,
+					code: accountSetupCode
+				})
+			});
+
+			const data = await response.json();
+
+			if (response.ok) {
+				// Move to password setup step
+				if (data.needsPassword) {
+					accountSetupStep = 'setPassword';
+					accountSetupPassword = '';
+					accountSetupConfirmPassword = '';
+					notifySuccess('Email verified! Now please set your password.');
+				} else {
+					// Password already set, account complete
+					notifySuccess('Email verified! Your account is now set up.');
+					showAccountSetup = false;
+					setTimeout(() => {
+						window.location.href = '/my-account';
+					}, 2000);
+				}
+			} else {
+				accountSetupError = data.error || 'Verification failed';
+				notifyError(accountSetupError);
+			}
+		} catch (error) {
+			accountSetupError = 'An error occurred. Please try again.';
+			notifyError(accountSetupError);
+		} finally {
+			accountSetupLoading = false;
+		}
+	}
+
+	async function handleSetPassword() {
+		accountSetupError = '';
+		accountSetupLoading = true;
+
+		if (accountSetupPassword !== accountSetupConfirmPassword) {
+			accountSetupError = 'Passwords do not match';
+			accountSetupLoading = false;
+			notifyError(accountSetupError);
+			return;
+		}
+
+		if (accountSetupPassword.length < 6) {
+			accountSetupError = 'Password must be at least 6 characters';
+			accountSetupLoading = false;
+			notifyError(accountSetupError);
+			return;
+		}
+
+		try {
+			const response = await fetch('/api/user/set-password', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					email: accountSetupEmail,
+					password: accountSetupPassword
+				})
+			});
+
+			const data = await response.json();
+
+			if (response.ok) {
+				notifySuccess('Password set successfully! Redirecting to your account...');
+				showAccountSetup = false;
+				// Redirect to account page immediately
+				window.location.href = '/my-account';
+			} else {
+				accountSetupError = data.error || 'Failed to set password';
+				notifyError(accountSetupError);
+			}
+		} catch (error) {
+			accountSetupError = 'An error occurred. Please try again.';
+			notifyError(accountSetupError);
+		} finally {
+			accountSetupLoading = false;
+		}
+	}
+
+	async function resendVerificationCode() {
+		accountSetupError = '';
+		accountSetupLoading = true;
+
+		try {
+			// First try to register/resend code
+			const registerResponse = await fetch('/api/user/register', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					email: accountSetupEmail,
+					bookingId: orderSummary?.bookingId || orderSummary?.id,
+					name: orderSummary?.groupLeaderName || accountSetupEmail.split('@')[0]
+				})
+			});
+
+			if (registerResponse.ok) {
+				notifySuccess('Verification code sent to your email');
+			} else {
+				// If register fails, try resend endpoint
+				const resendResponse = await fetch('/api/user/resend-code', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ email: accountSetupEmail })
+				});
+
+				const data = await resendResponse.json();
+
+				if (resendResponse.ok) {
+					notifySuccess('Verification code sent to your email');
+				} else {
+					accountSetupError = data.error || 'Failed to resend code';
+					notifyError(accountSetupError);
+				}
+			}
+		} catch (error) {
+			accountSetupError = 'An error occurred. Please try again.';
+			notifyError(accountSetupError);
+		} finally {
+			accountSetupLoading = false;
+		}
+	}
+
+	async function checkAccountAndPromptLogin(email) {
+		if (!email || isAuthenticated) return false;
+
+		try {
+			const response = await fetch(`/api/user/check-account?email=${encodeURIComponent(email)}`);
+			const data = await response.json();
+
+			if (data.exists) {
+				loginEmail = email;
+				showLoginModal = true;
+				return true;
+			}
+		} catch (error) {
+			console.error('Failed to check account:', error);
+		}
+		return false;
+	}
+
+	async function handleLogin() {
+		loginLoading = true;
+		loginError = '';
+
+		try {
+			const response = await fetch('/api/user/login', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email: loginEmail, password: loginPassword })
+			});
+
+			const data = await response.json();
+
+			if (response.ok) {
+				isAuthenticated = true; // Update local state
+				showLoginModal = false;
+				notifySuccess('Logged in successfully!');
+				
+				// If we are on the confirmation step (account setup section), don't go to next step
+				// Instead, hide the account setup section and maybe redirect
+				if ((currentStep === 4 && !hasTeenOrChild) || (currentStep === 5 && hasTeenOrChild)) {
+					showAccountSetup = false;
+					// Redirect to account page after a short delay
+					setTimeout(() => {
+						window.location.href = '/my-account';
+					}, 1500);
+				} else {
+					nextStep(true); // Proceed to next step, skipping checks if on earlier steps
+				}
+			} else {
+				loginError = data.error || 'Login failed';
+				if (data.needsVerification) {
+					loginError += ' Please verify your email first.';
+				}
+			}
+		} catch (error) {
+			loginError = 'An error occurred. Please try again.';
+		} finally {
+			loginLoading = false;
+		}
+	}
+
+	async function handleForgotPassword() {
+		if (!loginEmail) {
+			forgotPasswordError = 'Please enter your email address';
+			return;
+		}
+
+		forgotPasswordLoading = true;
+		forgotPasswordError = '';
+		forgotPasswordSuccess = false;
+
+		try {
+			const response = await fetch('/api/user/forgot-password', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email: loginEmail })
+			});
+
+			forgotPasswordSuccess = true;
+		} catch (err) {
+			forgotPasswordError = 'An error occurred. Please try again.';
+		} finally {
+			forgotPasswordLoading = false;
 		}
 	}
 </script>
@@ -619,7 +1247,7 @@
 	<!-- Step Indicator -->
 	<div class="mb-6">
 		<div class="flex items-center justify-between">
-			{#each Array(actualSteps) as _, i}
+			{#each Array(actualSteps || 4) as _, i}
 				<div class="flex items-center flex-1">
 					<div class="flex flex-col items-center flex-1">
 						<div class="w-10 h-10 rounded-full flex items-center justify-center {i + 1 <= currentStep ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'}">
@@ -641,13 +1269,18 @@
 			{/each}
 		</div>
 	</div>
-
+	
 	<!-- Step 1: Ticket Selection -->
 	{#if currentStep === 1}
 		<div>
 			<h3 class="text-2xl font-bold mb-4">Select Tickets</h3>
+			{#if availableTickets.length === 0}
+				<div class="p-4 bg-yellow-50 border border-yellow-200 rounded">
+					<p class="text-yellow-800">No tickets available for this conference.</p>
+				</div>
+			{:else}
 			<div class="space-y-4 mb-6">
-				{#each ticketTypes.filter(t => t.enabled) as ticketType}
+				{#each availableTickets as ticketType (ticketType.id)}
 					<div class="border rounded p-4">
 						<div class="flex justify-between items-start">
 							<div class="flex-1">
@@ -661,7 +1294,21 @@
 								{/if}
 							</div>
 							<div class="text-right ml-4">
-								<p class="font-bold text-lg">£{getCurrentPrice(ticketType).toFixed(2)}</p>
+								<div class="flex items-center gap-2 justify-end mb-1">
+									{#if isEarlyBirdActive()}
+										{#if isEarlyBirdEndingSoon()}
+											<span class="px-2 py-1 text-xs font-semibold bg-orange-100 text-orange-800 rounded">Early Bird Ending Soon</span>
+										{:else}
+											<span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded">Early Bird</span>
+										{/if}
+									{/if}
+								</div>
+								<div class="flex items-baseline gap-2 justify-end">
+									{#if isEarlyBirdActive() && getCurrentPrice(ticketType) < ticketType.price}
+										<p class="text-sm text-gray-400 line-through">£{formatCurrency(ticketType.price)}</p>
+									{/if}
+									<p class="font-bold text-lg">£{formatCurrency(getCurrentPrice(ticketType))}</p>
+								</div>
 								{#if ticketType.capacity}
 									<p class="text-xs text-gray-500">{ticketType.capacity - (ticketType.sold || 0)} remaining</p>
 								{/if}
@@ -703,23 +1350,26 @@
 					<h4 class="font-semibold mb-2">Selected Tickets</h4>
 					<div class="space-y-2">
 						{#each selectedTickets as ticket}
+							{#if ticket.ticketType}
 							<div class="flex justify-between">
 								<span>{ticket.ticketType.name} × {ticket.quantity}</span>
-								<span>£{(getCurrentPrice(ticket.ticketType) * ticket.quantity).toFixed(2)}</span>
+								<span>£{formatCurrency(getCurrentPrice(ticket.ticketType) * ticket.quantity)}</span>
 							</div>
-						{/each}
-						<div class="border-t pt-2 mt-2 flex justify-between font-bold">
-							<span>Subtotal:</span>
-							<span>£{calculateSubtotal().toFixed(2)}</span>
-						</div>
+						{/if}
+					{/each}
+					<div class="border-t pt-2 mt-2 flex justify-between font-bold">
+						<span>Subtotal:</span>
+						<span>£{formatCurrency(calculateSubtotal())}</span>
 					</div>
 				</div>
-			{/if}
+			</div>
+		{/if}
 
 			<div class="mb-4">
-				<label class="block text-sm font-medium mb-1">Discount Code (optional)</label>
+				<label for="discount-code" class="block text-sm font-medium mb-1">Discount Code (optional)</label>
 				<div class="flex gap-2">
 					<input
+						id="discount-code"
 						type="text"
 						bind:value={discountCode}
 						on:input={validateDiscountCode}
@@ -752,6 +1402,7 @@
 					Continue
 				</button>
 			</div>
+			{/if}
 		</div>
 	{/if}
 
@@ -759,9 +1410,127 @@
 	{#if currentStep === 2}
 		<div class="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-300 rounded-lg p-6">
 			<h3 class="text-2xl font-bold mb-4 text-blue-900">Step 2: Attendee Details</h3>
-			<p class="text-sm text-blue-800 mb-6 bg-blue-200 border border-blue-400 rounded p-3">
-				The first adult ticket (or first teen/other if no adult) is automatically set as the Group Leader. All communications will be sent to the Group Leader.
-			</p>
+			
+			<!-- Check if any attendee is a group leader (adult) -->
+			{#if !attendees.some(a => a.isGroupLeader)}
+				<div class="bg-white rounded p-4 border-2 border-blue-400 mb-6 shadow-sm">
+					<h4 class="font-bold text-lg text-blue-900 mb-2">Group Leader / Parent / Guardian Details</h4>
+					<p class="text-sm text-blue-800 mb-4">
+						Since there are no adult attendees, please provide details for the Group Leader or Parent/Guardian responsible for this booking.
+					</p>
+					
+					<div class="space-y-4">
+						<div>
+							<label for="gl-fullname" class="block text-sm font-medium mb-1">Full Name *</label>
+							<input
+								id="gl-fullname"
+								type="text"
+								bind:value={separateGroupLeader.fullName}
+								class="w-full px-3 py-2 border rounded"
+							/>
+							{#if errors['group-leader-name']}
+								<p class="text-red-600 text-xs mt-1">{errors['group-leader-name']}</p>
+							{/if}
+						</div>
+						
+						<div>
+							<label for="gl-email" class="block text-sm font-medium mb-1">Email *</label>
+							<input
+								id="gl-email"
+								type="email"
+								bind:value={separateGroupLeader.email}
+								class="w-full px-3 py-2 border rounded"
+								placeholder="email@example.com"
+							/>
+							{#if errors['group-leader-email']}
+								<p class="text-red-600 text-xs mt-1">{errors['group-leader-email']}</p>
+							{/if}
+						</div>
+						
+						<div>
+							<label for="gl-phone" class="block text-sm font-medium mb-1">Phone *</label>
+							<input
+								id="gl-phone"
+								type="tel"
+								bind:value={separateGroupLeader.phone}
+								class="w-full px-3 py-2 border rounded"
+							/>
+							{#if errors['group-leader-phone']}
+								<p class="text-red-600 text-xs mt-1">{errors['group-leader-phone']}</p>
+							{/if}
+						</div>
+						
+						<div>
+							<label for="gl-address-line1" class="block text-sm font-medium mb-1">Address *</label>
+							<input
+								id="gl-address-line1"
+								type="text"
+								bind:value={separateGroupLeader.address.line1}
+								class="w-full px-3 py-2 border rounded mb-2"
+								placeholder="Address Line 1"
+							/>
+							<input
+								type="text"
+								bind:value={separateGroupLeader.address.line2}
+								class="w-full px-3 py-2 border rounded mb-2"
+								placeholder="Address Line 2"
+								aria-label="Address Line 2"
+							/>
+							<div class="grid grid-cols-2 gap-2">
+								<input
+									type="text"
+									bind:value={separateGroupLeader.address.city}
+									class="px-3 py-2 border rounded"
+									placeholder="City"
+									aria-label="City"
+								/>
+								<input
+									type="text"
+									bind:value={separateGroupLeader.address.postcode}
+									class="px-3 py-2 border rounded"
+									placeholder="Postcode"
+									aria-label="Postcode"
+								/>
+							</div>
+							{#if errors['group-leader-address']}
+								<p class="text-red-600 text-xs mt-1">{errors['group-leader-address']}</p>
+							{/if}
+						</div>
+						
+						<div>
+							<label for="gl-church" class="block text-sm font-medium mb-1">Home Church/Group *</label>
+							<select
+								id="gl-church"
+								bind:value={separateGroupLeader.homeChurch}
+								class="w-full px-3 py-2 border rounded {errors['group-leader-church'] ? 'border-red-500' : ''}"
+							>
+								<option value="">Select a church</option>
+								{#each churches as church}
+									<option value={church.title}>{church.title}</option>
+								{/each}
+								<option value="__OTHER__">Other</option>
+							</select>
+							{#if separateGroupLeader.homeChurch === '__OTHER__'}
+								<input
+									type="text"
+									bind:value={separateGroupLeader.homeChurchOther}
+									class="w-full px-3 py-2 border rounded mt-2 {errors['group-leader-church'] ? 'border-red-500' : ''}"
+									placeholder="Enter church/group name"
+									aria-label="Other Church Name"
+								/>
+							{/if}
+							{#if errors['group-leader-church']}
+								<p class="text-red-600 text-xs mt-1">{errors['group-leader-church']}</p>
+							{/if}
+						</div>
+					</div>
+				</div>
+			{:else}
+				<p class="text-sm text-blue-800 mb-6 bg-blue-200 border border-blue-400 rounded p-3">
+					The first adult ticket is automatically set as the Group Leader. All communications will be sent to the Group Leader.
+				</p>
+			{/if}
+
 			<div class="space-y-6">
 				{#each attendees as attendee, index}
 					{@const ticketType = ticketTypes.find(t => t.id === attendee.ticketTypeId)}
@@ -782,8 +1551,9 @@
 								</div>
 							{/if}
 							<div>
-								<label class="block text-sm font-medium mb-1">Full Name *</label>
+								<label for="attendee-{index}-name" class="block text-sm font-medium mb-1">Full Name *</label>
 								<input
+									id="attendee-{index}-name"
 									type="text"
 									bind:value={attendee.fullName}
 									class="w-full px-3 py-2 border rounded"
@@ -794,8 +1564,9 @@
 							</div>
 							{#if attendee.ticketTypeId && isTeenOrChildTicket(attendee.ticketTypeId)}
 								<div>
-									<label class="block text-sm font-medium mb-1">Date of Birth *</label>
+									<label for="attendee-{index}-dob" class="block text-sm font-medium mb-1">Date of Birth *</label>
 									<input
+										id="attendee-{index}-dob"
 										type="date"
 										bind:value={attendee.dateOfBirth}
 										class="w-full px-3 py-2 border rounded"
@@ -806,8 +1577,9 @@
 								</div>
 							{/if}
 							<div>
-								<label class="block text-sm font-medium mb-1">Email {attendee.isGroupLeader ? '*' : '(optional)'}</label>
+								<label for="attendee-{index}-email" class="block text-sm font-medium mb-1">Email {attendee.isGroupLeader ? '*' : '(optional)'}</label>
 								<input
+									id="attendee-{index}-email"
 									type="email"
 									bind:value={attendee.email}
 									class="w-full px-3 py-2 border rounded"
@@ -823,16 +1595,18 @@
 								<div class="bg-white rounded p-3 border border-blue-200">
 									<h5 class="font-semibold text-blue-900 mb-3">Group Leader Contact Information</h5>
 									<div>
-										<label class="block text-sm font-medium mb-1">Phone *</label>
+										<label for="attendee-{index}-phone" class="block text-sm font-medium mb-1">Phone *</label>
 										<input
+											id="attendee-{index}-phone"
 											type="tel"
 											bind:value={attendee.phone}
 											class="w-full px-3 py-2 border rounded"
 										/>
 									</div>
 									<div class="mt-3">
-										<label class="block text-sm font-medium mb-1">Address *</label>
+										<label for="attendee-{index}-address-line1" class="block text-sm font-medium mb-1">Address *</label>
 										<input
+											id="attendee-{index}-address-line1"
 											type="text"
 											bind:value={attendee.address.line1}
 											class="w-full px-3 py-2 border rounded mb-2"
@@ -843,6 +1617,7 @@
 											bind:value={attendee.address.line2}
 											class="w-full px-3 py-2 border rounded mb-2"
 											placeholder="Address Line 2"
+											aria-label="Address Line 2"
 										/>
 										<div class="grid grid-cols-2 gap-2">
 											<input
@@ -850,12 +1625,14 @@
 												bind:value={attendee.address.city}
 												class="px-3 py-2 border rounded"
 												placeholder="City"
+												aria-label="City"
 											/>
 											<input
 												type="text"
 												bind:value={attendee.address.postcode}
 												class="px-3 py-2 border rounded"
 												placeholder="Postcode"
+												aria-label="Postcode"
 											/>
 										</div>
 										{#if errors[`attendee-${index}-address`]}
@@ -863,8 +1640,9 @@
 										{/if}
 									</div>
 									<div class="mt-3">
-										<label class="block text-sm font-medium mb-1">Home Church/Group *</label>
+										<label for="attendee-{index}-church" class="block text-sm font-medium mb-1">Home Church/Group *</label>
 										<select
+											id="attendee-{index}-church"
 											bind:value={attendee.homeChurch}
 											class="w-full px-3 py-2 border rounded {errors[`attendee-${index}-church`] ? 'border-red-500' : ''}"
 										>
@@ -880,6 +1658,7 @@
 												bind:value={attendee.homeChurchOther}
 												class="w-full px-3 py-2 border rounded mt-2 {errors[`attendee-${index}-church`] ? 'border-red-500' : ''}"
 												placeholder="Enter church/group name"
+												aria-label="Other Church Name"
 											/>
 										{/if}
 										{#if errors[`attendee-${index}-church`]}
@@ -912,7 +1691,7 @@
 	{/if}
 
 	<!-- Step 3: Teen/Child Forms -->
-	{#if currentStep === 3}
+	{#if currentStep === 3 && hasTeenOrChild}
 		<div class="bg-gradient-to-r from-yellow-50 to-yellow-100 border-2 border-yellow-300 rounded-lg p-6">
 			<h3 class="text-2xl font-bold mb-4 text-yellow-900">Step 3: Teen & Child Information</h3>
 			<p class="text-sm text-yellow-800 mb-6 bg-yellow-200 border border-yellow-400 rounded p-3">
@@ -931,8 +1710,9 @@
 								</p>
 								<div class="space-y-4">
 									<div>
-										<label class="block text-sm font-medium mb-1">Emergency Contact Name *</label>
+										<label for="attendee-{index}-emergency-name" class="block text-sm font-medium mb-1">Emergency Contact Name *</label>
 										<input
+											id="attendee-{index}-emergency-name"
 											type="text"
 											bind:value={attendee.emergencyContact.name}
 											class="w-full px-3 py-2 border rounded"
@@ -942,8 +1722,9 @@
 										{/if}
 									</div>
 									<div>
-										<label class="block text-sm font-medium mb-1">Emergency Contact Phone *</label>
+										<label for="attendee-{index}-emergency-phone" class="block text-sm font-medium mb-1">Emergency Contact Phone *</label>
 										<input
+											id="attendee-{index}-emergency-phone"
 											type="tel"
 											bind:value={attendee.emergencyContact.phone}
 											class="w-full px-3 py-2 border rounded"
@@ -953,8 +1734,9 @@
 										{/if}
 									</div>
 									<div>
-										<label class="block text-sm font-medium mb-1">Emergency Contact Relationship</label>
+										<label for="attendee-{index}-emergency-rel" class="block text-sm font-medium mb-1">Emergency Contact Relationship</label>
 										<input
+											id="attendee-{index}-emergency-rel"
 											type="text"
 											bind:value={attendee.emergencyContact.relationship}
 											class="w-full px-3 py-2 border rounded"
@@ -962,24 +1744,27 @@
 										/>
 									</div>
 									<div>
-										<label class="block text-sm font-medium mb-1">Medical History</label>
+										<label for="attendee-{index}-medical" class="block text-sm font-medium mb-1">Medical History</label>
 										<textarea
+											id="attendee-{index}-medical"
 											bind:value={attendee.medicalHistory}
 											class="w-full px-3 py-2 border rounded"
 											rows="3"
 										></textarea>
 									</div>
 									<div>
-										<label class="block text-sm font-medium mb-1">Allergies</label>
+										<label for="attendee-{index}-allergies" class="block text-sm font-medium mb-1">Allergies</label>
 										<input
+											id="attendee-{index}-allergies"
 											type="text"
 											bind:value={attendee.allergies}
 											class="w-full px-3 py-2 border rounded"
 										/>
 									</div>
 									<div>
-										<label class="block text-sm font-medium mb-1">Dietary Restrictions</label>
+										<label for="attendee-{index}-dietary" class="block text-sm font-medium mb-1">Dietary Restrictions</label>
 										<input
+											id="attendee-{index}-dietary"
 											type="text"
 											bind:value={attendee.dietaryRestrictions}
 											class="w-full px-3 py-2 border rounded"
@@ -996,8 +1781,9 @@
 								</p>
 							<div class="space-y-4">
 								<div>
-									<label class="block text-sm font-medium mb-1">Emergency Contact Name *</label>
+									<label for="attendee-{index}-emergency-name" class="block text-sm font-medium mb-1">Emergency Contact Name *</label>
 									<input
+										id="attendee-{index}-emergency-name"
 										type="text"
 										bind:value={attendee.emergencyContact.name}
 										class="w-full px-3 py-2 border rounded"
@@ -1007,8 +1793,9 @@
 									{/if}
 								</div>
 								<div>
-									<label class="block text-sm font-medium mb-1">Emergency Contact Phone *</label>
+									<label for="attendee-{index}-emergency-phone" class="block text-sm font-medium mb-1">Emergency Contact Phone *</label>
 									<input
+										id="attendee-{index}-emergency-phone"
 										type="tel"
 										bind:value={attendee.emergencyContact.phone}
 										class="w-full px-3 py-2 border rounded"
@@ -1018,8 +1805,9 @@
 									{/if}
 								</div>
 								<div>
-									<label class="block text-sm font-medium mb-1">Emergency Contact Relationship</label>
+									<label for="attendee-{index}-emergency-rel" class="block text-sm font-medium mb-1">Emergency Contact Relationship</label>
 									<input
+										id="attendee-{index}-emergency-rel"
 										type="text"
 										bind:value={attendee.emergencyContact.relationship}
 										class="w-full px-3 py-2 border rounded"
@@ -1027,55 +1815,61 @@
 									/>
 								</div>
 								<div>
-									<label class="block text-sm font-medium mb-1">Medical History</label>
+									<label for="attendee-{index}-medical" class="block text-sm font-medium mb-1">Medical History</label>
 									<textarea
+										id="attendee-{index}-medical"
 										bind:value={attendee.medicalHistory}
 										class="w-full px-3 py-2 border rounded"
 										rows="3"
 									></textarea>
 								</div>
 								<div>
-									<label class="block text-sm font-medium mb-1">Allergies</label>
+									<label for="attendee-{index}-allergies" class="block text-sm font-medium mb-1">Allergies</label>
 									<input
+										id="attendee-{index}-allergies"
 										type="text"
 										bind:value={attendee.allergies}
 										class="w-full px-3 py-2 border rounded"
 									/>
 								</div>
 								<div>
-									<label class="block text-sm font-medium mb-1">Dietary Restrictions</label>
+									<label for="attendee-{index}-dietary" class="block text-sm font-medium mb-1">Dietary Restrictions</label>
 									<input
+										id="attendee-{index}-dietary"
 										type="text"
 										bind:value={attendee.dietaryRestrictions}
 										class="w-full px-3 py-2 border rounded"
 									/>
 								</div>
 								<div>
-									<label class="block text-sm font-medium mb-2">Consent Waivers</label>
+									<span class="block text-sm font-medium mb-2">Consent Waivers</span>
 									<div class="space-y-2">
 										<div class="flex items-center">
 											<input
+												id="attendee-{index}-consent-medical"
 												type="checkbox"
 												bind:checked={attendee.consentWaivers.medical}
 												class="mr-2"
 											/>
-											<label>Medical treatment consent</label>
+											<label for="attendee-{index}-consent-medical">Medical treatment consent</label>
 										</div>
 										<div class="flex items-center">
 											<input
+												id="attendee-{index}-consent-photo"
 												type="checkbox"
 												bind:checked={attendee.consentWaivers.photo}
 												class="mr-2"
 											/>
-											<label>Photo/video consent</label>
+											<label for="attendee-{index}-consent-photo">Photo/video consent</label>
 										</div>
 										<div class="flex items-center">
 											<input
+												id="attendee-{index}-consent-activities"
 												type="checkbox"
 												bind:checked={attendee.consentWaivers.activities}
 												class="mr-2"
 											/>
-											<label>Activities consent</label>
+											<label for="attendee-{index}-consent-activities">Activities consent</label>
 										</div>
 									</div>
 								</div>
@@ -1103,10 +1897,10 @@
 		</div>
 	{/if}
 
-	<!-- Step 4: Payment Summary -->
-	{#if currentStep === 4}
-		<div class="bg-gradient-to-r from-indigo-50 to-indigo-100 border-2 border-indigo-300 rounded-lg p-6">
-			<h3 class="text-2xl font-bold mb-4 text-indigo-900">Step 4: Payment Summary</h3>
+	<!-- Step 3 or 4: Payment Summary (Step 3 if no teen/child, Step 4 if teen/child) -->
+	{#if (currentStep === 3 && !hasTeenOrChild) || (currentStep === 4 && hasTeenOrChild)}
+			<div class="bg-gradient-to-r from-indigo-50 to-indigo-100 border-2 border-indigo-300 rounded-lg p-6">
+			<h3 class="text-2xl font-bold mb-4 text-indigo-900">Step {hasTeenOrChild ? '4' : '3'}: Payment Summary</h3>
 			<div class="mt-6 bg-gradient-to-r from-gray-50 to-gray-100 border-2 border-gray-300 p-6 rounded-lg">
 				<h4 class="font-semibold mb-4 text-lg text-gray-900">Order Summary</h4>
 				<div class="space-y-2">
@@ -1126,33 +1920,68 @@
 						<span>Total:</span>
 						<span>£{calculateTotal().toFixed(2)}</span>
 					</div>
+					{#if paymentMethod === 'deposit20'}
+						<div class="border-t pt-2 mt-2 space-y-1">
+							<div class="flex justify-between text-blue-600">
+								<span>20% Deposit:</span>
+								<span>£{(calculateTotal() * 0.2).toFixed(2)}</span>
+							</div>
+							<div class="flex justify-between text-gray-600 text-sm">
+								<span>Balance Due:</span>
+								<span>£{(calculateTotal() * 0.8).toFixed(2)}</span>
+							</div>
+						</div>
+					{/if}
 				</div>
 			</div>
 
 			<div class="mt-6 bg-white border-2 border-indigo-300 p-6 rounded-lg">
-				<label class="block text-sm font-medium mb-4 text-lg text-indigo-900">Payment Method</label>
+				<h5 class="block text-sm font-medium mb-4 text-lg text-indigo-900">Payment Method</h5>
 				<div class="space-y-2">
 					<div class="flex items-center">
 						<input
+							id="payment-full"
 							type="radio"
 							bind:group={paymentMethod}
 							value="full"
 							class="mr-2"
 						/>
-						<label>Pay in Full</label>
+						<label for="payment-full">Pay in Full</label>
+					</div>
+					<div class="flex items-center">
+						<input
+							id="payment-deposit20"
+							type="radio"
+							bind:group={paymentMethod}
+							value="deposit20"
+							class="mr-2"
+						/>
+						<label for="payment-deposit20">Pay 20% Deposit</label>
+						<span class="ml-2 text-sm text-gray-600">(£{formatCurrency(calculateTotal() * 0.2)} today, balance due later)</span>
 					</div>
 					{#if conference.paymentSettings && conference.paymentSettings.payLaterEnabled}
 						<div class="flex items-center">
 							<input
+								id="payment-deposit"
 								type="radio"
 								bind:group={paymentMethod}
 								value="deposit"
 								class="mr-2"
 							/>
-							<label>Pay Deposit + Installments</label>
+							<label for="payment-deposit">Pay Deposit + Installments</label>
 						</div>
 					{/if}
 				</div>
+				{#if paymentMethod === 'deposit20'}
+					<div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
+						<p class="text-sm text-blue-800">
+							<strong>Deposit Amount:</strong> £{formatCurrency(calculateTotal() * 0.2)}
+						</p>
+						<p class="text-sm text-blue-800 mt-1">
+							<strong>Balance Due:</strong> £{formatCurrency(calculateTotal() * 0.8)} (to be paid before the conference)
+						</p>
+					</div>
+				{/if}
 			</div>
 
 			<div class="flex justify-between mt-6">
@@ -1172,8 +2001,20 @@
 		</div>
 	{/if}
 
-	<!-- Step 5: Confirmation -->
-	{#if currentStep === 5 && orderSummary}
+	<!-- Step 4 or 5: Confirmation (Step 4 if no teen/child, Step 5 if teen/child) -->
+	{#if ((currentStep === 4 && !hasTeenOrChild) || (currentStep === 5 && hasTeenOrChild))}
+		{#if !orderSummary}
+			<!-- Invalid state: on confirmation step without orderSummary - show fallback -->
+			<div class="p-4 bg-yellow-50 border border-yellow-200 rounded">
+				<p class="text-yellow-800 mb-4">No booking found. Please start a new booking.</p>
+				<button
+					on:click={resetToStep1}
+					class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark font-semibold"
+				>
+					Select Tickets
+				</button>
+			</div>
+		{:else}
 		<div class="text-center">
 			<div class="mb-6">
 				{#if processingPayment}
@@ -1194,7 +2035,7 @@
 					<h4 class="font-semibold mb-4">Booking Details</h4>
 					<div class="space-y-2">
 						<p><strong>Conference:</strong> {conference.title}</p>
-						<p><strong>Total Amount:</strong> £{orderSummary.totalAmount.toFixed(2)}</p>
+						<p><strong>Total Amount:</strong> £{formatCurrency(orderSummary.totalAmount)}</p>
 						<p><strong>Payment Status:</strong> 
 							<span class="px-2 py-1 rounded text-sm {
 								orderSummary.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
@@ -1202,18 +2043,186 @@
 								'bg-red-100 text-red-800'
 							}">
 								{orderSummary.paymentStatus === 'paid' ? 'Paid' :
-								 orderSummary.paymentStatus === 'partial' ? 'Partial Payment' : 'Pending Payment'}
+								 orderSummary.paymentStatus === 'partial' ? 'Partial Payment (20% Deposit)' : 'Pending Payment'}
 							</span>
 						</p>
 						{#if orderSummary.paidAmount}
-							<p><strong>Amount Paid:</strong> £{orderSummary.paidAmount.toFixed(2)}</p>
+							<p><strong>Amount Paid:</strong> £{formatCurrency(orderSummary.paidAmount)}</p>
 						{/if}
-						<p><strong>Payment Method:</strong> {orderSummary.paymentMethod === 'full' ? 'Pay in Full' : 'Deposit + Installments'}</p>
+						{#if orderSummary.paymentMethod === 'deposit20' && orderSummary.paymentStatus !== 'paid'}
+							<p><strong>Balance Due:</strong> £{formatCurrency(orderSummary.totalAmount - (orderSummary.paidAmount || 0))}</p>
+						{/if}
+						<p><strong>Payment Method:</strong> {
+							orderSummary.paymentMethod === 'full' ? 'Pay in Full' :
+							orderSummary.paymentMethod === 'deposit20' ? 'Pay 20% Deposit' :
+							'Deposit + Installments'
+						}</p>
 						<p><strong>Attendees:</strong> {orderSummary.attendeeCount}</p>
 					</div>
 				</div>
 				<p class="text-gray-600 mb-4">A confirmation email has been sent to {orderSummary.groupLeaderEmail}</p>
-				{#if orderSummary.paymentStatus === 'unpaid' && conference.paymentSettings?.paypalEnabled}
+				
+				<!-- Account Setup Section -->
+				{#if showAccountSetup && (orderSummary.paymentStatus === 'partial' || orderSummary.paymentStatus === 'unpaid')}
+					<div class="mb-6 bg-blue-50 border-2 border-blue-300 rounded-lg p-6">
+						{#if accountSetupStep === 'login'}
+							<h4 class="text-xl font-bold mb-2 text-blue-900">Log In to Your Account</h4>
+						{:else}
+							<h4 class="text-xl font-bold mb-2 text-blue-900">Set Up Your Account</h4>
+							<p class="text-sm text-blue-800 mb-4">
+								Create an account to manage your booking, view payment status, and make additional payments online.
+							</p>
+						{/if}
+						
+						{#if accountSetupStep === 'verify'}
+							<form on:submit|preventDefault={handleAccountVerify} class="space-y-4">
+								{#if accountSetupError}
+									<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+										{accountSetupError}
+									</div>
+								{/if}
+								
+								<div>
+									<label for="account-email-verify" class="block text-sm font-medium mb-1">Email (Username)</label>
+									<input
+										id="account-email-verify"
+										type="email"
+										bind:value={accountSetupEmail}
+										required
+										readonly
+										class="w-full px-3 py-2 border rounded bg-gray-100"
+									/>
+									<p class="text-xs text-gray-500 mt-1">This will be your username</p>
+								</div>
+								
+								<p class="text-sm text-blue-800 mb-4">
+									We've sent a verification code to <strong>{accountSetupEmail}</strong>. Please enter it below to verify your email address.
+								</p>
+								
+								<div>
+									<label for="account-code" class="block text-sm font-medium mb-1">Verification Code</label>
+									<input
+										id="account-code"
+										type="text"
+										bind:value={accountSetupCode}
+										required
+										maxlength="6"
+										class="w-full px-3 py-2 border rounded text-center text-2xl tracking-widest"
+										placeholder="000000"
+									/>
+								</div>
+								
+								<div class="flex gap-2">
+									<button
+										type="submit"
+										disabled={accountSetupLoading}
+										class="flex-1 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark disabled:opacity-50"
+									>
+										{accountSetupLoading ? 'Verifying...' : 'Verify Email'}
+									</button>
+									<button
+										type="button"
+										on:click={resendVerificationCode}
+										disabled={accountSetupLoading}
+										class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
+									>
+										Resend
+									</button>
+								</div>
+							</form>
+						{:else if accountSetupStep === 'login'}
+							<form on:submit|preventDefault={handleLogin} class="space-y-4">
+								{#if loginError}
+									<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+										{loginError}
+									</div>
+								{/if}
+								
+								<p class="text-sm text-blue-800 mb-4">
+									It looks like you already have an account with <strong>{accountSetupEmail}</strong>. Please log in to manage your booking.
+								</p>
+								
+								<div>
+									<label for="account-login-email" class="block text-sm font-medium mb-1">Email</label>
+									<input
+										id="account-login-email"
+										type="email"
+										bind:value={loginEmail}
+										readonly
+										class="w-full px-3 py-2 border rounded bg-gray-100"
+									/>
+								</div>
+								
+								<div>
+									<label for="account-login-password" class="block text-sm font-medium mb-1">Password</label>
+									<input
+										id="account-login-password"
+										type="password"
+										bind:value={loginPassword}
+										required
+										class="w-full px-3 py-2 border rounded"
+										placeholder="Your password"
+									/>
+								</div>
+								
+								<button
+									type="submit"
+									disabled={loginLoading}
+									class="w-full px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark disabled:opacity-50"
+								>
+									{loginLoading ? 'Logging in...' : 'Login'}
+								</button>
+							</form>
+						{:else if accountSetupStep === 'setPassword'}
+							<form on:submit|preventDefault={handleSetPassword} class="space-y-4">
+								{#if accountSetupError}
+									<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+										{accountSetupError}
+									</div>
+								{/if}
+								
+								<p class="text-sm text-green-800 mb-4">
+									✓ Email verified! Now please create a password for your account.
+								</p>
+								
+								<div>
+									<label for="account-password" class="block text-sm font-medium mb-1">Password</label>
+									<input
+										id="account-password"
+										type="password"
+										bind:value={accountSetupPassword}
+										required
+										minlength="6"
+										class="w-full px-3 py-2 border rounded"
+										placeholder="At least 6 characters"
+									/>
+								</div>
+								
+								<div>
+									<label for="account-confirm-password" class="block text-sm font-medium mb-1">Confirm Password</label>
+									<input
+										id="account-confirm-password"
+										type="password"
+										bind:value={accountSetupConfirmPassword}
+										required
+										class="w-full px-3 py-2 border rounded"
+										placeholder="Confirm your password"
+									/>
+								</div>
+								
+								<button
+									type="submit"
+									disabled={accountSetupLoading}
+									class="w-full px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark disabled:opacity-50"
+								>
+									{accountSetupLoading ? 'Setting Password...' : 'Set Password & Complete Setup'}
+								</button>
+							</form>
+						{/if}
+					</div>
+				{/if}
+				
+				{#if orderSummary.paymentStatus === 'unpaid' && conference.paymentSettings?.paypalEnabled && !env.PUBLIC_TEST}
 					<div class="mb-4">
 						<p class="text-sm text-gray-600 mb-2">Complete your payment:</p>
 						<button
@@ -1225,8 +2234,16 @@
 						</button>
 					</div>
 				{/if}
+				{#if env.PUBLIC_TEST && orderSummary.paymentStatus === 'unpaid'}
+					<div class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+						<p class="text-sm text-yellow-800">
+							🧪 <strong>TEST MODE:</strong> PayPal payment bypassed. Payment status: {orderSummary.paymentStatus}
+						</p>
+					</div>
+				{/if}
 				<button
 					on:click={() => {
+						clearDraft();
 						sessionStorage.removeItem('pendingBookingId');
 						dispatch('close');
 					}}
@@ -1236,10 +2253,185 @@
 				</button>
 			{/if}
 		</div>
+		{/if}
+	{/if}
+	
+	<!-- Fallback: If no step matches, show error -->
+	{#if currentStep !== 1 && currentStep !== 2 && currentStep !== 3 && currentStep !== 4 && currentStep !== 5}
+		<div class="p-6 bg-red-50 border-2 border-red-300 rounded-lg">
+			<h3 class="text-xl font-bold text-red-800 mb-2">Error: Invalid Step</h3>
+			<p class="text-red-700">Current step is {currentStep}, which is not valid. Resetting to step 1...</p>
+			<button
+				on:click={() => currentStep = 1}
+				class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+			>
+				Reset to Step 1
+			</button>
+		</div>
 	{/if}
 </div>
 
 <!-- Draft Confirmation Dialog -->
+<!-- Login Modal -->
+{#if showLoginModal}
+	<div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+		<div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+			<div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" on:click={() => showLoginModal = false}></div>
+
+			<span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+			<div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+				<div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+					<div class="sm:flex sm:items-start">
+						<div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+							{#if showForgotPassword}
+								<h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Reset Password</h3>
+								<div class="mt-2">
+									<p class="text-sm text-gray-500 mb-4">
+										Enter your email address and we'll send you a link to reset your password.
+									</p>
+									
+									{#if forgotPasswordSuccess}
+										<div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4">
+											Password reset link sent! Please check your email.
+										</div>
+									{:else}
+										<form on:submit|preventDefault={handleForgotPassword} class="space-y-4">
+											<div>
+												<label for="forgot-email" class="block text-sm font-medium text-gray-700">Email address</label>
+												<input
+													id="forgot-email"
+													type="email"
+													bind:value={loginEmail}
+													readonly={!!loginEmail}
+													class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm {loginEmail ? 'bg-gray-100' : ''}"
+												/>
+											</div>
+											
+											{#if forgotPasswordError}
+												<p class="text-red-600 text-sm">{forgotPasswordError}</p>
+											{/if}
+											
+											<button
+												type="submit"
+												disabled={forgotPasswordLoading}
+												class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
+											>
+												{forgotPasswordLoading ? 'Sending...' : 'Send Reset Link'}
+											</button>
+										</form>
+									{/if}
+									
+									<div class="mt-4 text-center">
+										<button 
+											type="button" 
+											class="text-sm text-primary hover:text-primary-dark"
+											on:click={() => {
+												showForgotPassword = false;
+												forgotPasswordSuccess = false;
+												forgotPasswordError = '';
+											}}
+										>
+											Back to Login
+										</button>
+									</div>
+								</div>
+							{:else}
+								<h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Log in to continue</h3>
+								<div class="mt-2">
+									<p class="text-sm text-gray-500 mb-4">
+										We found an account associated with <strong>{loginEmail}</strong>. Please log in to add this booking to your account.
+									</p>
+									
+									<form on:submit|preventDefault={handleLogin} class="space-y-4">
+										<div>
+											<label for="login-email" class="block text-sm font-medium text-gray-700">Email address</label>
+											<input
+												id="login-email"
+												type="email"
+												bind:value={loginEmail}
+												readonly
+												class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-gray-100 text-gray-500 sm:text-sm cursor-not-allowed"
+											/>
+										</div>
+										
+										<div>
+											<label for="login-password" class="block text-sm font-medium text-gray-700">Password</label>
+											<input
+												id="login-password"
+												type="password"
+												bind:value={loginPassword}
+												required
+												class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+											/>
+										</div>
+
+										<div class="flex items-center justify-between">
+											<div class="text-sm">
+												<button 
+													type="button" 
+													class="font-medium text-primary hover:text-primary-dark"
+													on:click={() => showForgotPassword = true}
+												>
+													Forgot your password?
+												</button>
+											</div>
+										</div>
+										
+										{#if loginError}
+											<p class="text-red-600 text-sm">{loginError}</p>
+										{/if}
+										
+										<button
+											type="submit"
+											disabled={loginLoading}
+											class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
+										>
+											{loginLoading ? 'Logging in...' : 'Log in'}
+										</button>
+									</form>
+								</div>
+							{/if}
+						</div>
+					</div>
+				</div>
+				<div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+					{#if !showForgotPassword && !forgotPasswordSuccess}
+						<button
+							type="button"
+							class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+							on:click={() => {
+								showLoginModal = false;
+								showForgotPassword = false;
+								// Allow continuing without login (as guest) if they choose to cancel login
+								// But maybe we should force them? The requirement said "ask them to login... or create a new password".
+								// It didn't strictly say force. But usually "ask" implies a block.
+								// However, if they really can't remember, they might want to just proceed.
+								// For now, let's treat cancel as "Cancel booking attempt" to be strict, or maybe just close modal and let them try again.
+								// Actually, if they close, they are still on step 2. They can't proceed without logging in because `nextStep` checks again.
+								// So closing just keeps them on step 2.
+							}}
+						>
+							Cancel
+						</button>
+					{:else if showForgotPassword}
+						<button
+							type="button"
+							class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+							on:click={() => {
+								showLoginModal = false;
+								showForgotPassword = false;
+							}}
+						>
+							Close
+						</button>
+					{/if}
+				</div>
+			</div>
+		</div>
+	</div>
+{/if}
+
 <ConfirmationDialog
 	open={showDraftDialog}
 	title="Continue Saved Booking?"

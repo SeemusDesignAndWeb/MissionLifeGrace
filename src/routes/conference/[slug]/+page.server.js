@@ -1,7 +1,8 @@
 import { getConferenceBySlug, getConferenceTicketTypes, getContactInfo } from '$lib/server/database';
 import { error } from '@sveltejs/kit';
+import { isUserAuthenticated } from '$lib/server/user-auth';
 
-export const load = async ({ params }) => {
+export const load = async ({ params, cookies }) => {
 	const conference = getConferenceBySlug(params.slug);
 	
 	if (!conference || !conference.published) {
@@ -10,7 +11,8 @@ export const load = async ({ params }) => {
 	
 	const ticketTypes = getConferenceTicketTypes(conference.id);
 	const contactInfo = getContactInfo();
+	const isAuthenticated = isUserAuthenticated(cookies);
 	
-	return { conference, ticketTypes, contactInfo };
+	return { conference, ticketTypes, contactInfo, isAuthenticated };
 };
 

@@ -35,7 +35,9 @@ if (!db.conferenceAttendees) db.conferenceAttendees = [];
 // Check if dummy data already exists
 const existingConference = db.conferences.find(c => c.id === 'conf-2024-annual');
 if (existingConference) {
-	console.log('Dummy conference data already exists. Updating supporting pages...');
+	console.log('Dummy conference data already exists. Updating with early bird settings...');
+	let updated = false;
+	
 	// Update existing conference with supporting pages if missing
 	if (!existingConference.supportingPages) {
 		existingConference.supportingPages = {
@@ -46,16 +48,40 @@ if (existingConference) {
 			accommodation: '<h3>Accommodation</h3><p>We offer on-site camping facilities for those who want to stay close to the action. Alternatively, we have a list of recommended local hotels and B&Bs.</p><ul><li>On-site camping available</li><li>Local hotel recommendations</li><li>B&B options nearby</li><li>Contact us for more information</li></ul>',
 			whatYouNeed: '<h3>What You Need</h3><p>Here\'s what to bring with you to the conference:</p><ul><li>Bible and notebook</li><li>Comfortable clothing</li><li>Weather-appropriate items</li><li>Any dietary requirements information</li><li>Camping gear (if camping)</li></ul>'
 		};
+		updated = true;
+	}
+	
+	// Add early bird settings for testing
+	// Set dates so early bird is currently active (or will be soon)
+	const today = new Date();
+	const startDate = new Date(today);
+	startDate.setDate(today.getDate() - 30); // Started 30 days ago
+	
+	const endDate = new Date(today);
+	endDate.setDate(today.getDate() + 5); // Ends in 5 days (to test "ending soon" label)
+	
+	if (!existingConference.earlyBirdStartDate || !existingConference.earlyBirdEndDate || !existingConference.earlyBirdDiscountAmount) {
+		existingConference.earlyBirdStartDate = startDate.toISOString().split('T')[0];
+		existingConference.earlyBirdEndDate = endDate.toISOString().split('T')[0];
+		existingConference.earlyBirdDiscountAmount = 25; // £25 discount for testing
+		updated = true;
+		console.log('✅ Added early bird settings:');
+		console.log(`   Start Date: ${existingConference.earlyBirdStartDate}`);
+		console.log(`   End Date: ${existingConference.earlyBirdEndDate}`);
+		console.log(`   Discount: £${existingConference.earlyBirdDiscountAmount}`);
+	}
+	
+	if (updated) {
 		// Write back to database
 		try {
 			writeFileSync(DB_PATH, JSON.stringify(db, null, 2), 'utf-8');
-			console.log('✅ Successfully updated conference with supporting pages!');
+			console.log('✅ Successfully updated conference!');
 		} catch (error) {
 			console.error('❌ Failed to update database:', error.message);
 			process.exit(1);
 		}
 	} else {
-		console.log('Conference already has supporting pages. Skipping update...');
+		console.log('Conference already has all settings. Skipping update...');
 	}
 	process.exit(0);
 }
@@ -113,6 +139,19 @@ const conference = {
 		installmentCount: 3,
 		installmentInterval: 30
 	},
+	// Early bird settings for testing
+	// Set dates so early bird is currently active
+	earlyBirdStartDate: (() => {
+		const date = new Date();
+		date.setDate(date.getDate() - 30); // Started 30 days ago
+		return date.toISOString().split('T')[0];
+	})(),
+	earlyBirdEndDate: (() => {
+		const date = new Date();
+		date.setDate(date.getDate() + 5); // Ends in 5 days (to test "ending soon" label)
+		return date.toISOString().split('T')[0];
+	})(),
+	earlyBirdDiscountAmount: 25, // £25 discount for testing
 	supportingPages: {
 		worshipAndMinistry: '<h3>Worship and Ministry</h3><p>Join us for powerful times of worship and ministry throughout the conference. We will have dedicated worship sessions led by our worship team, and opportunities for prayer and ministry.</p><ul><li>Morning worship sessions</li><li>Evening worship and ministry times</li><li>Prayer ministry available</li></ul>',
 		kidsActivities: '<h3>Kids Activities</h3><p>We have a fantastic program for children aged 0-12 years old. All activities are supervised by DBS-checked volunteers.</p><ul><li>Age-appropriate teaching and activities</li><li>Games and crafts</li><li>Supervised play areas</li><li>Meal times together</li></ul>',

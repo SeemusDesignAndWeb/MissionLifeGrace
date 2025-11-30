@@ -11,6 +11,11 @@
 	let loading = true;
 	let editing = null;
 	let showForm = false;
+	let earlyBirdSettings = {
+		earlyBirdStartDate: '',
+		earlyBirdEndDate: '',
+		earlyBirdDiscountAmount: 0
+	};
 
 	onMount(async () => {
 		await loadData();
@@ -20,6 +25,15 @@
 		try {
 			const confResponse = await fetch(`/api/content?type=conferences&id=${params.id}`);
 			conference = await confResponse.json();
+
+			// Load early bird settings from conference
+			if (conference) {
+				earlyBirdSettings = {
+					earlyBirdStartDate: conference.earlyBirdStartDate || '',
+					earlyBirdEndDate: conference.earlyBirdEndDate || '',
+					earlyBirdDiscountAmount: conference.earlyBirdDiscountAmount || 0
+				};
+			}
 
 			const typesResponse = await fetch(`/api/content?type=conference-ticket-types&conferenceId=${params.id}`);
 			ticketTypes = await typesResponse.json();
@@ -113,6 +127,36 @@
 	function formatCurrency(amount) {
 		return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(amount);
 	}
+
+	async function saveEarlyBirdSettings() {
+		if (!conference) return;
+
+		try {
+			const updatedConference = {
+				...conference,
+				earlyBirdStartDate: earlyBirdSettings.earlyBirdStartDate,
+				earlyBirdEndDate: earlyBirdSettings.earlyBirdEndDate,
+				earlyBirdDiscountAmount: parseFloat(earlyBirdSettings.earlyBirdDiscountAmount) || 0
+			};
+
+			const response = await fetch('/api/content', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ type: 'conference', data: updatedConference })
+			});
+
+			if (response.ok) {
+				conference = updatedConference;
+				notifySuccess('Early bird settings saved successfully');
+			} else {
+				const error = await response.json();
+				notifyError(error.error || 'Failed to save early bird settings');
+			}
+		} catch (error) {
+			console.error('Failed to save early bird settings:', error);
+			notifyError('Failed to save early bird settings');
+		}
+	}
 </script>
 
 <svelte:head>
@@ -138,6 +182,57 @@
 		>
 			Add New Ticket Type
 		</button>
+	</div>
+
+	<!-- Early Bird Settings Section -->
+	<div class="bg-white p-6 rounded-lg shadow mb-6">
+		<h2 class="text-2xl font-bold mb-4">Early Bird Pricing Settings</h2>
+		<p class="text-sm text-gray-600 mb-4">
+			Configure early bird pricing that applies to all tickets. The discount amount will be subtracted from each ticket's standard price during the early bird period.
+		</p>
+		<div class="space-y-4">
+			<div class="grid grid-cols-3 gap-4">
+				<div>
+					<label for="early-bird-start" class="block text-sm font-medium mb-1">Early Bird Start Date</label>
+					<input
+						id="early-bird-start"
+						type="date"
+						bind:value={earlyBirdSettings.earlyBirdStartDate}
+						class="w-full px-3 py-2 border rounded"
+					/>
+				</div>
+				<div>
+					<label for="early-bird-end" class="block text-sm font-medium mb-1">Early Bird End Date</label>
+					<input
+						id="early-bird-end"
+						type="date"
+						bind:value={earlyBirdSettings.earlyBirdEndDate}
+						class="w-full px-3 py-2 border rounded"
+					/>
+				</div>
+				<div>
+					<label for="early-bird-discount" class="block text-sm font-medium mb-1">Discount Amount (£)</label>
+					<input
+						id="early-bird-discount"
+						type="number"
+						bind:value={earlyBirdSettings.earlyBirdDiscountAmount}
+						class="w-full px-3 py-2 border rounded"
+						min="0"
+						step="0.01"
+						placeholder="0.00"
+					/>
+					<p class="text-xs text-gray-500 mt-1">Amount to discount from each ticket's standard price</p>
+				</div>
+			</div>
+			<div class="flex justify-end">
+				<button
+					on:click={saveEarlyBirdSettings}
+					class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
+				>
+					Save Early Bird Settings
+				</button>
+			</div>
+		</div>
 	</div>
 
 	{#if showForm && editing}

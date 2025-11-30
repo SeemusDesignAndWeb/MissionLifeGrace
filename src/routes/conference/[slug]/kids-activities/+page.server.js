@@ -1,8 +1,9 @@
 import { getConferenceBySlug, getConferenceTicketTypes, getContactInfo } from '$lib/server/database';
 import { getSupportingPages } from '$lib/server/conference-helpers';
 import { error } from '@sveltejs/kit';
+import { isUserAuthenticated } from '$lib/server/user-auth';
 
-export const load = async ({ params }) => {
+export const load = async ({ params, cookies }) => {
 	const conference = getConferenceBySlug(params.slug);
 	
 	if (!conference || !conference.published) {
@@ -16,7 +17,8 @@ export const load = async ({ params }) => {
 	const ticketTypes = getConferenceTicketTypes(conference.id);
 	const contactInfo = getContactInfo();
 	const supportingPages = getSupportingPages(conference);
+	const isAuthenticated = isUserAuthenticated(cookies);
 	
-	return { conference, ticketTypes, contactInfo, pageContent: conference.supportingPages.kidsActivities, pageTitle: 'Kids Activities', supportingPages };
+	return { conference, ticketTypes, contactInfo, pageContent: conference.supportingPages.kidsActivities, pageTitle: 'Kids Activities', supportingPages, isAuthenticated };
 };
 
