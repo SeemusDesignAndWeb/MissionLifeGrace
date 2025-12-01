@@ -82,8 +82,14 @@ export const GET = async ({ cookies }) => {
 		console.log('[Cloudinary Sync] Starting to fetch images...');
 		
 		// Configure Cloudinary
-		configureCloudinary();
-		console.log('[Cloudinary Sync] Cloudinary configured');
+		const config = configureCloudinary();
+		console.log('[Cloudinary Sync] Cloudinary configured', {
+			cloudName: config.cloudName,
+			hasApiKey: !!config.apiKey,
+			apiKeyLength: config.apiKey?.length || 0,
+			hasApiSecret: !!config.apiSecret,
+			apiSecretLength: config.apiSecret?.length || 0
+		});
 
 		// Fetch all images from Cloudinary
 		const cloudinaryImages = await getAllCloudinaryImages();
@@ -122,8 +128,21 @@ export const GET = async ({ cookies }) => {
 		console.error('[Cloudinary Sync] Error details:', {
 			message: error.message,
 			stack: error.stack,
-			error: error.error
+			error: error.error,
+			http_code: error.error?.http_code,
+			http_code_description: error.error?.http_code_description,
+			error_name: error.error?.name,
+			error_message: error.error?.message
 		});
+		
+		// Check for authentication errors
+		if (error.error?.http_code === 401 || error.error?.http_code === 403) {
+			return json({
+				success: false,
+				error: 'Cloudinary authentication failed. Please check your API key and secret.',
+				details: error.error?.message || error.message
+			}, { status: 401 });
+		}
 		
 		if (error.message && error.message.includes('RATE_LIMIT_EXCEEDED')) {
 			// Extract reset time from error message if available
