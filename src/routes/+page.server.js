@@ -100,8 +100,26 @@ export const load = async () => {
 	
 	const home = getHome();
 	
+	// Use home page configuration for hero if available (prioritize over hero slides)
+	if (home && (home.heroTitle || home.heroImage)) {
+		const homeSlide = {
+			id: 'home-hero',
+			title: home.heroTitle || '',
+			subtitle: home.heroSubtitle || '',
+			image: home.heroImage || '',
+			cta: home.heroButtons?.[0]?.text || '',
+			ctaLink: home.heroButtons?.[0]?.link || '',
+			messages: home.heroMessages || [] // Pass rotating messages if any
+		};
+		// Use ONLY this slide as requested
+		heroSlides = [homeSlide];
+	} else {
+		// Fallback to heroSlides from database if no home page config
+		heroSlides = heroSlides.length > 0 ? heroSlides : null;
+	}
+	
 	return {
-		heroSlides: heroSlides.length > 0 ? heroSlides : null,
+		heroSlides,
 		contactInfo,
 		services,
 		featuredEvents: featuredEvents.length > 0 ? featuredEvents : [],
