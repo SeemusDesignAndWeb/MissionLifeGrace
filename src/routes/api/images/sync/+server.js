@@ -38,17 +38,20 @@ async function getAllCloudinaryImages() {
 				break;
 			}
 
-			const options = {
-				expression: 'folder:egcc',
-				max_results: 500
-			};
+			console.log(`[Cloudinary Sync] Fetching page ${pageCount}...`);
+			
+			// Build the search query using the chainable API
+			let search = cloudinary.search
+				.expression('folder:egcc')
+				.max_results(500)
+				.with_field('context')
+				.with_field('tags');
 
 			if (nextCursor) {
-				options.next_cursor = nextCursor;
+				search = search.next_cursor(nextCursor);
 			}
 
-			console.log(`[Cloudinary Sync] Fetching page ${pageCount}...`);
-			const result = await cloudinary.search.execute(options);
+			const result = await search.execute();
 			console.log(`[Cloudinary Sync] Page ${pageCount} returned ${result.resources?.length || 0} images`);
 
 			if (result.resources && result.resources.length > 0) {
