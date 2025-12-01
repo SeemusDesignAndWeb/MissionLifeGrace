@@ -1294,12 +1294,15 @@
 			<div class="space-y-4 mb-6">
 				{#each availableTickets as ticketType (ticketType.id)}
 					<div class="border rounded p-4">
+						{#if ticketType.description}
+							<p class="md:hidden text-sm text-gray-700 mb-3 w-full border-b pb-2">{ticketType.description}</p>
+						{/if}
 						<div class="flex justify-between items-start">
 							<div class="flex-1">
 								<h4 class="font-semibold text-lg">{ticketType.name}</h4>
 								<p class="text-sm text-gray-600 capitalize">{ticketType.type}</p>
 								{#if ticketType.description}
-									<p class="text-sm text-gray-700 mt-1">{ticketType.description}</p>
+									<p class="hidden md:block text-sm text-gray-700 mt-1">{ticketType.description}</p>
 								{/if}
 								{#if ticketType.camping}
 									<span class="inline-block mt-2 px-2 py-1 text-xs bg-green-100 text-green-800 rounded">Camping</span>
