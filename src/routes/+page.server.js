@@ -98,23 +98,29 @@ export const load = async () => {
 		console.log('Latest message popup is disabled in settings');
 	}
 	
-	const home = getHome();
+	// Get home page from pages array (new way) or fallback to old db.home
+	const homePage = getPage('home');
+	const home = homePage || getHome();
 	
 	// Use home page configuration for hero if available (prioritize over hero slides)
-	if (home && (home.heroTitle || home.heroImage)) {
+	// Check for non-empty heroTitle or heroImage
+	const hasHomeHero = home && ((home.heroTitle && home.heroTitle.trim()) || (home.heroImage && home.heroImage.trim()));
+	
+	if (hasHomeHero) {
 		const homeSlide = {
 			id: 'home-hero',
 			title: home.heroTitle || '',
 			subtitle: home.heroSubtitle || '',
 			image: home.heroImage || '',
 			cta: home.heroButtons?.[0]?.text || '',
-			ctaLink: home.heroButtons?.[0]?.link || '',
+			ctaLink: home.heroButtons?.[0]?.link || home.heroButtons?.[0]?.url || '',
 			messages: home.heroMessages || [] // Pass rotating messages if any
 		};
 		// Use ONLY this slide as requested
 		heroSlides = [homeSlide];
 	} else {
-		// Fallback to heroSlides from database if no home page config
+		// Use hero slides from database (managed in pages admin)
+		// These are the hero slides managed in the pages admin area
 		heroSlides = heroSlides.length > 0 ? heroSlides : null;
 	}
 	
