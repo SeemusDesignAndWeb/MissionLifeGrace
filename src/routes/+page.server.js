@@ -2,7 +2,7 @@ import { getHeroSlides, getContactInfo, getEvents, getConferences, getServices, 
 import { getPlaylistVideos, getChannelVideos } from '$lib/server/youtube';
 
 export const load = async () => {
-	const heroSlides = getHeroSlides();
+	let heroSlides = getHeroSlides();
 	const contactInfo = getContactInfo();
 	const allEvents = getEvents();
 	const allConferences = getConferences();
