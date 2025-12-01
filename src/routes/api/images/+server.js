@@ -1,11 +1,13 @@
 import { json } from '@sveltejs/kit';
-import { requireAuth } from '$lib/server/auth';
+import { isAuthenticated } from '$lib/server/admin-auth';
 import { getImages, saveImage, deleteImage } from '$lib/server/database';
 import { uploadImage, deleteImage as deleteCloudinaryImage, getImageUrl } from '$lib/server/cloudinary';
 import { randomUUID } from 'crypto';
 
 export const GET = async ({ url, cookies }) => {
-	requireAuth({ cookies });
+	if (!isAuthenticated(cookies)) {
+		return json({ error: 'Unauthorized' }, { status: 401 });
+	}
 
 	const id = url.searchParams.get('id');
 
@@ -21,7 +23,9 @@ export const GET = async ({ url, cookies }) => {
 };
 
 export const POST = async ({ request, cookies }) => {
-	requireAuth({ cookies });
+	if (!isAuthenticated(cookies)) {
+		return json({ error: 'Unauthorized' }, { status: 401 });
+	}
 
 	try {
 		const formData = await request.formData();
@@ -76,7 +80,9 @@ export const POST = async ({ request, cookies }) => {
 };
 
 export const DELETE = async ({ url, cookies }) => {
-	requireAuth({ cookies });
+	if (!isAuthenticated(cookies)) {
+		return json({ error: 'Unauthorized' }, { status: 401 });
+	}
 
 	const id = url.searchParams.get('id');
 
