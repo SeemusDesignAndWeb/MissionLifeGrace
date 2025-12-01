@@ -69,6 +69,31 @@
 		}
 		return null;
 	}
+
+	function getDescriptionExcerpt(description) {
+		if (!description) return '';
+		// Remove heading tags (h1-h6) and their content
+		let text = description.replace(/<h[1-6][^>]*>.*?<\/h[1-6]>/gi, '');
+		// Strip remaining HTML tags
+		text = text.replace(/<[^>]*>/g, '');
+		// Replace multiple whitespace (spaces, newlines, tabs) with single space
+		text = text.replace(/\s+/g, ' ').trim();
+		// If text doesn't end with punctuation and is being truncated, add ellipsis
+		if (text.length > 120) {
+			text = text.substring(0, 120);
+			// Find the last space before the limit to avoid cutting words
+			const lastSpace = text.lastIndexOf(' ');
+			if (lastSpace > 80) {
+				text = text.substring(0, lastSpace);
+			}
+			// Ensure proper punctuation before ellipsis
+			if (!text.match(/[.!?]$/)) {
+				text = text.replace(/[,;:]$/, '.');
+			}
+			return text + '...';
+		}
+		return text;
+	}
 </script>
 
 <svelte:head>
@@ -204,12 +229,12 @@
 								class="absolute inset-0 bg-black bg-opacity-60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
 							>
 								<div class="text-white text-center">
-									<span class="text-lg font-semibold">Register Now →</span>
+									<span class="text-lg font-semibold">Book Now →</span>
 								</div>
 							</div>
 							{#if conference.registrationOpen}
 								<div class="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
-									Registration Open
+									Booking Open
 								</div>
 							{/if}
 						</div>
@@ -220,11 +245,11 @@
 							{/if}
 							{#if conference.description}
 								<div class="text-gray-300 text-sm leading-relaxed line-clamp-3">
-									{@html conference.description.replace(/<[^>]*>/g, '').substring(0, 120)}...
+									{getDescriptionExcerpt(conference.description)}
 								</div>
 							{/if}
 							<div class="mt-4 pt-4 border-t border-gray-700">
-								<span class="text-brand-blue text-sm font-semibold">Learn More & Register →</span>
+								<span class="text-brand-blue text-sm font-semibold">Learn More & Book →</span>
 							</div>
 						</div>
 					</a>

@@ -41,6 +41,31 @@
 		}
 		return null;
 	}
+
+	function getDescriptionExcerpt(description) {
+		if (!description) return '';
+		// Remove heading tags (h1-h6) and their content
+		let text = description.replace(/<h[1-6][^>]*>.*?<\/h[1-6]>/gi, '');
+		// Strip remaining HTML tags
+		text = text.replace(/<[^>]*>/g, '');
+		// Replace multiple whitespace (spaces, newlines, tabs) with single space
+		text = text.replace(/\s+/g, ' ').trim();
+		// If text doesn't end with punctuation and is being truncated, add ellipsis
+		if (text.length > 150) {
+			text = text.substring(0, 150);
+			// Find the last space before the limit to avoid cutting words
+			const lastSpace = text.lastIndexOf(' ');
+			if (lastSpace > 100) {
+				text = text.substring(0, lastSpace);
+			}
+			// Ensure proper punctuation before ellipsis
+			if (!text.match(/[.!?]$/)) {
+				text = text.replace(/[,;:]$/, '.');
+			}
+			return text + '...';
+		}
+		return text;
+	}
 </script>
 
 {#if conferences && conferences.length > 0}
@@ -52,7 +77,7 @@
 					Upcoming Conferences
 				</h2>
 				<p class="text-lg text-gray-600 max-w-2xl mx-auto">
-					Register now for our inspiring conferences and gatherings
+					Book now for our inspiring conferences and gatherings
 				</p>
 			</div>
 
@@ -83,13 +108,13 @@
 									</div>
 									{#if conference.registrationOpen}
 										<div class="absolute top-4 left-4 bg-green-500 text-white px-4 py-2 rounded-full text-xs font-semibold shadow-lg">
-											Registration Open
+											Booking Open
 										</div>
 									{/if}
 									<!-- Overlay on hover -->
 									<div class="absolute inset-0 bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
 										<div class="text-white text-center">
-											<span class="text-xl font-bold">Register Now →</span>
+											<span class="text-xl font-bold">Book Now →</span>
 										</div>
 									</div>
 								</div>
@@ -109,11 +134,11 @@
 									{/if}
 									{#if conference.description}
 										<div class="text-gray-600 leading-relaxed mb-4 line-clamp-3">
-											{@html conference.description.replace(/<[^>]*>/g, '').substring(0, 150)}...
+											{getDescriptionExcerpt(conference.description)}
 										</div>
 									{/if}
 									<div class="flex items-center gap-2 text-primary font-semibold mt-auto">
-										<span>Learn More & Register</span>
+										<span>Learn More & Book</span>
 										<svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
 										</svg>

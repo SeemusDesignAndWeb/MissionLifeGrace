@@ -2,7 +2,10 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 
 // Environment variable configuration
-const DB_PATH = process.env.DATABASE_PATH || './data/database.json';
+// In production (Railway), default to /data/database.json (volume mount)
+// In development, default to ./data/database.json (local file)
+const isProduction = process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT;
+const DB_PATH = process.env.DATABASE_PATH || (isProduction ? '/data/database.json' : './data/database.json');
 
 // Path resolution function
 function getDbPath() {
