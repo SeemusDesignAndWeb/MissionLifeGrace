@@ -274,9 +274,14 @@
 			if (response.ok) {
 				await loadPages();
 				cancelEdit();
+			} else {
+				const errorData = await response.json().catch(() => ({}));
+				alert('Failed to save page: ' + (errorData.error || response.statusText || 'Unknown error'));
+				console.error('Save failed:', response.status, errorData);
 			}
 		} catch (error) {
 			console.error('Failed to save page:', error);
+			alert('Failed to save page: ' + error.message);
 		}
 	}
 

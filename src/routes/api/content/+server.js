@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { requireAuth } from '$lib/server/admin-auth';
+import { isAuthenticated } from '$lib/server/admin-auth';
 import {
 	getPages,
 	getPage,
@@ -91,7 +91,9 @@ import {
 } from '$lib/server/database';
 
 export const GET = async ({ url, cookies }) => {
-	requireAuth({ cookies });
+	if (!isAuthenticated(cookies)) {
+		return json({ error: 'Unauthorized' }, { status: 401 });
+	}
 
 	const type = url.searchParams.get('type');
 	const id = url.searchParams.get('id');
@@ -196,7 +198,9 @@ export const GET = async ({ url, cookies }) => {
 };
 
 export const POST = async ({ request, cookies }) => {
-	requireAuth({ cookies });
+	if (!isAuthenticated(cookies)) {
+		return json({ error: 'Unauthorized' }, { status: 401 });
+	}
 
 	const { type, data } = await request.json();
 
@@ -301,7 +305,9 @@ export const POST = async ({ request, cookies }) => {
 };
 
 export const DELETE = async ({ url, cookies }) => {
-	requireAuth({ cookies });
+	if (!isAuthenticated(cookies)) {
+		return json({ error: 'Unauthorized' }, { status: 401 });
+	}
 
 	const type = url.searchParams.get('type');
 	const id = url.searchParams.get('id');
