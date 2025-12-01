@@ -4,18 +4,48 @@ import { join, dirname } from 'path';
 // Environment variable configuration
 // In production (Railway), default to /data/database.json (volume mount)
 // In development, default to ./data/database.json (local file)
-const isProduction = process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT;
-const DB_PATH = process.env.DATABASE_PATH || (isProduction ? '/data/database.json' : './data/database.json');
+// Detect production: Railway sets NODE_ENV=production, or check for Railway-specific env vars
+const isProduction = process.env.NODE_ENV === 'production' || 
+	process.env.RAILWAY_ENVIRONMENT || 
+	process.env.RAILWAY_SERVICE_NAME ||
+	process.env.RAILWAY_PROJECT_NAME ||
+	(process.cwd() === '/app'); // Railway runs from /app directory
+
+// If DATABASE_PATH is explicitly set, use it; otherwise use production/development defaults
+let DB_PATH = process.env.DATABASE_PATH;
+if (!DB_PATH) {
+	DB_PATH = isProduction ? '/data/database.json' : './data/database.json';
+}
 
 // Path resolution function
 function getDbPath() {
 	let finalPath;
-	if (DB_PATH.startsWith('./') || DB_PATH.startsWith('../')) {
-		// Relative path - resolve from project root (local development)
-		finalPath = join(process.cwd(), DB_PATH);
+	
+	// In production, always use absolute paths (Railway volume mount)
+	if (isProduction) {
+		// If it's a relative path in production, convert to absolute
+		if (DB_PATH.startsWith('./') || DB_PATH.startsWith('../')) {
+			// In production, relative paths should go to /data (Railway volume)
+			finalPath = '/data/database.json';
+		} else if (!DB_PATH.startsWith('/')) {
+			// If it's not absolute and not relative, assume it's meant to be in /data
+			finalPath = '/data/database.json';
+		} else {
+			// Already absolute
+			finalPath = DB_PATH;
+		}
+		console.log('[DB] Production mode detected. Using path:', finalPath);
+		console.log('[DB] NODE_ENV:', process.env.NODE_ENV);
+		console.log('[DB] process.cwd():', process.cwd());
+		console.log('[DB] DATABASE_PATH env:', process.env.DATABASE_PATH);
 	} else {
-		// Absolute path (e.g., /data/database.json for Railway volumes)
-		finalPath = DB_PATH;
+		// Development: resolve relative paths from project root
+		if (DB_PATH.startsWith('./') || DB_PATH.startsWith('../')) {
+			finalPath = join(process.cwd(), DB_PATH);
+		} else {
+			finalPath = DB_PATH;
+		}
+		console.log('[DB] Development mode. Using path:', finalPath);
 	}
 
 	// Ensure the directory exists
