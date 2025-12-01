@@ -2970,16 +2970,10 @@
     "aboutImage": "https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763390998/egcc/375d5fb3-6856-49be-a8d1-48859a442bca.jpg",
     "id": "home",
     "title": "Home Page",
-    "heroTitle": "Mission Life Grace",
-    "heroSubtitle": "Churches on mission together",
-    "heroButtons": [
-      {
-        "text": "Learn more",
-        "url": "#about-us",
-        "style": "primary"
-      }
-    ],
-    "heroImage": "https://res.cloudinary.com/dsnceqtza/image/upload/v1764355863/cld-sample-2.jpg",
+    "heroTitle": "",
+    "heroSubtitle": "",
+    "heroButtons": [],
+    "heroImage": "https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763390998/egcc/375d5fb3-6856-49be-a8d1-48859a442bca.jpg",
     "heroOverlay": 40,
     "sections": [],
     "metaDescription": "Home page content and hero slides",
@@ -2988,9 +2982,15 @@
     "navigationOrder": 0,
     "heroMessages": [],
     "teamDescription": "",
-    "visionLabel": "Our vision",
-    "visionTitle": "What makes us who we are",
-    "visionText": "We believe every church exists to be part of God's mission to show the world Christ and that we are better equipped to do this in partnership with other churches. As a network our focus is to encourage each other through sharing our hearts, ideas and lessons learned along the way, to challenge one another to stay true to the course and to invest in helping people fulfil their God given calling. We believe that by journeying together we can see God do great things in our nation and around the world."
+    "visionLabel": "Our Vision",
+    "visionTitle": "We Believe",
+    "visionText": "We believe every church exists to be part of God's mission to show the world Christ and that we are better equipped to do this in partnership with other churches. As a network our focus is to encourage each other through sharing our hearts, ideas and lessons learned along the way, to challenge one another to stay true to the course and to invest in helping people fulfil their God given calling. We believe that by journeying together we can see God do great things in our nation and around the world.",
+    "eventsSectionLabel": "",
+    "eventsSectionTitle": "",
+    "eventsSectionDescription": "",
+    "isLink": false,
+    "linkUrl": "",
+    "linkTarget": "_self"
   },
   "conferences": [
     {

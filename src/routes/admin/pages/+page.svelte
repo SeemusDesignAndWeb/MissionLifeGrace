@@ -19,15 +19,34 @@
 	let draggedSectionIndex = null;
 	let draggedOverSectionIndex = null;
 	let expandedSections = new Set(); // Track which sections are expanded
+	let heroSlides = []; // Hero slides for home page
+	let editingSlide = null; // Currently editing hero slide
+	let showSlideForm = false; // Show hero slide form
+	let slideImagePickerTarget = null; // Track which slide is picking image
 
 	onMount(async () => {
 		await loadPages();
+		if (editing && editing.id === 'home') {
+			await loadHeroSlides();
+		}
 	});
 
 	// Reset section index when image picker closes without selection
 	$: if (!showImagePicker && currentSectionIndex !== null) {
 		currentSectionIndex = null;
 		currentImageIndex = null;
+	}
+
+	async function loadHeroSlides() {
+		try {
+			const response = await fetch('/api/content?type=hero-slides');
+			if (response.ok) {
+				heroSlides = await response.json();
+			}
+		} catch (error) {
+			console.error('Failed to load hero slides:', error);
+			heroSlides = [];
+		}
 	}
 
 	async function loadPages() {
@@ -222,6 +241,13 @@
 	}
 
 	function handleImageSelect(imagePath) {
+		if (slideImagePickerTarget !== null && editingSlide) {
+			// Setting image for hero slide
+			editingSlide.image = imagePath;
+			slideImagePickerTarget = null;
+			showImagePicker = false;
+			return;
+		}
 		if (currentSectionIndex === 'about' && editing) {
 			// Setting image for home page about section
 			editing.aboutImage = imagePath;
@@ -822,12 +848,205 @@
 								{/if}
 							</div>
 						</div>
-						<div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-							<p class="text-sm text-blue-800">
-								<strong>Hero Slides:</strong> Hero slides are managed separately. You can manage them from the <a href="/admin/home" class="underline font-semibold">Home Page admin</a> or they will be integrated here in a future update.
-							</p>
-						</div>
 					</div>
+
+					<!-- Home Page Hero Slides Section -->
+					<div class="border-t border-gray-200 pt-6 mt-6">
+						<div class="flex justify-between items-center mb-4">
+							<h3 class="text-lg font-bold text-gray-900">Hero Slides</h3>
+							<button
+								type="button"
+								on:click={() => {
+									editingSlide = {
+										id: '',
+										title: '',
+										subtitle: '',
+										cta: '',
+										ctaLink: '',
+										image: ''
+									};
+									showSlideForm = true;
+								}}
+								class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark text-sm"
+							>
+								+ Add New Slide
+							</button>
+						</div>
+						<p class="text-sm text-gray-600 mb-4">Manage the rotating hero slides displayed on the home page.</p>
+
+						{#if showSlideForm && editingSlide}
+							<div class="mb-6 p-4 bg-gray-50 border rounded-lg">
+								<h4 class="font-semibold mb-4">{editingSlide.id ? 'Edit' : 'Add'} Hero Slide</h4>
+								<div class="space-y-4">
+									<div>
+										<label class="block text-sm font-medium mb-1">Title</label>
+										<input
+											type="text"
+											bind:value={editingSlide.title}
+											class="w-full px-3 py-2 border rounded"
+											placeholder="e.g., Mission Life Grace"
+										/>
+									</div>
+									<div>
+										<label class="block text-sm font-medium mb-1">Subtitle</label>
+										<input
+											type="text"
+											bind:value={editingSlide.subtitle}
+											class="w-full px-3 py-2 border rounded"
+											placeholder="e.g., Churches on mission together"
+										/>
+									</div>
+									<div>
+										<label class="block text-sm font-medium mb-1">Call to Action Text</label>
+										<input
+											type="text"
+											bind:value={editingSlide.cta}
+											class="w-full px-3 py-2 border rounded"
+											placeholder="e.g., Learn more"
+										/>
+									</div>
+									<div>
+										<label class="block text-sm font-medium mb-1">Call to Action Link</label>
+										<input
+											type="text"
+											bind:value={editingSlide.ctaLink}
+											class="w-full px-3 py-2 border rounded"
+											placeholder="e.g., #about-us or /page"
+										/>
+									</div>
+									<div>
+										<label class="block text-sm font-medium mb-1">Image</label>
+										<div class="flex gap-2">
+											<input
+												type="text"
+												bind:value={editingSlide.image}
+												class="flex-1 px-3 py-2 border rounded"
+												placeholder="Image URL"
+											/>
+											<button
+												type="button"
+												on:click={() => {
+													showImagePicker = true;
+													slideImagePickerTarget = 'slide';
+												}}
+												class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm"
+											>
+												Select Image
+											</button>
+										</div>
+										{#if editingSlide.image}
+											<div class="mt-2">
+												<img
+													src={editingSlide.image}
+													alt="Slide preview"
+													class="max-w-xs h-32 object-cover rounded border"
+													on:error={(e) => { e.currentTarget.style.display = 'none'; }}
+												/>
+											</div>
+										{/if}
+									</div>
+									<div class="flex gap-2">
+										<button
+											type="button"
+											on:click={async () => {
+												if (!editingSlide.id) {
+													editingSlide.id = `hero-slide-${Date.now()}`;
+												}
+												try {
+													const response = await fetch('/api/content', {
+														method: 'POST',
+														headers: { 'Content-Type': 'application/json' },
+														body: JSON.stringify({ type: 'hero-slide', data: editingSlide })
+													});
+													if (response.ok) {
+														await loadHeroSlides();
+														editingSlide = null;
+														showSlideForm = false;
+													}
+												} catch (error) {
+													console.error('Failed to save hero slide:', error);
+													alert('Failed to save hero slide');
+												}
+											}}
+											class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
+										>
+											Save Slide
+										</button>
+										<button
+											type="button"
+											on:click={() => {
+												editingSlide = null;
+												showSlideForm = false;
+												slideImagePickerTarget = null;
+											}}
+											class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+										>
+											Cancel
+										</button>
+									</div>
+								</div>
+							</div>
+						{/if}
+
+						{#if heroSlides.length === 0}
+							<p class="text-gray-600 text-center py-8">No hero slides found. Add your first slide!</p>
+						{:else}
+							<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+								{#each heroSlides as slide}
+									<div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
+										{#if slide.image}
+											<img
+												src={slide.image}
+												alt={slide.title}
+												class="w-full h-32 object-cover rounded-lg mb-3"
+												on:error={(e) => {
+													e.target.style.display = 'none';
+												}}
+											/>
+										{/if}
+										<h4 class="font-semibold text-gray-900 mb-1">{slide.title || 'Untitled'}</h4>
+										<p class="text-sm text-gray-600 mb-2 line-clamp-2">{slide.subtitle || ''}</p>
+										{#if slide.cta}
+											<p class="text-xs text-primary font-medium mb-3">{slide.cta}</p>
+										{/if}
+										<div class="flex gap-2">
+											<button
+												type="button"
+												on:click={() => {
+													editingSlide = { ...slide };
+													showSlideForm = true;
+												}}
+												class="flex-1 px-3 py-1.5 bg-primary text-white rounded hover:bg-primary-dark text-sm"
+											>
+												Edit
+											</button>
+											<button
+												type="button"
+												on:click={async () => {
+													if (!confirm('Are you sure you want to delete this hero slide?')) return;
+													try {
+														const response = await fetch(`/api/content?type=hero-slide&id=${slide.id}`, {
+															method: 'DELETE'
+														});
+														if (response.ok) {
+															await loadHeroSlides();
+														}
+													} catch (error) {
+														console.error('Failed to delete hero slide:', error);
+														alert('Failed to delete hero slide');
+													}
+												}}
+												class="flex-1 px-3 py-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm"
+											>
+												Delete
+											</button>
+										</div>
+									</div>
+								{/each}
+							</div>
+						{/if}
+					</div>
+				{/if}
 
 					<!-- Home Page Vision Section -->
 					<div class="border-t border-gray-200 pt-6 mt-6">
