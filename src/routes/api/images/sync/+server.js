@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { isAuthenticated } from '$lib/server/admin-auth';
+import { isAuthenticated } from '$lib/server/auth';
 import { readDatabase, writeDatabase } from '$lib/server/database';
 import { v2 as cloudinary } from 'cloudinary';
 import { env } from '$env/dynamic/private';
