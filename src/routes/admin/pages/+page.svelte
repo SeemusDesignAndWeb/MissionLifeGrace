@@ -1053,7 +1053,6 @@
 							</div>
 						{/if}
 					</div>
-				{/if}
 
 					<!-- Home Page Vision Section -->
 					<div class="border-t border-gray-200 pt-6 mt-6">
@@ -1105,7 +1104,8 @@
 							</div>
 						</div>
 					</div>
-				{:else if !editing.sections || editing.sections.length === 0}
+				{/if}
+				{#if editing.id !== 'home' && (!editing.sections || editing.sections.length === 0)}
 					{#if editing.id !== 'team' && !editing.isLink}
 						<div class="relative mb-4">
 							<label class="block text-sm font-medium mb-1">Content</label>
