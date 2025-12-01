@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { destroySession } from '$lib/server/auth';
+import { destroySession } from '$lib/server/admin-auth';
 
 export const POST = async ({ cookies }) => {
 	destroySession(cookies);

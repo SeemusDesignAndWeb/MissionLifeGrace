@@ -4,6 +4,8 @@
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import ImagePicker from '$lib/components/ImagePicker.svelte';
 	import { notifyError, notifySuccess } from '$lib/utils/notify';
+	import HelpIcon from '$lib/components/HelpIcon.svelte';
+	import { getHelpContent } from '$lib/utils/helpContent';
 
 	export let params = {};
 
@@ -190,7 +192,12 @@
 
 <div class="container mx-auto px-4 py-8 admin-page">
 	<div class="flex justify-between items-center mb-6">
-		<h1 class="text-3xl font-bold">Manage Conferences</h1>
+		<div class="flex items-center gap-2">
+			<h1 class="text-3xl font-bold">Manage Conferences</h1>
+			<HelpIcon helpId="admin-conferences-page" position="right">
+				{@html getHelpContent('admin-conferences-page').content}
+			</HelpIcon>
+		</div>
 		<button
 			on:click={() => startEdit()}
 			class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
@@ -223,7 +230,12 @@
 			<div class="space-y-4">
 				<div class="grid grid-cols-2 gap-4">
 					<div>
-						<label class="block text-sm font-medium mb-1">Conference ID</label>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Conference ID</label>
+							<HelpIcon helpId="field-conference-id" position="right">
+								{@html getHelpContent('field-conference-id').content}
+							</HelpIcon>
+						</div>
 						<input
 							type="text"
 							bind:value={editing.id}
@@ -232,8 +244,13 @@
 						/>
 					</div>
 					<div>
-						<label class="block text-sm font-medium mb-1">Slug (URL)</label>
-						<input
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Slug (URL)</label>
+						<HelpIcon helpId="admin-conferences-slug" position="right">
+							{@html getHelpContent('admin-conferences-slug').content}
+						</HelpIcon>
+					</div>
+					<input
 							type="text"
 							bind:value={editing.slug}
 							class="w-full px-3 py-2 border rounded"
@@ -242,7 +259,12 @@
 					</div>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Title *</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Title *</label>
+						<HelpIcon helpId="admin-conferences-title" position="right">
+							{@html getHelpContent('admin-conferences-title').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="text"
 						bind:value={editing.title}
@@ -251,12 +273,22 @@
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Description</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Description</label>
+						<HelpIcon helpId="field-conference-description" position="right">
+							{@html getHelpContent('field-conference-description').content}
+						</HelpIcon>
+					</div>
 					<RichTextEditor bind:value={editing.description} />
 				</div>
 				<div class="grid grid-cols-2 gap-4">
 					<div>
-						<label class="block text-sm font-medium mb-1">Start Date *</label>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Start Date *</label>
+							<HelpIcon helpId="admin-conferences-dates" position="right">
+								{@html getHelpContent('admin-conferences-dates').content}
+							</HelpIcon>
+						</div>
 						<input
 							type="date"
 							bind:value={editing.startDate}
@@ -264,7 +296,12 @@
 						/>
 					</div>
 					<div>
-						<label class="block text-sm font-medium mb-1">End Date</label>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">End Date</label>
+							<HelpIcon helpId="field-conference-end-date" position="right">
+								{@html getHelpContent('field-conference-end-date').content}
+							</HelpIcon>
+						</div>
 						<input
 							type="date"
 							bind:value={editing.endDate}
@@ -274,7 +311,12 @@
 				</div>
 				<div class="grid grid-cols-2 gap-4">
 					<div>
-						<label class="block text-sm font-medium mb-1">Start Time</label>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Start Time</label>
+							<HelpIcon helpId="field-conference-start-time" position="right">
+								{@html getHelpContent('field-conference-start-time').content}
+							</HelpIcon>
+						</div>
 						<input
 							type="time"
 							bind:value={editing.startTime}
@@ -282,7 +324,12 @@
 						/>
 					</div>
 					<div>
-						<label class="block text-sm font-medium mb-1">End Time</label>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">End Time</label>
+							<HelpIcon helpId="field-conference-end-time" position="right">
+								{@html getHelpContent('field-conference-end-time').content}
+							</HelpIcon>
+						</div>
 						<input
 							type="time"
 							bind:value={editing.endTime}
@@ -291,13 +338,29 @@
 					</div>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Schedule</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Schedule</label>
+						<HelpIcon helpId="field-conference-schedule" position="right">
+							{@html getHelpContent('field-conference-schedule').content}
+						</HelpIcon>
+					</div>
 					<RichTextEditor bind:value={editing.schedule} />
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Venue</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Venue</label>
+						<HelpIcon helpId="admin-conferences-venue" position="right">
+							{@html getHelpContent('admin-conferences-venue').content}
+						</HelpIcon>
+					</div>
 					<div class="grid grid-cols-2 gap-4">
 						<div>
+							<div class="flex items-center gap-1 mb-1">
+								<label class="block text-xs text-gray-600">Venue Name</label>
+								<HelpIcon helpId="field-venue-name" position="right">
+									{@html getHelpContent('field-venue-name').content}
+								</HelpIcon>
+							</div>
 							<input
 								type="text"
 								bind:value={editing.venue.name}
@@ -306,6 +369,12 @@
 							/>
 						</div>
 						<div>
+							<div class="flex items-center gap-1 mb-1">
+								<label class="block text-xs text-gray-600">Address</label>
+								<HelpIcon helpId="field-venue-address" position="right">
+									{@html getHelpContent('field-venue-address').content}
+								</HelpIcon>
+							</div>
 							<input
 								type="text"
 								bind:value={editing.venue.address}
@@ -314,6 +383,12 @@
 							/>
 						</div>
 						<div>
+							<div class="flex items-center gap-1 mb-1">
+								<label class="block text-xs text-gray-600">City</label>
+								<HelpIcon helpId="field-venue-city" position="right">
+									{@html getHelpContent('field-venue-city').content}
+								</HelpIcon>
+							</div>
 							<input
 								type="text"
 								bind:value={editing.venue.city}
@@ -322,6 +397,12 @@
 							/>
 						</div>
 						<div>
+							<div class="flex items-center gap-1 mb-1">
+								<label class="block text-xs text-gray-600">Postcode</label>
+								<HelpIcon helpId="field-venue-postcode" position="right">
+									{@html getHelpContent('field-venue-postcode').content}
+								</HelpIcon>
+							</div>
 							<input
 								type="text"
 								bind:value={editing.venue.postcode}
@@ -330,6 +411,12 @@
 							/>
 						</div>
 						<div>
+							<div class="flex items-center gap-1 mb-1">
+								<label class="block text-xs text-gray-600">Country</label>
+								<HelpIcon helpId="field-venue-country" position="right">
+									{@html getHelpContent('field-venue-country').content}
+								</HelpIcon>
+							</div>
 							<input
 								type="text"
 								bind:value={editing.venue.country}
@@ -340,7 +427,12 @@
 					</div>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Images</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="block text-sm font-medium">Images</label>
+						<HelpIcon helpId="field-conference-images" position="right">
+							{@html getHelpContent('field-conference-images').content}
+						</HelpIcon>
+					</div>
 					<div class="flex flex-wrap gap-2 mb-2">
 						{#if editing.images && editing.images.length > 0}
 							{#each editing.images as image, index}
@@ -401,7 +493,12 @@
 								bind:checked={editing.paymentSettings.paypalEnabled}
 								class="mr-2"
 							/>
-							<label>PayPal Enabled</label>
+							<div class="flex items-center gap-1">
+								<label>PayPal Enabled</label>
+								<HelpIcon helpId="field-paypal-enabled" position="right">
+									{@html getHelpContent('field-paypal-enabled').content}
+								</HelpIcon>
+							</div>
 						</div>
 						<div class="flex items-center">
 							<input
@@ -409,10 +506,20 @@
 								bind:checked={editing.paymentSettings.payLaterEnabled}
 								class="mr-2"
 							/>
-							<label>Pay Later (BNPL) Enabled</label>
+							<div class="flex items-center gap-1">
+								<label>Pay Later (BNPL) Enabled</label>
+								<HelpIcon helpId="field-pay-later-enabled" position="right">
+									{@html getHelpContent('field-pay-later-enabled').content}
+								</HelpIcon>
+							</div>
 						</div>
 						<div>
-							<label class="block text-xs text-gray-600 mb-1">Deposit Amount (£)</label>
+							<div class="flex items-center gap-1 mb-1">
+								<label class="block text-xs text-gray-600">Deposit Amount (£)</label>
+								<HelpIcon helpId="field-deposit-amount" position="right">
+									{@html getHelpContent('field-deposit-amount').content}
+								</HelpIcon>
+							</div>
 							<input
 								type="number"
 								bind:value={editing.paymentSettings.depositAmount}
@@ -422,7 +529,12 @@
 							/>
 						</div>
 						<div>
-							<label class="block text-xs text-gray-600 mb-1">Deposit Percentage (%)</label>
+							<div class="flex items-center gap-1 mb-1">
+								<label class="block text-xs text-gray-600">Deposit Percentage (%)</label>
+								<HelpIcon helpId="field-deposit-percentage" position="right">
+									{@html getHelpContent('field-deposit-percentage').content}
+								</HelpIcon>
+							</div>
 							<input
 								type="number"
 								bind:value={editing.paymentSettings.depositPercentage}
@@ -432,7 +544,12 @@
 							/>
 						</div>
 						<div>
-							<label class="block text-xs text-gray-600 mb-1">Installment Count</label>
+							<div class="flex items-center gap-1 mb-1">
+								<label class="block text-xs text-gray-600">Installment Count</label>
+								<HelpIcon helpId="field-installment-count" position="right">
+									{@html getHelpContent('field-installment-count').content}
+								</HelpIcon>
+							</div>
 							<input
 								type="number"
 								bind:value={editing.paymentSettings.installmentCount}
@@ -442,7 +559,12 @@
 							/>
 						</div>
 						<div>
-							<label class="block text-xs text-gray-600 mb-1">Installment Interval (days)</label>
+							<div class="flex items-center gap-1 mb-1">
+								<label class="block text-xs text-gray-600">Installment Interval (days)</label>
+								<HelpIcon helpId="field-installment-interval" position="right">
+									{@html getHelpContent('field-installment-interval').content}
+								</HelpIcon>
+							</div>
 							<input
 								type="number"
 								bind:value={editing.paymentSettings.installmentInterval}
@@ -459,7 +581,12 @@
 							bind:checked={editing.registrationOpen}
 							class="mr-2"
 						/>
-						<label>Registration Open</label>
+						<div class="flex items-center gap-1">
+							<label>Registration Open</label>
+							<HelpIcon helpId="admin-conferences-registration" position="right">
+								{@html getHelpContent('admin-conferences-registration').content}
+							</HelpIcon>
+						</div>
 					</div>
 					<div class="flex items-center">
 						<input
@@ -467,7 +594,12 @@
 							bind:checked={editing.published}
 							class="mr-2"
 						/>
-						<label>Published</label>
+						<div class="flex items-center gap-1">
+							<label>Published</label>
+							<HelpIcon helpId="admin-conferences-published" position="right">
+								{@html getHelpContent('admin-conferences-published').content}
+							</HelpIcon>
+						</div>
 					</div>
 				</div>
 				<div class="flex gap-2 pt-4">

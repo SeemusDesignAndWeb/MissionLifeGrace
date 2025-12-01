@@ -1,6 +1,8 @@
 <script lang="js">
 	import { onMount } from 'svelte';
 	import { notifyError, notifySuccess } from '$lib/utils/notify';
+	import HelpIcon from '$lib/components/HelpIcon.svelte';
+	import { getHelpContent } from '$lib/utils/helpContent';
 
 	let formFields = [];
 	let loading = true;
@@ -275,7 +277,12 @@
 			</div>
 			<div class="space-y-4">
 				<div>
-					<label class="block text-sm font-medium mb-1">Label *</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Label *</label>
+						<HelpIcon helpId="field-form-label" position="right">
+							{@html getHelpContent('field-form-label').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="text"
 						bind:value={editing.label}
@@ -285,7 +292,12 @@
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Field Name (ID) *</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Field Name (ID) *</label>
+						<HelpIcon helpId="field-form-name" position="right">
+							{@html getHelpContent('field-form-name').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="text"
 						bind:value={editing.name}
@@ -295,7 +307,12 @@
 					<p class="text-xs text-gray-500 mt-1">Used internally. Use lowercase letters, numbers, and underscores only.</p>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Field Type *</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Field Type *</label>
+						<HelpIcon helpId="field-form-type" position="right">
+							{@html getHelpContent('field-form-type').content}
+						</HelpIcon>
+					</div>
 					<select
 						bind:value={editing.type}
 						class="w-full px-3 py-2 border rounded"
@@ -313,7 +330,12 @@
 				</div>
 				{#if editing.type === 'select' || editing.type === 'radio'}
 					<div>
-						<label class="block text-sm font-medium mb-1">Options</label>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Options</label>
+							<HelpIcon helpId="field-form-options" position="right">
+								{@html getHelpContent('field-form-options').content}
+							</HelpIcon>
+						</div>
 						<div class="space-y-2">
 							{#each editing.options || [] as option, index}
 								<div class="flex gap-2">
@@ -347,7 +369,12 @@
 					</div>
 				{/if}
 				<div>
-					<label class="block text-sm font-medium mb-1">Placeholder</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Placeholder</label>
+						<HelpIcon helpId="field-form-placeholder" position="right">
+							{@html getHelpContent('field-form-placeholder').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="text"
 						bind:value={editing.placeholder}
@@ -356,7 +383,12 @@
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Help Text</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Help Text</label>
+						<HelpIcon helpId="field-form-help-text" position="right">
+							{@html getHelpContent('field-form-help-text').content}
+						</HelpIcon>
+					</div>
 					<textarea
 						bind:value={editing.helpText}
 						class="w-full px-3 py-2 border rounded"
@@ -370,7 +402,12 @@
 						bind:checked={editing.required}
 						class="mr-2"
 					/>
-					<label>Required Field</label>
+					<div class="flex items-center gap-1">
+						<label>Required Field</label>
+						<HelpIcon helpId="field-form-required" position="right">
+							{@html getHelpContent('field-form-required').content}
+						</HelpIcon>
+					</div>
 				</div>
 			</div>
 		</div>

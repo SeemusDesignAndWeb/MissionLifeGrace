@@ -1,0 +1,110 @@
+import { json } from '@sveltejs/kit';
+import { getConferenceBookings, getConference } from '$lib/server/database';
+import { env } from '$env/dynamic/private';
+import { Resend } from 'resend';
+import { getMlgLogoBase64 } from '$lib/server/logo';
+
+const resend = new Resend(env.RESEND_API_KEY);
+const MLG_LOGO_BASE64 = getMlgLogoBase64();
+
+export const POST = async ({ request, cookies }) => {
+	try {
+		// Check admin authentication
+		const { isAuthenticated } = await import('$lib/server/auth');
+		if (!isAuthenticated(cookies)) {
+			return json({ error: 'Unauthorized' }, { status: 401 });
+		}
+
+		const { bookingIds, subject, message } = await request.json();
+
+		if (!bookingIds || !Array.isArray(bookingIds) || bookingIds.length === 0) {
+			return json({ error: 'No bookings selected' }, { status: 400 });
+		}
+
+		if (!subject || !message) {
+			return json({ error: 'Subject and message are required' }, { status: 400 });
+		}
+
+		const bookings = getConferenceBookings();
+		const selectedBookings = bookings.filter(b => bookingIds.includes(b.id) && !b.archived);
+
+		if (selectedBookings.length === 0) {
+			return json({ error: 'No valid bookings found' }, { status: 400 });
+		}
+
+		const fromEmail = env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+		const results = [];
+		const errors = [];
+
+		// Send email to each booking's group leader
+		for (const booking of selectedBookings) {
+			if (!booking.groupLeaderEmail) {
+				errors.push({ bookingId: booking.id, error: 'No email address' });
+				continue;
+			}
+
+			const conference = getConference(booking.conferenceId);
+			
+			// Replace placeholders
+			let personalizedMessage = message
+				.replace(/{bookingReference}/g, booking.bookingReference || 'N/A')
+				.replace(/{groupLeaderName}/g, booking.groupLeaderName || 'Valued Customer');
+
+			let personalizedSubject = subject
+				.replace(/{bookingReference}/g, booking.bookingReference || 'N/A')
+				.replace(/{groupLeaderName}/g, booking.groupLeaderName || 'Valued Customer');
+
+			const emailHtml = `
+				<!DOCTYPE html>
+				<html>
+				<head>
+					<meta charset="utf-8">
+					<meta name="viewport" content="width=device-width, initial-scale=1.0">
+				</head>
+				<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+					<div style="background: linear-gradient(135deg, #00a79d 0%, #0693ad 50%, #1384b6 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+						<img src="data:image/png;base64,${MLG_LOGO_BASE64}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
+						<h1 style="color: white; margin: 0;">${personalizedSubject}</h1>
+					</div>
+					<div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+						<p>Dear ${booking.groupLeaderName},</p>
+						<div style="background: white; padding: 20px; border-radius: 5px; margin: 20px 0; white-space: pre-wrap;">${personalizedMessage.replace(/\n/g, '<br>')}</div>
+						${conference ? `
+							<div style="background: #e0f2fe; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #0693ad;">
+								<p style="margin: 0; font-size: 14px;"><strong>Booking Reference:</strong> ${booking.bookingReference}</p>
+								<p style="margin: 5px 0 0 0; font-size: 14px;"><strong>Conference:</strong> ${conference.title}</p>
+							</div>
+						` : ''}
+						<p>If you have any questions, please don't hesitate to contact us.</p>
+						<p>Best regards,<br>Mission Life Grace Team</p>
+					</div>
+				</body>
+				</html>
+			`;
+
+			try {
+				const result = await resend.emails.send({
+					from: fromEmail,
+					to: booking.groupLeaderEmail,
+					subject: personalizedSubject,
+					html: emailHtml
+				});
+				results.push({ bookingId: booking.id, success: true });
+			} catch (error) {
+				console.error(`Failed to send email to ${booking.groupLeaderEmail}:`, error);
+				errors.push({ bookingId: booking.id, error: error.message || 'Failed to send email' });
+			}
+		}
+
+		return json({
+			success: true,
+			sent: results.length,
+			failed: errors.length,
+			errors: errors.length > 0 ? errors : undefined
+		});
+	} catch (error) {
+		console.error('Bulk email error:', error);
+		return json({ error: error.message || 'Failed to send bulk emails' }, { status: 500 });
+	}
+};
+

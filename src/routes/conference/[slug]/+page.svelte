@@ -204,9 +204,9 @@
 									class="inline-flex items-center gap-2 px-6 py-4 bg-white/20 hover:bg-white/30 text-white text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 border border-white/30"
 								>
 									<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
 									</svg>
-									My Account
+									Sign In
 								</a>
 							{:else}
 								<a
@@ -289,9 +289,9 @@
 										class="inline-flex items-center gap-2 px-6 py-4 bg-white/20 hover:bg-white/30 text-white text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 border border-white/30"
 									>
 										<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
 										</svg>
-										My Account
+										Sign In
 									</a>
 								{:else}
 									<a
@@ -373,7 +373,7 @@
 			<div class="lg:col-span-1">
 				<!-- Registration Card -->
 				<div class="bg-white p-6 rounded-lg shadow sticky top-4">
-					<h2 class="text-2xl font-bold mb-4">Register Now</h2>
+					<h2 class="text-2xl font-bold mb-4">Book Now</h2>
 					{#if !conference.registrationOpen}
 						<p class="text-gray-600 mb-4">Registration is currently closed.</p>
 					{:else}
@@ -396,33 +396,41 @@
 									{/if}
 								</div>
 							{/if}
-							<button
-								on:click={() => showBookingForm = true}
-								class="w-full px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark font-semibold"
-							>
-								Register for Conference
-							</button>
-							{#if isAuthenticated}
-								<a
-									href="/my-account"
-									class="w-full px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold text-center inline-flex items-center justify-center gap-2"
+							<div class="grid grid-cols-2 gap-3">
+								<button
+									on:click={() => showBookingForm = true}
+									class="px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark font-semibold inline-flex items-center justify-center gap-2"
 								>
 									<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
 									</svg>
-									My Account
-								</a>
-							{:else}
-								<a
-									href="/my-account/login"
-									class="w-full px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold text-center inline-flex items-center justify-center gap-2"
-								>
-									<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-									</svg>
-									Login
-								</a>
-							{/if}
+									<span class="hidden sm:inline">Book Now</span>
+									<span class="sm:hidden">Book</span>
+								</button>
+								{#if isAuthenticated}
+									<a
+										href="/my-account"
+										class="px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold text-center inline-flex items-center justify-center gap-2"
+									>
+										<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+										</svg>
+										<span class="hidden sm:inline">Sign In</span>
+										<span class="sm:hidden">Sign In</span>
+									</a>
+								{:else}
+									<a
+										href="/my-account/login"
+										class="px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold text-center inline-flex items-center justify-center gap-2"
+									>
+										<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+										</svg>
+										<span class="hidden sm:inline">Sign In</span>
+										<span class="sm:hidden">Sign In</span>
+									</a>
+								{/if}
+							</div>
 						</div>
 					{/if}
 				</div>
@@ -488,7 +496,7 @@
 			role="dialog"
 		>
 			<div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center z-10">
-				<h2 class="text-2xl font-bold">Register for {conference.title}</h2>
+				<h2 class="text-2xl font-bold">Book Now for {conference.title}</h2>
 				<button
 					on:click={() => showBookingForm = false}
 					class="text-gray-500 hover:text-gray-700 text-2xl font-bold"

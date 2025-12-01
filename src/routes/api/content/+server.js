@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { requireAuth } from '$lib/server/auth';
+import { requireAuth } from '$lib/server/admin-auth';
 import {
 	getPages,
 	getPage,
@@ -69,6 +69,18 @@ import {
 	getConferenceFormField,
 	saveConferenceFormField,
 	deleteConferenceFormField,
+	getEventTicketTypes,
+	getEventTicketType,
+	saveEventTicketType,
+	deleteEventTicketType,
+	getEventBookings,
+	getEventBooking,
+	saveEventBooking,
+	deleteEventBooking,
+	getEventAttendees,
+	getEventAttendee,
+	saveEventAttendee,
+	deleteEventAttendee,
 	getNavigationLinks,
 	getNavigationLink,
 	saveNavigationLink,
@@ -122,14 +134,29 @@ export const GET = async ({ url, cookies }) => {
 				return json(conferenceId ? getConferenceTicketTypes(conferenceId) : []);
 			case 'conference-ticket-type':
 				return json(id ? getConferenceTicketType(id) : null);
+			case 'event-ticket-types':
+				const eventId = url.searchParams.get('eventId');
+				return json(eventId ? getEventTicketTypes(eventId) : []);
+			case 'event-ticket-type':
+				return json(id ? getEventTicketType(id) : null);
 			case 'conference-bookings':
 				const confId = url.searchParams.get('conferenceId');
 				return json(confId ? getConferenceBookings(confId) : getConferenceBookings());
 			case 'conference-booking':
 				return json(id ? getConferenceBooking(id) : null);
+			case 'event-bookings':
+				const evtId = url.searchParams.get('eventId');
+				return json(evtId ? getEventBookings(evtId) : getEventBookings());
+			case 'event-booking':
+				return json(id ? getEventBooking(id) : null);
+			case 'event-attendees':
+				const eventBookingId = url.searchParams.get('bookingId');
+				return json(eventBookingId ? getEventAttendees(eventBookingId) : []);
+			case 'event-attendee':
+				return json(id ? getEventAttendee(id) : null);
 			case 'conference-attendees':
-				const bookingId = url.searchParams.get('bookingId');
-				return json(bookingId ? getConferenceAttendees(bookingId) : getConferenceAttendees());
+				const confBookingId = url.searchParams.get('bookingId');
+				return json(confBookingId ? getConferenceAttendees(confBookingId) : getConferenceAttendees());
 			case 'conference-attendee':
 				return json(id ? getConferenceAttendee(id) : null);
 			case 'conference-discount-codes':
@@ -226,11 +253,20 @@ export const POST = async ({ request, cookies }) => {
 			case 'conference-ticket-type':
 				saveConferenceTicketType(data);
 				return json({ success: true });
+			case 'event-ticket-type':
+				saveEventTicketType(data);
+				return json({ success: true });
 			case 'conference-booking':
 				saveConferenceBooking(data);
 				return json({ success: true });
 			case 'conference-attendee':
 				saveConferenceAttendee(data);
+				return json({ success: true });
+			case 'event-booking':
+				saveEventBooking(data);
+				return json({ success: true });
+			case 'event-attendee':
+				saveEventAttendee(data);
 				return json({ success: true });
 			case 'conference-discount-code':
 				saveConferenceDiscountCode(data);
@@ -306,11 +342,20 @@ export const DELETE = async ({ url, cookies }) => {
 			case 'conference-ticket-type':
 				deleteConferenceTicketType(id);
 				return json({ success: true });
+			case 'event-ticket-type':
+				deleteEventTicketType(id);
+				return json({ success: true });
 			case 'conference-booking':
 				deleteConferenceBooking(id);
 				return json({ success: true });
 			case 'conference-attendee':
 				deleteConferenceAttendee(id);
+				return json({ success: true });
+			case 'event-booking':
+				deleteEventBooking(id);
+				return json({ success: true });
+			case 'event-attendee':
+				deleteEventAttendee(id);
 				return json({ success: true });
 			case 'conference-discount-code':
 				deleteConferenceDiscountCode(id);

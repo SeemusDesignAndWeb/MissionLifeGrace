@@ -3,6 +3,17 @@
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import ImagePicker from '$lib/components/ImagePicker.svelte';
 	import { notifyError, notifySuccess } from '$lib/utils/notify';
+	import HelpIcon from '$lib/components/HelpIcon.svelte';
+	import { getHelpContent } from '$lib/utils/helpContent';
+
+	// Auto-generate ID from title
+	function generateIdFromTitle(title) {
+		if (!title) return '';
+		return title
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, '-')
+			.replace(/^-+|-+$/g, '');
+	}
 
 	export let params = {};
 
@@ -43,6 +54,11 @@
 					order: activities.length
 				};
 		showForm = true;
+	}
+
+	// Auto-generate ID when title changes (only for new activities or if ID is empty)
+	$: if (editing && editing.title && (!editing.id || editing.id === '')) {
+		editing.id = generateIdFromTitle(editing.title);
 	}
 
 	function cancelEdit() {
@@ -172,31 +188,42 @@
 				</div>
 			</div>
 			<div class="space-y-4">
+				<!-- ID field is hidden - auto-generated from title -->
+				<input
+					type="hidden"
+					bind:value={editing.id}
+				/>
 				<div>
-					<label class="block text-sm font-medium mb-1">ID *</label>
-					<input
-						type="text"
-						bind:value={editing.id}
-						class="w-full px-3 py-2 border rounded"
-						placeholder="e.g., fresh-ground-coffee"
-					/>
-					<p class="text-xs text-gray-500 mt-1">Unique identifier (lowercase, hyphens only)</p>
-				</div>
-				<div>
-					<label class="block text-sm font-medium mb-1">Title *</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Title *</label>
+						<HelpIcon helpId="field-activity-title" position="right">
+							{@html getHelpContent('field-activity-title').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="text"
 						bind:value={editing.title}
 						class="w-full px-3 py-2 border rounded"
 						placeholder="e.g., Fresh Ground Coffee House"
 					/>
+					<p class="text-xs text-gray-500 mt-1">Activity ID will be automatically generated from the title</p>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Description</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Description</label>
+						<HelpIcon helpId="field-activity-description" position="right">
+							{@html getHelpContent('field-activity-description').content}
+						</HelpIcon>
+					</div>
 					<RichTextEditor bind:value={editing.description} height="250px" />
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Time Information</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Time Information</label>
+						<HelpIcon helpId="field-activity-time" position="right">
+							{@html getHelpContent('field-activity-time').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="text"
 						bind:value={editing.timeInfo}
@@ -205,7 +232,12 @@
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Audience</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Audience</label>
+						<HelpIcon helpId="field-activity-audience" position="right">
+							{@html getHelpContent('field-activity-audience').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="text"
 						bind:value={editing.audience}
@@ -214,7 +246,12 @@
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Image URL</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Image URL</label>
+						<HelpIcon helpId="field-activity-image" position="right">
+							{@html getHelpContent('field-activity-image').content}
+						</HelpIcon>
+					</div>
 					<div class="space-y-2">
 						<div class="flex gap-2">
 							<input
@@ -243,7 +280,12 @@
 					</div>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Icon (SVG path or FontAwesome class, optional)</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Icon (SVG path or FontAwesome class, optional)</label>
+						<HelpIcon helpId="field-activity-icon" position="right">
+							{@html getHelpContent('field-activity-icon').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="text"
 						bind:value={editing.icon}
@@ -252,7 +294,12 @@
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Link URL (optional)</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Link URL (optional)</label>
+						<HelpIcon helpId="field-activity-link" position="right">
+							{@html getHelpContent('field-activity-link').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="text"
 						bind:value={editing.link}
@@ -261,7 +308,12 @@
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Link Text (optional)</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Link Text (optional)</label>
+						<HelpIcon helpId="field-activity-link-text" position="right">
+							{@html getHelpContent('field-activity-link-text').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="text"
 						bind:value={editing.linkText}

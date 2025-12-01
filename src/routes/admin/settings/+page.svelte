@@ -1,6 +1,8 @@
 <script lang="js">
 	import { onMount } from 'svelte';
 	import { notifyError, notifySuccess } from '$lib/utils/notify';
+	import HelpIcon from '$lib/components/HelpIcon.svelte';
+	import { getHelpContent } from '$lib/utils/helpContent';
 
 	export let params = {};
 
@@ -129,13 +131,21 @@
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
 						</svg>
 						<h2 class="text-xl font-bold text-gray-900">Contact Information</h2>
+						<HelpIcon helpId="settings-contact" position="right">
+							{@html getHelpContent('settings-contact').content}
+						</HelpIcon>
 					</div>
 					<p class="text-sm text-gray-600 mt-1 ml-9">Update contact details displayed on the website</p>
 				</div>
 				<div class="p-6">
 					<div class="grid md:grid-cols-2 gap-6">
 						<div>
-							<label for="contact-email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+							<div class="flex items-center gap-1 mb-2">
+								<label for="contact-email" class="block text-sm font-medium text-gray-700">Email Address</label>
+								<HelpIcon helpId="field-settings-email" position="right">
+									{@html getHelpContent('field-settings-email').content}
+								</HelpIcon>
+							</div>
 							<input
 								id="contact-email"
 								type="email"
@@ -145,7 +155,12 @@
 							/>
 						</div>
 						<div>
-							<label for="contact-phone" class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+							<div class="flex items-center gap-1 mb-2">
+								<label for="contact-phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
+								<HelpIcon helpId="field-settings-phone" position="right">
+									{@html getHelpContent('field-settings-phone').content}
+								</HelpIcon>
+							</div>
 							<input
 								id="contact-phone"
 								type="text"
@@ -155,7 +170,12 @@
 							/>
 						</div>
 						<div class="md:col-span-2">
-							<label for="contact-address" class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+							<div class="flex items-center gap-1 mb-2">
+								<label for="contact-address" class="block text-sm font-medium text-gray-700">Address</label>
+								<HelpIcon helpId="field-settings-address" position="right">
+									{@html getHelpContent('field-settings-address').content}
+								</HelpIcon>
+							</div>
 							<textarea
 								id="contact-address"
 								bind:value={contact.address}
@@ -165,7 +185,12 @@
 							></textarea>
 						</div>
 						<div class="md:col-span-2">
-							<label for="contact-googlemaps" class="block text-sm font-medium text-gray-700 mb-2">Google Maps URL</label>
+							<div class="flex items-center gap-1 mb-2">
+								<label for="contact-googlemaps" class="block text-sm font-medium text-gray-700">Google Maps URL</label>
+								<HelpIcon helpId="field-settings-googlemaps" position="right">
+									{@html getHelpContent('field-settings-googlemaps').content}
+								</HelpIcon>
+							</div>
 							<input
 								id="contact-googlemaps"
 								type="url"
@@ -198,10 +223,18 @@
 								<path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
 							</svg>
 							YouTube
+							<HelpIcon helpId="settings-media-youtube" position="right">
+								{@html getHelpContent('settings-media-youtube').content}
+							</HelpIcon>
 						</h3>
 						<div class="space-y-4">
 							<div>
-								<label for="youtube-channel-id" class="block text-sm font-medium text-gray-700 mb-2">YouTube Channel ID</label>
+								<div class="flex items-center gap-1 mb-2">
+									<label for="youtube-channel-id" class="block text-sm font-medium text-gray-700">YouTube Channel ID</label>
+									<HelpIcon helpId="field-youtube-channel" position="right">
+										{@html getHelpContent('field-youtube-channel').content}
+									</HelpIcon>
+								</div>
 								<input
 									id="youtube-channel-id"
 									type="text"
@@ -212,7 +245,12 @@
 								<p class="text-xs text-gray-500 mt-1">Enter the YouTube channel ID to show all videos from the channel</p>
 							</div>
 							<div>
-								<label for="youtube-playlist-id" class="block text-sm font-medium text-gray-700 mb-2">YouTube Playlist ID (Optional)</label>
+								<div class="flex items-center gap-1 mb-2">
+									<label for="youtube-playlist-id" class="block text-sm font-medium text-gray-700">YouTube Playlist ID (Optional)</label>
+									<HelpIcon helpId="field-youtube-playlist" position="right">
+										{@html getHelpContent('field-youtube-playlist').content}
+									</HelpIcon>
+								</div>
 								<input
 									id="youtube-playlist-id"
 									type="text"
@@ -232,9 +270,17 @@
 								<path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.84-.179-.84-.66 0-.359.24-.66.54-.84 3.9-1.319 7.679-.6 10.921 1.32.42.18.479.659.24 1.021zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.14C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.42 1.56-.299.421-1.02.599-1.559.3z"/>
 							</svg>
 							Spotify
+							<HelpIcon helpId="settings-media-spotify" position="right">
+								{@html getHelpContent('settings-media-spotify').content}
+							</HelpIcon>
 						</h3>
 						<div>
-							<label for="spotify-show-url" class="block text-sm font-medium text-gray-700 mb-2">Spotify Show URL</label>
+							<div class="flex items-center gap-1 mb-2">
+								<label for="spotify-show-url" class="block text-sm font-medium text-gray-700">Spotify Show URL</label>
+								<HelpIcon helpId="field-spotify-url" position="right">
+									{@html getHelpContent('field-spotify-url').content}
+								</HelpIcon>
+							</div>
 							<input
 								id="spotify-show-url"
 								type="url"
@@ -257,6 +303,9 @@
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
 						</svg>
 						<h2 class="text-xl font-bold text-gray-900">Display Settings</h2>
+						<HelpIcon helpId="settings-display-popup" position="right">
+							{@html getHelpContent('settings-display-popup').content}
+						</HelpIcon>
 					</div>
 					<p class="text-sm text-gray-600 mt-1 ml-9">Control popups and notifications on the homepage</p>
 				</div>

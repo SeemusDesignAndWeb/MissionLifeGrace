@@ -1,5 +1,7 @@
 <script lang="js">
 	import { onMount } from 'svelte';
+	import HelpIcon from '$lib/components/HelpIcon.svelte';
+	import { getHelpContent } from '$lib/utils/helpContent';
 
 	export let params = {};
 
@@ -385,7 +387,12 @@
 			</div>
 			<div class="space-y-4">
 				<div>
-					<label class="block text-sm font-medium mb-1">Title *</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Title *</label>
+						<HelpIcon helpId="field-podcast-title" position="right">
+							{@html getHelpContent('field-podcast-title').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="text"
 						bind:value={editing.title}
@@ -394,7 +401,12 @@
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Description</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Description</label>
+						<HelpIcon helpId="field-podcast-description" position="right">
+							{@html getHelpContent('field-podcast-description').content}
+						</HelpIcon>
+					</div>
 					<textarea
 						bind:value={editing.description}
 						rows="3"
@@ -404,7 +416,12 @@
 				</div>
 				<div class="grid grid-cols-2 gap-4">
 					<div>
-						<label class="block text-sm font-medium mb-1">Speaker *</label>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Speaker *</label>
+							<HelpIcon helpId="field-podcast-speaker" position="right">
+								{@html getHelpContent('field-podcast-speaker').content}
+							</HelpIcon>
+						</div>
 						<input
 							type="text"
 							bind:value={editing.speaker}
@@ -413,7 +430,12 @@
 						/>
 					</div>
 					<div>
-						<label class="block text-sm font-medium mb-1">Speaker Email</label>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Speaker Email</label>
+							<HelpIcon helpId="field-podcast-speaker-email" position="right">
+								{@html getHelpContent('field-podcast-speaker-email').content}
+							</HelpIcon>
+						</div>
 						<input
 							type="email"
 							bind:value={editing.speakerEmail}
@@ -423,7 +445,12 @@
 					</div>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Audio File *</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Audio File *</label>
+						<HelpIcon helpId="field-podcast-audio" position="right">
+							{@html getHelpContent('field-podcast-audio').content}
+						</HelpIcon>
+					</div>
 					<div class="space-y-2">
 						<input
 							type="file"
@@ -451,7 +478,12 @@
 					</div>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Published Date *</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Published Date *</label>
+						<HelpIcon helpId="field-podcast-published" position="right">
+							{@html getHelpContent('field-podcast-published').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="datetime-local"
 						bind:value={editing.publishedAt}

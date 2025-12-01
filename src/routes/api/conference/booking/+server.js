@@ -12,8 +12,8 @@ import {
 	saveUserAccount,
 	saveEmailVerificationCode
 } from '$lib/server/database';
-import { sendBookingConfirmationEmail, sendChildRegistrationNotification, sendVerificationCodeEmail } from '$lib/server/conference-emails';
-import { generateVerificationCode as genCode } from '$lib/server/user-auth';
+import { sendBookingConfirmationEmail, sendChildRegistrationNotification, sendVerificationCodeEmail, sendAdminBookingNotification } from '$lib/server/conference-emails';
+import { generateVerificationCode } from '$lib/server/user-auth';
 
 export const POST = async ({ request }) => {
 	try {
@@ -166,10 +166,10 @@ export const POST = async ({ request }) => {
 		}
 
 		// Check if account setup is needed (for partial/unpaid bookings)
-		// Don't create account automatically - let user set their own password
 		let accountNeedsSetup = false;
 		let accountExists = false;
 		let accountVerified = false;
+		let accountCreated = false; // Track if we actually created an account
 		
 		// Link booking to existing account if found, regardless of payment status
 		if (secureBooking.groupLeaderEmail) {
@@ -179,8 +179,43 @@ export const POST = async ({ request }) => {
 				if (!userAccount) {
 					// Account doesn't exist
 					if (secureBooking.paymentStatus !== 'paid') {
-						// Only flag for setup if not paid
+						// Create account immediately and send verification code
 						accountNeedsSetup = true;
+						accountCreated = true;
+						
+						// Create user account (not verified yet, no password yet)
+						const newUserAccount = {
+							id: `user-${Date.now()}`,
+							email: secureBooking.groupLeaderEmail.toLowerCase(),
+							passwordHash: null, // Password will be set after email verification
+							verified: false,
+							emailVerified: false,
+							bookingIds: [secureBooking.id],
+							createdAt: new Date().toISOString()
+						};
+						saveUserAccount(newUserAccount);
+						
+						// Generate and save verification code
+						const verificationCode = generateVerificationCode();
+						const verification = {
+							email: secureBooking.groupLeaderEmail.toLowerCase(),
+							code: verificationCode,
+							used: false,
+							createdAt: new Date().toISOString()
+						};
+						saveEmailVerificationCode(verification);
+						
+						// Send verification email immediately
+						try {
+							await sendVerificationCodeEmail({
+								email: secureBooking.groupLeaderEmail,
+								code: verificationCode,
+								name: secureBooking.groupLeaderName
+							});
+							console.log('Verification code sent to', secureBooking.groupLeaderEmail);
+						} catch (emailError) {
+							console.error('Failed to send verification email:', emailError);
+						}
 					}
 				} else {
 					// Account exists
@@ -201,7 +236,7 @@ export const POST = async ({ request }) => {
 						accountNeedsSetup = true;
 						
 						// Resend verification code if needed
-						const verificationCode = genCode();
+						const verificationCode = generateVerificationCode();
 						const verification = {
 							email: secureBooking.groupLeaderEmail.toLowerCase(),
 							code: verificationCode,
@@ -217,6 +252,7 @@ export const POST = async ({ request }) => {
 								code: verificationCode,
 								name: secureBooking.groupLeaderName
 							});
+							console.log('Verification code resent to', secureBooking.groupLeaderEmail);
 						} catch (emailError) {
 							console.error('Failed to send verification email:', emailError);
 						}
@@ -231,12 +267,20 @@ export const POST = async ({ request }) => {
 		try {
 			const savedAttendees = getConferenceAttendees(secureBooking.id);
 			
-			// Send booking confirmation email
+			// Send booking confirmation email to user
 			await sendBookingConfirmationEmail({
 				booking: secureBooking,
 				conference,
-				attendees: savedAttendees
+				attendees: savedAttendees,
+				accountCreated: accountCreated // Pass flag indicating if account was actually created
 			});
+
+			// Send admin notification (don't wait for it)
+			sendAdminBookingNotification({
+				booking: secureBooking,
+				conference,
+				attendees: savedAttendees
+			}).catch(err => console.error('Admin notification failed:', err));
 
 			// Check for child attendees and send notifications
 			const childAttendees = savedAttendees.filter(a => {

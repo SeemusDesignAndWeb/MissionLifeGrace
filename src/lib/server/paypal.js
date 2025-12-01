@@ -32,9 +32,13 @@ async function getAccessToken() {
 }
 
 // Create PayPal order
-export async function createPayPalOrder({ amount, currency = 'GBP', bookingId, bookingReference, description }) {
+export async function createPayPalOrder({ amount, currency = 'GBP', bookingId, bookingReference, description, returnUrl, cancelUrl }) {
 	try {
 		const accessToken = await getAccessToken();
+
+		// Default return URLs for conferences, allow override for events
+		const defaultReturnUrl = `${env.PUBLIC_SITE_URL || 'http://localhost:5173'}/conference/payment/success`;
+		const defaultCancelUrl = `${env.PUBLIC_SITE_URL || 'http://localhost:5173'}/conference/payment/cancel`;
 
 		const orderData = {
 			intent: 'CAPTURE',
@@ -53,8 +57,8 @@ export async function createPayPalOrder({ amount, currency = 'GBP', bookingId, b
 				brand_name: 'Mission Life Grace',
 				landing_page: 'BILLING',
 				user_action: 'PAY_NOW',
-				return_url: `${env.PUBLIC_SITE_URL || 'http://localhost:5173'}/conference/payment/success`,
-				cancel_url: `${env.PUBLIC_SITE_URL || 'http://localhost:5173'}/conference/payment/cancel`
+				return_url: returnUrl || defaultReturnUrl,
+				cancel_url: cancelUrl || defaultCancelUrl
 			}
 		};
 

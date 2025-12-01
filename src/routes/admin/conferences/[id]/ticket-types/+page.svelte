@@ -3,6 +3,8 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { notifyError, notifySuccess } from '$lib/utils/notify';
+	import HelpIcon from '$lib/components/HelpIcon.svelte';
+	import { getHelpContent } from '$lib/utils/helpContent';
 
 	export let params = {};
 
@@ -24,7 +26,20 @@
 	async function loadData() {
 		try {
 			const confResponse = await fetch(`/api/content?type=conferences&id=${params.id}`);
-			conference = await confResponse.json();
+			if (!confResponse.ok) {
+				console.error('Failed to load conference:', confResponse.statusText);
+				loading = false;
+				return;
+			}
+			const confData = await confResponse.json();
+			
+			// Check if we got an error object or null
+			if (confData && !confData.error) {
+				conference = confData;
+			} else {
+				console.error('Conference not found or error:', confData);
+				conference = null;
+			}
 
 			// Load early bird settings from conference
 			if (conference) {
@@ -36,9 +51,16 @@
 			}
 
 			const typesResponse = await fetch(`/api/content?type=conference-ticket-types&conferenceId=${params.id}`);
-			ticketTypes = await typesResponse.json();
+			if (typesResponse.ok) {
+				ticketTypes = await typesResponse.json();
+			} else {
+				console.error('Failed to load ticket types:', typesResponse.statusText);
+				ticketTypes = [];
+			}
 		} catch (error) {
 			console.error('Failed to load data:', error);
+			conference = null;
+			ticketTypes = [];
 		} finally {
 			loading = false;
 		}
@@ -193,7 +215,12 @@
 		<div class="space-y-4">
 			<div class="grid grid-cols-3 gap-4">
 				<div>
-					<label for="early-bird-start" class="block text-sm font-medium mb-1">Early Bird Start Date</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label for="early-bird-start" class="text-sm font-medium">Early Bird Start Date</label>
+						<HelpIcon helpId="field-early-bird-start" position="right">
+							{@html getHelpContent('field-early-bird-start').content}
+						</HelpIcon>
+					</div>
 					<input
 						id="early-bird-start"
 						type="date"
@@ -202,7 +229,12 @@
 					/>
 				</div>
 				<div>
-					<label for="early-bird-end" class="block text-sm font-medium mb-1">Early Bird End Date</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label for="early-bird-end" class="text-sm font-medium">Early Bird End Date</label>
+						<HelpIcon helpId="field-early-bird-end" position="right">
+							{@html getHelpContent('field-early-bird-end').content}
+						</HelpIcon>
+					</div>
 					<input
 						id="early-bird-end"
 						type="date"
@@ -211,7 +243,12 @@
 					/>
 				</div>
 				<div>
-					<label for="early-bird-discount" class="block text-sm font-medium mb-1">Discount Amount (£)</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label for="early-bird-discount" class="text-sm font-medium">Discount Amount (£)</label>
+						<HelpIcon helpId="field-early-bird-discount" position="right">
+							{@html getHelpContent('field-early-bird-discount').content}
+						</HelpIcon>
+					</div>
 					<input
 						id="early-bird-discount"
 						type="number"
@@ -258,7 +295,12 @@
 			</div>
 			<div class="space-y-4">
 				<div>
-					<label class="block text-sm font-medium mb-1">Name *</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Name *</label>
+						<HelpIcon helpId="field-ticket-name" position="right">
+							{@html getHelpContent('field-ticket-name').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="text"
 						bind:value={editing.name}
@@ -268,7 +310,12 @@
 				</div>
 				<div class="grid grid-cols-2 gap-4">
 					<div>
-						<label class="block text-sm font-medium mb-1">Type</label>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Type</label>
+							<HelpIcon helpId="field-ticket-type" position="right">
+								{@html getHelpContent('field-ticket-type').content}
+							</HelpIcon>
+						</div>
 						<select bind:value={editing.type} class="w-full px-3 py-2 border rounded">
 							<option value="adult">Adult</option>
 							<option value="teen">Teen</option>
@@ -282,12 +329,22 @@
 							bind:checked={editing.camping}
 							class="mr-2"
 						/>
-						<label>Camping Option</label>
+						<div class="flex items-center gap-1">
+							<label>Camping Option</label>
+							<HelpIcon helpId="field-ticket-camping" position="right">
+								{@html getHelpContent('field-ticket-camping').content}
+							</HelpIcon>
+						</div>
 					</div>
 				</div>
 				<div class="grid grid-cols-3 gap-4">
 					<div>
-						<label class="block text-sm font-medium mb-1">Regular Price (£) *</label>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Regular Price (£) *</label>
+							<HelpIcon helpId="field-ticket-regular-price" position="right">
+								{@html getHelpContent('field-ticket-regular-price').content}
+							</HelpIcon>
+						</div>
 						<input
 							type="number"
 							bind:value={editing.price}
@@ -297,7 +354,12 @@
 						/>
 					</div>
 					<div>
-						<label class="block text-sm font-medium mb-1">Early Bird Price (£)</label>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Early Bird Price (£)</label>
+							<HelpIcon helpId="field-ticket-early-bird-price" position="right">
+								{@html getHelpContent('field-ticket-early-bird-price').content}
+							</HelpIcon>
+						</div>
 						<input
 							type="number"
 							bind:value={editing.earlyBirdPrice}
@@ -307,7 +369,12 @@
 						/>
 					</div>
 					<div>
-						<label class="block text-sm font-medium mb-1">Late Price (£)</label>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Late Price (£)</label>
+							<HelpIcon helpId="field-ticket-late-price" position="right">
+								{@html getHelpContent('field-ticket-late-price').content}
+							</HelpIcon>
+						</div>
 						<input
 							type="number"
 							bind:value={editing.latePrice}
@@ -319,7 +386,12 @@
 				</div>
 				<div class="grid grid-cols-2 gap-4">
 					<div>
-						<label class="block text-sm font-medium mb-1">Early Bird End Date</label>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Early Bird End Date</label>
+							<HelpIcon helpId="field-ticket-early-bird-end" position="right">
+								{@html getHelpContent('field-ticket-early-bird-end').content}
+							</HelpIcon>
+						</div>
 						<input
 							type="date"
 							bind:value={editing.earlyBirdEndDate}
@@ -327,7 +399,12 @@
 						/>
 					</div>
 					<div>
-						<label class="block text-sm font-medium mb-1">Late Price Start Date</label>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Late Price Start Date</label>
+							<HelpIcon helpId="field-ticket-late-start" position="right">
+								{@html getHelpContent('field-ticket-late-start').content}
+							</HelpIcon>
+						</div>
 						<input
 							type="date"
 							bind:value={editing.latePriceStartDate}
@@ -337,7 +414,12 @@
 				</div>
 				<div class="grid grid-cols-3 gap-4">
 					<div>
-						<label class="block text-sm font-medium mb-1">Capacity</label>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Capacity</label>
+							<HelpIcon helpId="field-ticket-capacity" position="right">
+								{@html getHelpContent('field-ticket-capacity').content}
+							</HelpIcon>
+						</div>
 						<input
 							type="number"
 							bind:value={editing.capacity}
@@ -346,7 +428,12 @@
 						/>
 					</div>
 					<div>
-						<label class="block text-sm font-medium mb-1">Min Age</label>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Min Age</label>
+							<HelpIcon helpId="field-ticket-min-age" position="right">
+								{@html getHelpContent('field-ticket-min-age').content}
+							</HelpIcon>
+						</div>
 						<input
 							type="number"
 							bind:value={editing.ageMin}
@@ -355,7 +442,12 @@
 						/>
 					</div>
 					<div>
-						<label class="block text-sm font-medium mb-1">Max Age</label>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Max Age</label>
+							<HelpIcon helpId="field-ticket-max-age" position="right">
+								{@html getHelpContent('field-ticket-max-age').content}
+							</HelpIcon>
+						</div>
 						<input
 							type="number"
 							bind:value={editing.ageMax}
@@ -365,7 +457,12 @@
 					</div>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Description</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Description</label>
+						<HelpIcon helpId="field-ticket-description" position="right">
+							{@html getHelpContent('field-ticket-description').content}
+						</HelpIcon>
+					</div>
 					<textarea
 						bind:value={editing.description}
 						class="w-full px-3 py-2 border rounded"
@@ -379,7 +476,12 @@
 						bind:checked={editing.enabled}
 						class="mr-2"
 					/>
-					<label>Enabled</label>
+					<div class="flex items-center gap-1">
+						<label>Enabled</label>
+						<HelpIcon helpId="field-ticket-enabled" position="right">
+							{@html getHelpContent('field-ticket-enabled').content}
+						</HelpIcon>
+					</div>
 				</div>
 				<div class="flex gap-2 pt-4">
 					<button
@@ -401,6 +503,17 @@
 
 	{#if loading}
 		<p>Loading...</p>
+	{:else if !conference}
+		<div class="bg-red-50 border border-red-200 rounded-lg p-6">
+			<h2 class="text-xl font-bold text-red-900 mb-2">Conference Not Found</h2>
+			<p class="text-red-700 mb-4">The conference with ID "{params.id}" could not be found.</p>
+			<button
+				on:click={() => goto('/admin/conferences')}
+				class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
+			>
+				Back to Conferences
+			</button>
+		</div>
 	{:else if ticketTypes.length === 0}
 		<p class="text-gray-600">No ticket types found. Add your first ticket type!</p>
 	{:else}

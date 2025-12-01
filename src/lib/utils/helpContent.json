@@ -1,0 +1,663 @@
+{
+	"settings-contact": {
+		"title": "Contact Information",
+		"content": "<p class=\"mb-2\">The contact information section allows you to update the church's contact details that appear on the website.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Email Address:</strong> The main contact email displayed on the website</li><li><strong>Phone Number:</strong> The church phone number</li><li><strong>Address:</strong> The physical address of the church</li><li><strong>Google Maps URL:</strong> Optional link to the church location on Google Maps</li></ul><p class=\"mt-2 text-xs text-gray-600\">Changes are saved when you click \"Save All Settings\" at the top of the page.</p>"
+	},
+	"settings-media-youtube": {
+		"title": "YouTube Integration",
+		"content": "<p class=\"mb-2\">Configure YouTube integration to display videos on the Audio/Sermons page.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Channel ID:</strong> Enter your YouTube channel ID to show all videos from the channel</li><li><strong>Playlist ID:</strong> Alternatively, enter a specific playlist ID (optional)</li></ul><p class=\"mt-2 text-xs text-gray-600\">If both are set, the Channel ID takes priority. You can find your Channel ID in your YouTube Studio settings.</p>"
+	},
+	"settings-media-spotify": {
+		"title": "Spotify Integration",
+		"content": "<p class=\"mb-2\">Add your Spotify podcast/show URL to display episodes on the Audio/Sermons page.</p><p class=\"text-xs text-gray-600\">Enter the full URL from Spotify (e.g., https://open.spotify.com/show/...). This will enable the Spotify player on the audio page.</p>"
+	},
+	"settings-display-popup": {
+		"title": "Latest Message Popup",
+		"content": "<p class=\"mb-2\">Control whether the latest YouTube message popup appears on the homepage.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>When enabled:</strong> Shows the latest YouTube video recorded in the last 5 days</li><li><strong>When disabled:</strong> The Event Highlight Banner can be shown instead</li></ul><p class=\"mt-2 text-xs text-gray-600\"><strong>Note:</strong> When enabled, this popup overrides the Event Highlight Banner. The Event Highlight Banner is controlled in the Events section by checking the \"Highlight\" checkbox on individual events.</p>"
+	},
+	"booking-tickets": {
+		"title": "Selecting Tickets",
+		"content": "<p class=\"mb-2\">Choose the tickets you need for the conference.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li>Click \"Add\" to add tickets to your booking</li><li>Use the + and - buttons to adjust quantities</li><li>Early bird pricing is automatically applied if available</li><li>You can apply a discount code if you have one</li></ul><p class=\"mt-2 text-xs text-gray-600\">The first adult ticket will automatically be set as the Group Leader.</p>"
+	},
+	"booking-attendees": {
+		"title": "Attendee Details",
+		"content": "<p class=\"mb-2\">Enter information for each attendee in your booking.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Group Leader:</strong> The first adult attendee is automatically set as the Group Leader</li><li><strong>Required fields:</strong> Full name for all attendees; email, address, and church for Group Leader</li><li><strong>Date of Birth:</strong> Required for Teen and Child tickets</li></ul><p class=\"mt-2 text-xs text-gray-600\">If you have no adult attendees, you'll need to provide separate Group Leader details.</p>"
+	},
+	"booking-payment": {
+		"title": "Payment Options",
+		"content": "<p class=\"mb-2\">Choose how you'd like to pay for your booking.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Pay in Full:</strong> Pay the entire amount now</li><li><strong>Pay 20% Deposit:</strong> Pay 20% now, balance due before the conference</li><li><strong>Pay Deposit + Installments:</strong> Available if enabled for this conference</li></ul><p class=\"mt-2 text-xs text-gray-600\">After payment, you'll receive a confirmation email with your booking reference.</p>"
+	},
+	"admin-conferences": {
+		"title": "Conferences Management",
+		"content": "<p class=\"mb-2\">Manage conference bookings and settings from this page.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Create Conference:</strong> Click \"New Conference\" to add a new event</li><li><strong>Edit:</strong> Click on a conference to edit its details</li><li><strong>Bookings:</strong> View and manage all bookings for conferences</li><li><strong>Ticket Types:</strong> Configure different ticket types for each conference</li></ul>"
+	},
+	"admin-dashboard": {
+		"title": "Admin Dashboard",
+		"content": "<p class=\"mb-2\">Welcome to the admin dashboard. This is your central hub for managing all aspects of the website.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Quick Access:</strong> Use the cards below to navigate to different sections</li><li><strong>Conferences:</strong> View statistics and manage conference bookings</li><li><strong>Network & Media:</strong> Manage churches, events, podcasts, and images</li><li><strong>Content:</strong> Edit pages, policies, and site content</li></ul><p class=\"mt-2 text-xs text-gray-600\">Your access level determines which sections you can view and edit.</p>"
+	},
+	"admin-conferences-page": {
+		"title": "Conferences Management",
+		"content": "<p class=\"mb-2\">Manage all conferences from this page.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Create Conference:</strong> Click \"New Conference\" to add a new event</li><li><strong>Edit:</strong> Click on a conference title to edit its details</li><li><strong>Ticket Types:</strong> Configure different ticket types for each conference</li><li><strong>Bookings:</strong> View and manage all bookings for conferences</li><li><strong>Reports:</strong> Generate reports and statistics</li></ul><p class=\"mt-2 text-xs text-gray-600\">Conferences must be published to appear on the public website.</p>"
+	},
+	"admin-conferences-title": {
+		"title": "Conference Title",
+		"content": "<p class=\"text-xs\">The main title of the conference that appears on the website and in emails.</p>"
+	},
+	"admin-conferences-slug": {
+		"title": "URL Slug",
+		"content": "<p class=\"text-xs\">The URL-friendly version of the title. This appears in the website URL (e.g., /conference/my-conference-title). Use lowercase letters, numbers, and hyphens only.</p>"
+	},
+	"admin-conferences-dates": {
+		"title": "Conference Dates",
+		"content": "<p class=\"text-xs\">Set the start and end dates for the conference. These dates are used for calendar integration and booking deadlines.</p>"
+	},
+	"admin-conferences-venue": {
+		"title": "Venue Information",
+		"content": "<p class=\"text-xs\">Enter the venue details where the conference will be held. This information appears on the conference page and in booking confirmations.</p>"
+	},
+	"admin-conferences-published": {
+		"title": "Published Status",
+		"content": "<p class=\"text-xs\">When published, the conference appears on the public website. Unpublished conferences are only visible in the admin area.</p>"
+	},
+	"admin-conferences-registration": {
+		"title": "Registration Open",
+		"content": "<p class=\"text-xs\">Controls whether new bookings can be made. When closed, the booking form is disabled but existing bookings remain accessible.</p>"
+	},
+	"admin-pages-page": {
+		"title": "Pages Management",
+		"content": "<p class=\"mb-2\">Manage all website pages including the homepage.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Edit Pages:</strong> Click on a page to edit its content</li><li><strong>Sections:</strong> Pages can have multiple sections with different content types</li><li><strong>Images:</strong> Add and manage images for each section</li><li><strong>Rich Text:</strong> Use the editor to format text content</li></ul><p class=\"mt-2 text-xs text-gray-600\">Changes are saved automatically when you click \"Save\".</p>"
+	},
+	"admin-team-page": {
+		"title": "Team Management",
+		"content": "<p class=\"mb-2\">Manage team members displayed on the website.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Add Member:</strong> Click \"Add Team Member\" to create a new entry</li><li><strong>Edit:</strong> Click on a team member to edit their information</li><li><strong>Photo:</strong> Upload a profile photo for each team member</li><li><strong>Order:</strong> Drag and drop to reorder team members</li></ul>"
+	},
+	"admin-events-page": {
+		"title": "Events Management",
+		"content": "<p class=\"mb-2\">Manage events and their bookings.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Create Event:</strong> Add new events with dates and details</li><li><strong>Ticket Types:</strong> Configure different ticket options for each event</li><li><strong>Bookings:</strong> View and manage event bookings</li><li><strong>Highlight:</strong> Mark events to show on the homepage banner</li></ul>"
+	},
+	"admin-bookings-page": {
+		"title": "Bookings Management",
+		"content": "<p class=\"mb-2\">View and manage all conference bookings.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Filter:</strong> Use filters to find specific bookings</li><li><strong>Status:</strong> View payment status (Paid, Partial, Unpaid)</li><li><strong>Details:</strong> Click on a booking to view full details</li><li><strong>Bulk Actions:</strong> Select multiple bookings for bulk email or actions</li></ul>"
+	},
+	"admin-users-page": {
+		"title": "Admin Users",
+		"content": "<p class=\"mb-2\">Manage admin user accounts and access levels.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Full Access:</strong> Can access all admin features including settings</li><li><strong>Editor Access:</strong> Can manage content, pages, and media</li><li><strong>Conference Access:</strong> Can only manage conferences and bookings</li></ul><p class=\"mt-2 text-xs text-gray-600\">Only Full Access users can manage other admin users.</p>"
+	},
+	"admin-images-page": {
+		"title": "Image Management",
+		"content": "<p class=\"mb-2\">Upload and manage images for use throughout the website.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Upload:</strong> Click \"Upload Image\" to add new images</li><li><strong>Search:</strong> Use the search bar to find specific images</li><li><strong>Use:</strong> Click on an image to copy its URL or use it in content</li></ul>"
+	},
+	"admin-podcasts-page": {
+		"title": "Podcasts Management",
+		"content": "<p class=\"mb-2\">Manage podcast episodes and audio content.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Add Episode:</strong> Create new podcast episodes with audio files</li><li><strong>Categories:</strong> Organize episodes by category</li><li><strong>Publish:</strong> Control which episodes appear on the website</li></ul>"
+	},
+	"admin-churches-page": {
+		"title": "Churches Management",
+		"content": "<p class=\"mb-2\">Manage network churches displayed on the website.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Add Church:</strong> Add new churches to the network</li><li><strong>Details:</strong> Include address, contact info, and description</li><li><strong>Order:</strong> Reorder churches to control display order</li></ul>"
+	},
+	"my-account": {
+		"title": "My Account",
+		"content": "<p class=\"mb-2\">Your account dashboard where you can manage your bookings and profile.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Bookings:</strong> View all your conference and event bookings</li><li><strong>Payment Status:</strong> See payment status and make additional payments</li><li><strong>Profile:</strong> Update your contact information</li></ul><p class=\"mt-2 text-xs text-gray-600\">If you need to make changes to a booking, please contact support.</p>"
+	},
+	"field-conference-id": {
+		"title": "Conference ID",
+		"content": "<p class=\"text-xs\">A unique identifier for this conference. Used internally for database references. Use lowercase letters, numbers, and hyphens only.</p>"
+	},
+	"field-conference-description": {
+		"title": "Conference Description",
+		"content": "<p class=\"text-xs\">A detailed description of the conference. This appears on the conference page and can include rich text formatting (bold, italics, lists, links).</p>"
+	},
+	"field-conference-end-date": {
+		"title": "End Date",
+		"content": "<p class=\"text-xs\">The end date of the conference. If left blank, it will default to the start date. Used for calendar integration and booking deadlines.</p>"
+	},
+	"field-conference-start-time": {
+		"title": "Start Time",
+		"content": "<p class=\"text-xs\">The daily start time for the conference. Optional field for displaying specific daily timings on the conference page.</p>"
+	},
+	"field-conference-end-time": {
+		"title": "End Time",
+		"content": "<p class=\"text-xs\">The daily end time for the conference. Optional field for displaying specific daily timings on the conference page.</p>"
+	},
+	"field-conference-schedule": {
+		"title": "Schedule",
+		"content": "<p class=\"text-xs\">A detailed schedule or agenda for the conference. This could include session times, speakers, and activities. Supports rich text formatting.</p>"
+	},
+	"field-venue-name": {
+		"title": "Venue Name",
+		"content": "<p class=\"text-xs\">The name of the venue where the conference will be held (e.g., \"City Convention Center\").</p>"
+	},
+	"field-venue-address": {
+		"title": "Venue Address",
+		"content": "<p class=\"text-xs\">The street address of the venue.</p>"
+	},
+	"field-venue-city": {
+		"title": "Venue City",
+		"content": "<p class=\"text-xs\">The city where the venue is located.</p>"
+	},
+	"field-venue-postcode": {
+		"title": "Venue Postcode",
+		"content": "<p class=\"text-xs\">The postal/zip code of the venue location.</p>"
+	},
+	"field-venue-country": {
+		"title": "Venue Country",
+		"content": "<p class=\"text-xs\">The country where the venue is located.</p>"
+	},
+	"field-conference-images": {
+		"title": "Conference Images",
+		"content": "<p class=\"text-xs\">Upload images associated with the conference. These images will be displayed on the conference page. You can select multiple images.</p>"
+	},
+	"field-supporting-pages": {
+		"title": "Supporting Pages",
+		"content": "<p class=\"text-xs\">Link to additional content pages that provide more information about specific aspects of the conference (worship, activities, accommodation, etc.).</p>"
+	},
+	"field-paypal-enabled": {
+		"title": "PayPal Enabled",
+		"content": "<p class=\"text-xs\">Enable PayPal payment processing for this conference. Attendees will be able to pay via PayPal when this is enabled.</p>"
+	},
+	"field-pay-later-enabled": {
+		"title": "Pay Later Enabled",
+		"content": "<p class=\"text-xs\">Enable \"Buy Now, Pay Later\" functionality. This allows attendees to pay a deposit and make installments.</p>"
+	},
+	"field-deposit-amount": {
+		"title": "Deposit Amount",
+		"content": "<p class=\"text-xs\">A fixed deposit amount in pounds (£). If set, this takes priority over deposit percentage. Leave blank to use percentage instead.</p>"
+	},
+	"field-deposit-percentage": {
+		"title": "Deposit Percentage",
+		"content": "<p class=\"text-xs\">The percentage of the total ticket price required as a deposit (0-100%). Used if deposit amount is not set.</p>"
+	},
+	"field-installment-count": {
+		"title": "Installment Count",
+		"content": "<p class=\"text-xs\">The number of installments for payment plans (2-12). The total amount minus deposit will be divided into this many payments.</p>"
+	},
+	"field-installment-interval": {
+		"title": "Installment Interval",
+		"content": "<p class=\"text-xs\">The number of days between each installment payment. Minimum 7 days. For example, 30 means payments are due every 30 days.</p>"
+	},
+	"field-team-id": {
+		"title": "Team Member ID",
+		"content": "<p class=\"text-xs\">A unique identifier for this team member (e.g., \"john-watson\"). Used internally and in URLs. Use lowercase letters, numbers, and hyphens only.</p>"
+	},
+	"field-team-name": {
+		"title": "Team Member Name",
+		"content": "<p class=\"text-xs\">The full name of the team member as it will appear on the website.</p>"
+	},
+	"field-team-category": {
+		"title": "Team Category",
+		"content": "<p class=\"text-xs\">The category this team member belongs to (e.g., \"Leadership Team\", \"Conference Ministry Team\"). Used to group members on the team page.</p>"
+	},
+	"field-team-role": {
+		"title": "Team Member Role",
+		"content": "<p class=\"text-xs\">The role or position of the team member (e.g., \"Senior Pastor\", \"Conference Coordinator\").</p>"
+	},
+	"field-team-image": {
+		"title": "Team Member Image",
+		"content": "<p class=\"text-xs\">The URL or path to the team member's profile photo. Click \"Select Image\" to choose from uploaded images.</p>"
+	},
+	"field-team-quote": {
+		"title": "Team Member Quote",
+		"content": "<p class=\"text-xs\">A quote or brief statement from the team member that will be displayed on their profile.</p>"
+	},
+	"field-team-social": {
+		"title": "Social Media Links",
+		"content": "<p class=\"text-xs\">Links to the team member's social media profiles (Facebook, Twitter, Instagram, LinkedIn). These will appear on their profile.</p>"
+	},
+	"field-settings-email": {
+		"title": "Contact Email",
+		"content": "<p class=\"text-xs\">The main contact email address displayed on the website. This is the email visitors will see and use to contact the church.</p>"
+	},
+	"field-settings-phone": {
+		"title": "Contact Phone",
+		"content": "<p class=\"text-xs\">The church's phone number displayed on the website.</p>"
+	},
+	"field-settings-address": {
+		"title": "Contact Address",
+		"content": "<p class=\"text-xs\">The physical address of the church displayed on the website.</p>"
+	},
+	"field-settings-googlemaps": {
+		"title": "Google Maps URL",
+		"content": "<p class=\"text-xs\">Optional link to the church location on Google Maps. This allows visitors to get directions easily.</p>"
+	},
+	"field-youtube-channel": {
+		"title": "YouTube Channel ID",
+		"content": "<p class=\"text-xs\">Your YouTube channel ID to display all videos from the channel on the Audio/Sermons page. You can find this in YouTube Studio settings.</p>"
+	},
+	"field-youtube-playlist": {
+		"title": "YouTube Playlist ID",
+		"content": "<p class=\"text-xs\">Optional: A specific YouTube playlist ID. If both channel ID and playlist ID are set, the channel ID takes priority.</p>"
+	},
+	"field-spotify-url": {
+		"title": "Spotify URL",
+		"content": "<p class=\"text-xs\">The full URL to your Spotify podcast or show (e.g., https://open.spotify.com/show/...). This enables the Spotify player on the audio page.</p>"
+	},
+	"field-user-email": {
+		"title": "Admin User Email",
+		"content": "<p class=\"text-xs\">The email address for the admin user account. This will be used for login and notifications.</p>"
+	},
+	"field-user-name": {
+		"title": "Admin User Name",
+		"content": "<p class=\"text-xs\">The full name of the admin user. This is displayed in the admin interface.</p>"
+	},
+	"field-user-password": {
+		"title": "Admin User Password",
+		"content": "<p class=\"text-xs\">The password for the admin user account. Choose a strong password. Leave blank when editing to keep the existing password.</p>"
+	},
+	"field-user-access-level": {
+		"title": "Access Level",
+		"content": "<p class=\"text-xs\">The permission level for this admin user:<ul class=\"list-disc list-inside mt-1\"><li><strong>Full Access:</strong> Can access all features including settings and user management</li><li><strong>Editor Access:</strong> Can manage content, pages, and media</li><li><strong>Conference Access:</strong> Can only manage conferences and bookings</li></ul></p>"
+	},
+	"field-event-id": {
+		"title": "Event ID",
+		"content": "<p class=\"text-xs\">A unique identifier for this event. Used internally and in URLs. Use lowercase letters, numbers, and hyphens only.</p>"
+	},
+	"field-event-title": {
+		"title": "Event Title",
+		"content": "<p class=\"text-xs\">The title of the event as it will appear on the website and in event listings.</p>"
+	},
+	"field-event-info": {
+		"title": "Event Information",
+		"content": "<p class=\"text-xs\">Detailed information about the event. This can include description, what to expect, and other relevant details. Supports rich text formatting.</p>"
+	},
+	"field-event-date": {
+		"title": "Event Date",
+		"content": "<p class=\"text-xs\">The date when the event will take place. Required field.</p>"
+	},
+	"field-event-time": {
+		"title": "Event Time",
+		"content": "<p class=\"text-xs\">The time when the event will take place (e.g., \"7:00 PM\"). Optional field.</p>"
+	},
+	"field-event-location": {
+		"title": "Event Location",
+		"content": "<p class=\"text-xs\">Where the event will be held. This can be a venue name, address, or general location description.</p>"
+	},
+	"field-event-image": {
+		"title": "Event Image",
+		"content": "<p class=\"text-xs\">The URL or path to an image for this event. This image will be displayed in event listings and on the event page.</p>"
+	},
+	"field-event-order": {
+		"title": "Event Order",
+		"content": "<p class=\"text-xs\">A number used to control the display order of events. Lower numbers appear first. Events with the same order are sorted by date.</p>"
+	},
+	"field-page-title": {
+		"title": "Page Title",
+		"content": "<p class=\"text-xs\">The title of the page as it appears on the website. This is used to automatically generate the page ID (URL slug).</p>"
+	},
+	"field-page-is-link": {
+		"title": "This is a Link",
+		"content": "<p class=\"text-xs\">When checked, this becomes a navigation link instead of a page. Use for external URLs, anchor links, or custom paths. Links don't have page content.</p>"
+	},
+	"field-page-link-url": {
+		"title": "Link URL",
+		"content": "<p class=\"text-xs\">The URL for the link. Can be:<ul class=\"list-disc list-inside mt-1\"><li>Anchor link: <code>/#section-id</code> or <code>/page-id#section-id</code></li><li>Relative path: <code>/page</code></li><li>External URL: <code>https://example.com</code></li></ul></p>"
+	},
+	"field-page-link-target": {
+		"title": "Link Target",
+		"content": "<p class=\"text-xs\">How the link should open. Use 'New Window' for external URLs, 'Same Window' for internal links.</p>"
+	},
+	"field-page-show-in-navigation": {
+		"title": "Show in Navigation Menu",
+		"content": "<p class=\"text-xs\">When enabled, this page or link will appear in the main website navigation menu.</p>"
+	},
+	"field-page-navigation-label": {
+		"title": "Navigation Label",
+		"content": "<p class=\"text-xs\">Custom label for the navigation menu. If left empty, the page title will be used.</p>"
+	},
+	"field-page-hero-title": {
+		"title": "Hero Title",
+		"content": "<p class=\"text-xs\">The main title in the hero section. You can use HTML like <code>&lt;span style=\"color:#4BB170;\"&gt;text&lt;/span&gt;</code> for colored text.</p>"
+	},
+	"field-page-hero-subtitle": {
+		"title": "Hero Subtitle",
+		"content": "<p class=\"text-xs\">The subtitle text displayed in the hero section below the title.</p>"
+	},
+	"field-page-hero-buttons": {
+		"title": "Hero Buttons",
+		"content": "<p class=\"text-xs\">Add buttons to display in the hero section. Each button can have custom text, link, style (primary/secondary), and target (same/new window).</p>"
+	},
+	"field-page-hero-messages": {
+		"title": "Hero Messages (Rotating Subtitles)",
+		"content": "<p class=\"text-xs\">These messages will rotate in the hero section. Leave empty if you don't want rotating messages.</p>"
+	},
+	"field-page-about-label": {
+		"title": "About Label",
+		"content": "<p class=\"text-xs\">Small text that appears above the About section title (e.g., \"About Us\").</p>"
+	},
+	"field-page-about-title": {
+		"title": "About Title",
+		"content": "<p class=\"text-xs\">The main title for the About section on the home page.</p>"
+	},
+	"field-page-about-content": {
+		"title": "About Content",
+		"content": "<p class=\"text-xs\">The content text for the About section. Supports rich text formatting.</p>"
+	},
+	"field-page-about-image": {
+		"title": "About Image",
+		"content": "<p class=\"text-xs\">The image displayed in the About section on the home page.</p>"
+	},
+	"field-page-vision-label": {
+		"title": "Vision Label",
+		"content": "<p class=\"text-xs\">Small text that appears above the Vision section title.</p>"
+	},
+	"field-page-vision-title": {
+		"title": "Vision Title",
+		"content": "<p class=\"text-xs\">The main title for the Vision section on the home page.</p>"
+	},
+	"field-page-vision-text": {
+		"title": "Vision Text",
+		"content": "<p class=\"text-xs\">The content text for the Vision section.</p>"
+	},
+	"field-page-section-label": {
+		"title": "Section Label",
+		"content": "<p class=\"text-xs\">Small text that appears above the section title (optional).</p>"
+	},
+	"field-page-section-title": {
+		"title": "Section Title",
+		"content": "<p class=\"text-xs\">The main title for this content section.</p>"
+	},
+	"field-page-section-image": {
+		"title": "Section Image",
+		"content": "<p class=\"text-xs\">An image to display in this section. Click 'Select Image' to choose from uploaded images.</p>"
+	},
+	"field-page-section-content": {
+		"title": "Section Content",
+		"content": "<p class=\"text-xs\">The main content for this section. Supports rich text formatting with the editor.</p>"
+	},
+	"field-page-section-cta": {
+		"title": "Call to Action",
+		"content": "<p class=\"text-xs\">Optional button/link at the bottom of the section. Includes link URL and button text.</p>"
+	},
+	"field-page-column-title": {
+		"title": "Column Title",
+		"content": "<p class=\"text-xs\">The title for this column in a multi-column section.</p>"
+	},
+	"field-page-column-content": {
+		"title": "Column Content",
+		"content": "<p class=\"text-xs\">The content for this column. Supports rich text formatting.</p>"
+	},
+	"field-event-id": {
+		"title": "Event ID",
+		"content": "<p class=\"text-xs\">A unique identifier for this event. Used internally and in URLs. Use lowercase letters, numbers, and hyphens only. Auto-generated from title.</p>"
+	},
+	"field-event-title": {
+		"title": "Event Title",
+		"content": "<p class=\"text-xs\">The title of the event as it will appear on the website and in event listings.</p>"
+	},
+	"field-event-info": {
+		"title": "Event Information",
+		"content": "<p class=\"text-xs\">Detailed information about the event. This will be displayed on the event detail page. Supports rich text formatting.</p>"
+	},
+	"field-event-date": {
+		"title": "Event Date",
+		"content": "<p class=\"text-xs\">The date when the event will take place. Required field.</p>"
+	},
+	"field-event-time": {
+		"title": "Event Time",
+		"content": "<p class=\"text-xs\">The time when the event will take place (e.g., \"7:00 PM\"). Optional field.</p>"
+	},
+	"field-event-location": {
+		"title": "Event Location",
+		"content": "<p class=\"text-xs\">Where the event will be held. This can be a venue name, address, or general location description.</p>"
+	},
+	"field-event-image": {
+		"title": "Event Image",
+		"content": "<p class=\"text-xs\">The URL or path to an image for this event. This image will be displayed in event listings and on the event page.</p>"
+	},
+	"field-event-featured": {
+		"title": "Featured Event",
+		"content": "<p class=\"text-xs\">When checked, this event will be displayed on the home page in the featured events section.</p>"
+	},
+	"field-event-highlighted": {
+		"title": "Highlighted Event",
+		"content": "<p class=\"text-xs\">When checked, this event will show a banner at the top of the website (if the Latest Message Popup is disabled in Settings).</p>"
+	},
+	"field-event-published": {
+		"title": "Published",
+		"content": "<p class=\"text-xs\">When checked, the event will be visible on the public website. Unpublished events are only visible in the admin area.</p>"
+	},
+	"field-event-order": {
+		"title": "Event Order",
+		"content": "<p class=\"text-xs\">A number used to control the display order of events. Lower numbers appear first. Events with the same order are sorted by date.</p>"
+	},
+	"field-event-paypal": {
+		"title": "PayPal Enabled",
+		"content": "<p class=\"text-xs\">Enable PayPal payment processing for this event. Required if you want to sell tickets for this event.</p>"
+	},
+	"field-church-name": {
+		"title": "Church Name",
+		"content": "<p class=\"text-xs\">The name of the church as it will appear on the website.</p>"
+	},
+	"field-church-link": {
+		"title": "Website Link",
+		"content": "<p class=\"text-xs\">The full website URL for this church (e.g., https://www.egcc.co.uk). This will be a clickable link on the website.</p>"
+	},
+	"field-church-logo": {
+		"title": "Church Logo",
+		"content": "<p class=\"text-xs\">The logo image for this church. Click 'Select Logo' to choose from uploaded images. The logo will be displayed on the churches page.</p>"
+	},
+	"field-church-show-frontend": {
+		"title": "Show on Front End",
+		"content": "<p class=\"text-xs\">When checked, this church will be displayed on the public churches page on the website.</p>"
+	},
+	"field-church-show-conference": {
+		"title": "Show in Conference",
+		"content": "<p class=\"text-xs\">When checked, this church will be displayed in conference materials and listings.</p>"
+	},
+	"field-church-hide-all": {
+		"title": "Hide from All",
+		"content": "<p class=\"text-xs\">When checked, this church will be hidden from both the front end and conference listings. This disables the other visibility options.</p>"
+	},
+	"field-podcast-title": {
+		"title": "Podcast Title",
+		"content": "<p class=\"text-xs\">The title of the podcast episode as it will appear on the website and in podcast feeds.</p>"
+	},
+	"field-podcast-description": {
+		"title": "Podcast Description",
+		"content": "<p class=\"text-xs\">A description or summary of the podcast episode. This appears on the website and in podcast feeds.</p>"
+	},
+	"field-podcast-speaker": {
+		"title": "Speaker",
+		"content": "<p class=\"text-xs\">The name of the speaker for this podcast episode.</p>"
+	},
+	"field-podcast-speaker-email": {
+		"title": "Speaker Email",
+		"content": "<p class=\"text-xs\">The email address of the speaker. Used for podcast feed metadata.</p>"
+	},
+	"field-podcast-audio": {
+		"title": "Audio File",
+		"content": "<p class=\"text-xs\">Upload the audio file for this podcast episode. Supported formats: MP3. Maximum file size: 100MB.</p>"
+	},
+	"field-podcast-published": {
+		"title": "Published Date",
+		"content": "<p class=\"text-xs\">The date and time when this podcast episode was published. This determines the order in podcast feeds.</p>"
+	},
+	"field-activity-id": {
+		"title": "Activity ID",
+		"content": "<p class=\"text-xs\">A unique identifier for this activity. Used internally and in URLs. Use lowercase letters, numbers, and hyphens only. Auto-generated from title.</p>"
+	},
+	"field-activity-title": {
+		"title": "Activity Title",
+		"content": "<p class=\"text-xs\">The title of the activity as it will appear on the website.</p>"
+	},
+	"field-activity-description": {
+		"title": "Activity Description",
+		"content": "<p class=\"text-xs\">A detailed description of the activity. Supports rich text formatting.</p>"
+	},
+	"field-activity-time": {
+		"title": "Time Information",
+		"content": "<p class=\"text-xs\">When the activity takes place (e.g., \"Wed-Sat: 9:30am - 2:00pm\").</p>"
+	},
+	"field-activity-audience": {
+		"title": "Audience",
+		"content": "<p class=\"text-xs\">Who this activity is for (e.g., \"For Children & Families\").</p>"
+	},
+	"field-activity-image": {
+		"title": "Activity Image",
+		"content": "<p class=\"text-xs\">An image for this activity. Click 'Select Image' to choose from uploaded images.</p>"
+	},
+	"field-activity-icon": {
+		"title": "Activity Icon",
+		"content": "<p class=\"text-xs\">An icon for this activity. Can be a FontAwesome class (e.g., \"fa fa-coffee\") or an SVG path. Optional.</p>"
+	},
+	"field-activity-link": {
+		"title": "Link URL",
+		"content": "<p class=\"text-xs\">Optional link URL for this activity. If provided, the activity will be clickable and link to this URL.</p>"
+	},
+	"field-activity-link-text": {
+		"title": "Link Text",
+		"content": "<p class=\"text-xs\">The text to display on the link button. If left empty, a default text will be used.</p>"
+	},
+	"field-group-id": {
+		"title": "Group ID",
+		"content": "<p class=\"text-xs\">A unique identifier for this community group. Used internally. Use lowercase letters, numbers, and hyphens only. Auto-generated from day/time.</p>"
+	},
+	"field-group-day": {
+		"title": "Day",
+		"content": "<p class=\"text-xs\">The day of the week when this community group meets (e.g., \"Monday\", \"Tuesday\").</p>"
+	},
+	"field-group-time": {
+		"title": "Time",
+		"content": "<p class=\"text-xs\">The time when this community group meets (e.g., \"7:00 PM\", \"10:00 AM\").</p>"
+	},
+	"field-group-description": {
+		"title": "Description",
+		"content": "<p class=\"text-xs\">A description of what this community group is about and what happens during meetings.</p>"
+	},
+	"field-group-icon-color": {
+		"title": "Icon Color",
+		"content": "<p class=\"text-xs\">The color theme for this group's icon. Choose from available color options.</p>"
+	},
+	"field-group-order": {
+		"title": "Order",
+		"content": "<p class=\"text-xs\">A number used to control the display order of groups. Lower numbers appear first.</p>"
+	},
+	"field-policy-title": {
+		"title": "Policy Title",
+		"content": "<p class=\"text-xs\">The title of the policy page as it will appear on the website (e.g., \"Privacy Policy\", \"Terms and Conditions\", \"Cookie Policy\").</p>"
+	},
+	"field-policy-content": {
+		"title": "Policy Content",
+		"content": "<p class=\"text-xs\">The full content of the policy page. This will be displayed on the public policy page. Supports rich text formatting.</p>"
+	},
+	"field-ticket-name": {
+		"title": "Ticket Name",
+		"content": "<p class=\"text-xs\">The name of this ticket type as it will appear to customers (e.g., \"Adult - Non-Camping\", \"Teen - Camping\").</p>"
+	},
+	"field-ticket-type": {
+		"title": "Ticket Type",
+		"content": "<p class=\"text-xs\">The category of this ticket: Adult, Teen, Child, or Under 2s. This helps organize tickets and may be used for age validation.</p>"
+	},
+	"field-ticket-camping": {
+		"title": "Camping Option",
+		"content": "<p class=\"text-xs\">When checked, this ticket includes camping accommodation. Unchecked means non-camping.</p>"
+	},
+	"field-ticket-regular-price": {
+		"title": "Regular Price",
+		"content": "<p class=\"text-xs\">The standard price for this ticket type in GBP. This is the default price when no early bird or late pricing applies.</p>"
+	},
+	"field-ticket-early-bird-price": {
+		"title": "Early Bird Price",
+		"content": "<p class=\"text-xs\">Optional discounted price for early bird purchases. If set, this price will be used during the early bird period instead of the regular price minus the global discount.</p>"
+	},
+	"field-ticket-late-price": {
+		"title": "Late Price",
+		"content": "<p class=\"text-xs\">Optional higher price for late purchases. If set, this price will be used after the late price start date.</p>"
+	},
+	"field-ticket-early-bird-end": {
+		"title": "Early Bird End Date",
+		"content": "<p class=\"text-xs\">The date when early bird pricing ends for this specific ticket type. After this date, regular or late pricing applies.</p>"
+	},
+	"field-ticket-late-start": {
+		"title": "Late Price Start Date",
+		"content": "<p class=\"text-xs\">The date when late pricing begins for this ticket type. After this date, the late price (if set) will be used instead of the regular price.</p>"
+	},
+	"field-ticket-capacity": {
+		"title": "Capacity",
+		"content": "<p class=\"text-xs\">The maximum number of tickets of this type that can be sold. Set to 0 for unlimited capacity.</p>"
+	},
+	"field-ticket-min-age": {
+		"title": "Minimum Age",
+		"content": "<p class=\"text-xs\">The minimum age required to purchase this ticket type. Used for age validation during booking.</p>"
+	},
+	"field-ticket-max-age": {
+		"title": "Maximum Age",
+		"content": "<p class=\"text-xs\">The maximum age allowed for this ticket type. Used for age validation during booking. Set to 999 for no maximum age.</p>"
+	},
+	"field-ticket-description": {
+		"title": "Description",
+		"content": "<p class=\"text-xs\">A description of this ticket type that will be displayed to customers during booking. Optional but recommended.</p>"
+	},
+	"field-ticket-enabled": {
+		"title": "Enabled",
+		"content": "<p class=\"text-xs\">When checked, this ticket type is available for purchase. Uncheck to temporarily disable sales without deleting the ticket type.</p>"
+	},
+	"field-early-bird-start": {
+		"title": "Early Bird Start Date",
+		"content": "<p class=\"text-xs\">The date when the early bird pricing period begins for all tickets. The global discount amount will be applied during this period.</p>"
+	},
+	"field-early-bird-end": {
+		"title": "Early Bird End Date",
+		"content": "<p class=\"text-xs\">The date when the early bird pricing period ends for all tickets. After this date, regular pricing applies unless individual ticket types have their own early bird end dates.</p>"
+	},
+	"field-early-bird-discount": {
+		"title": "Early Bird Discount Amount",
+		"content": "<p class=\"text-xs\">The amount in GBP to discount from each ticket's standard price during the early bird period. This discount applies to all ticket types unless they have a specific early bird price set.</p>"
+	},
+	"field-discount-conference": {
+		"title": "Conference",
+		"content": "<p class=\"text-xs\">Select which conference this discount code applies to. The code will only be valid for bookings for the selected conference.</p>"
+	},
+	"field-discount-code": {
+		"title": "Discount Code",
+		"content": "<p class=\"text-xs\">The discount code that customers will enter during checkout (e.g., \"SAVE20\", \"EARLYBIRD\"). Codes are case-insensitive and will be automatically converted to uppercase.</p>"
+	},
+	"field-discount-type": {
+		"title": "Discount Type",
+		"content": "<p class=\"text-xs\">Choose whether the discount is a percentage (e.g., 20% off) or a fixed amount (e.g., £10 off).</p>"
+	},
+	"field-discount-value": {
+		"title": "Discount Value",
+		"content": "<p class=\"text-xs\">The discount amount. For percentage: enter a number (e.g., 20 for 20%). For fixed amount: enter the amount in GBP (e.g., 10.00 for £10 off).</p>"
+	},
+	"field-discount-max-usage": {
+		"title": "Max Usage",
+		"content": "<p class=\"text-xs\">The maximum number of times this discount code can be used. Set to 0 for unlimited usage. The system tracks how many times the code has been used.</p>"
+	},
+	"field-discount-expiry": {
+		"title": "Expiry Date",
+		"content": "<p class=\"text-xs\">Optional date when this discount code expires. After this date, the code will no longer be valid. Leave empty for no expiration.</p>"
+	},
+	"field-discount-enabled": {
+		"title": "Enabled",
+		"content": "<p class=\"text-xs\">When checked, this discount code is active and can be used. Uncheck to temporarily disable the code without deleting it.</p>"
+	},
+	"field-form-label": {
+		"title": "Field Label",
+		"content": "<p class=\"text-xs\">The label text that will appear above the form field on the booking form. This is what users will see (e.g., \"Full Name\", \"Email Address\").</p>"
+	},
+	"field-form-name": {
+		"title": "Field Name (ID)",
+		"content": "<p class=\"text-xs\">The internal identifier for this field. Used in the database and form processing. Auto-generated from the label, but can be edited. Use lowercase letters, numbers, and underscores only.</p>"
+	},
+	"field-form-type": {
+		"title": "Field Type",
+		"content": "<p class=\"text-xs\">The type of input field: Text Input, Textarea, Email, Phone, Date, Number, Dropdown (Select), Checkbox, or Radio Buttons. Select and Radio types require options to be defined.</p>"
+	},
+	"field-form-options": {
+		"title": "Field Options",
+		"content": "<p class=\"text-xs\">For dropdown (select) and radio button fields, define the available options. Each option has a Label (what users see) and a Value (what is stored).</p>"
+	},
+	"field-form-placeholder": {
+		"title": "Placeholder",
+		"content": "<p class=\"text-xs\">Optional placeholder text that appears inside the field before the user types. Provides a hint about what to enter (e.g., \"Enter your email address\").</p>"
+	},
+	"field-form-help-text": {
+		"title": "Help Text",
+		"content": "<p class=\"text-xs\">Optional additional help text that appears below the field to provide more guidance to users filling out the form.</p>"
+	},
+	"field-form-required": {
+		"title": "Required Field",
+		"content": "<p class=\"text-xs\">When checked, this field must be filled in before the form can be submitted. Required fields are marked with an asterisk (*) on the form.</p>"
+	}
+}
+

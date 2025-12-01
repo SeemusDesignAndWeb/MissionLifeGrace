@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import ImagePicker from '$lib/components/ImagePicker.svelte';
+	import HelpIcon from '$lib/components/HelpIcon.svelte';
+	import { getHelpContent } from '$lib/utils/helpContent';
 
 	export let params = {};
 
@@ -102,6 +104,15 @@
 		}
 	}
 
+	// Auto-generate ID from title
+	function generateIdFromTitle(title) {
+		if (!title) return '';
+		return title
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, '-')
+			.replace(/^-+|-+$/g, '');
+	}
+
 	function startEdit(page) {
 		// Reset expanded sections when starting to edit
 		expandedSections = new Set();
@@ -163,6 +174,11 @@
 					navigationLabel: ''
 				};
 		showForm = true;
+	}
+
+	// Auto-generate ID when title changes (only for new pages or if ID is empty)
+	$: if (editing && editing.title && (!editing.id || editing.id === '')) {
+		editing.id = generateIdFromTitle(editing.title);
 	}
 
 	function addHeroMessage() {
@@ -436,7 +452,12 @@
 
 <div class="container mx-auto px-4 py-8">
 	<div class="flex justify-between items-center mb-6">
-		<h1 class="text-3xl font-bold">Manage Pages</h1>
+		<div class="flex items-center gap-2">
+			<h1 class="text-3xl font-bold">Manage Pages</h1>
+			<HelpIcon helpId="admin-pages-page" position="right">
+				{@html getHelpContent('admin-pages-page').content}
+			</HelpIcon>
+		</div>
 		<button
 			type="button"
 			on:click={() => startEdit()}
@@ -470,42 +491,55 @@
 				</div>
 			</div>
 			<div class="space-y-4">
+				<!-- ID field is hidden - auto-generated from title -->
+				<input
+					type="hidden"
+					bind:value={editing.id}
+				/>
 				<div>
-					<label class="block text-sm font-medium mb-1">ID (URL slug)</label>
-					<input
-						type="text"
-						bind:value={editing.id}
-						class="w-full px-3 py-2 border rounded"
-						placeholder="e.g., im-new"
-					/>
-				</div>
-				<div>
-					<label class="block text-sm font-medium mb-1">Title</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Title</label>
+						<HelpIcon helpId="field-page-title" position="right">
+							{@html getHelpContent('field-page-title').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="text"
 						bind:value={editing.title}
 						class="w-full px-3 py-2 border rounded"
+						placeholder="Page title"
 					/>
+					<p class="text-xs text-gray-500 mt-1">Page ID will be automatically generated from the title</p>
 				</div>
 				<div class="border-t pt-4 mt-4">
 					<h3 class="text-lg font-semibold mb-4">Navigation Settings</h3>
 					<div class="space-y-4">
 						<div>
-							<label class="flex items-center gap-2">
+							<div class="flex items-center gap-2">
 								<input
 									type="checkbox"
 									bind:checked={editing.isLink}
 									class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
 								/>
-								<span class="text-sm font-medium">This is a Link (not a page)</span>
-							</label>
+								<div class="flex items-center gap-1">
+									<span class="text-sm font-medium">This is a Link (not a page)</span>
+									<HelpIcon helpId="field-page-is-link" position="right">
+										{@html getHelpContent('field-page-is-link').content}
+									</HelpIcon>
+								</div>
+							</div>
 							<p class="text-xs text-gray-500 mt-1 ml-6">
 								When checked, this will be a navigation link instead of a page. Use for external URLs, anchor links, or custom paths.
 							</p>
 						</div>
 						{#if editing.isLink}
 							<div>
-								<label class="block text-sm font-medium mb-1">Link URL *</label>
+								<div class="flex items-center gap-1 mb-1">
+									<label class="text-sm font-medium">Link URL *</label>
+									<HelpIcon helpId="field-page-link-url" position="right">
+										{@html getHelpContent('field-page-link-url').content}
+									</HelpIcon>
+								</div>
 								<input
 									type="text"
 									bind:value={editing.linkUrl}
@@ -518,7 +552,12 @@
 								</div>
 							</div>
 							<div>
-								<label class="block text-sm font-medium mb-1">Link Target</label>
+								<div class="flex items-center gap-1 mb-1">
+									<label class="text-sm font-medium">Link Target</label>
+									<HelpIcon helpId="field-page-link-target" position="right">
+										{@html getHelpContent('field-page-link-target').content}
+									</HelpIcon>
+								</div>
 								<select bind:value={editing.linkTarget} class="w-full px-3 py-2 border rounded">
 									<option value="_self">Same Window</option>
 									<option value="_blank">New Window</option>
@@ -527,21 +566,31 @@
 							</div>
 						{/if}
 						<div>
-							<label class="flex items-center gap-2">
+							<div class="flex items-center gap-2">
 								<input
 									type="checkbox"
 									bind:checked={editing.showInNavigation}
 									class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
 								/>
-								<span class="text-sm font-medium">Show in Navigation Menu</span>
-							</label>
+								<div class="flex items-center gap-1">
+									<span class="text-sm font-medium">Show in Navigation Menu</span>
+									<HelpIcon helpId="field-page-show-in-navigation" position="right">
+										{@html getHelpContent('field-page-show-in-navigation').content}
+									</HelpIcon>
+								</div>
+							</div>
 							<p class="text-xs text-gray-500 mt-1 ml-6">
 								When enabled, this page/link will appear in the main website navigation menu.
 							</p>
 						</div>
 						{#if editing.showInNavigation}
 							<div>
-								<label class="block text-sm font-medium mb-1">Navigation Label</label>
+								<div class="flex items-center gap-1 mb-1">
+									<label class="text-sm font-medium">Navigation Label</label>
+									<HelpIcon helpId="field-page-navigation-label" position="right">
+										{@html getHelpContent('field-page-navigation-label').content}
+									</HelpIcon>
+								</div>
 								<p class="text-xs text-gray-500 mb-2">
 									Custom label for the navigation menu. If left empty, the page title will be used.
 								</p>
@@ -556,7 +605,12 @@
 					</div>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Hero Title</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Hero Title</label>
+						<HelpIcon helpId="field-page-hero-title" position="right">
+							{@html getHelpContent('field-page-hero-title').content}
+						</HelpIcon>
+					</div>
 					<p class="text-xs text-gray-500 mb-2">
 						The main title in the hero section. You can use HTML like &lt;span style="color:#4BB170;"&gt;text&lt;/span&gt; for colored text.
 					</p>
@@ -568,7 +622,12 @@
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Hero Subtitle</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Hero Subtitle</label>
+						<HelpIcon helpId="field-page-hero-subtitle" position="right">
+							{@html getHelpContent('field-page-hero-subtitle').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="text"
 						bind:value={editing.heroSubtitle}
@@ -577,7 +636,12 @@
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Hero Buttons</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Hero Buttons</label>
+						<HelpIcon helpId="field-page-hero-buttons" position="right">
+							{@html getHelpContent('field-page-hero-buttons').content}
+						</HelpIcon>
+					</div>
 					<p class="text-xs text-gray-500 mb-2">
 						Add buttons to display in the hero section.
 					</p>
@@ -630,7 +694,12 @@
 					</button>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Hero Messages (Rotating Subtitles)</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Hero Messages (Rotating Subtitles)</label>
+						<HelpIcon helpId="field-page-hero-messages" position="right">
+							{@html getHelpContent('field-page-hero-messages').content}
+						</HelpIcon>
+					</div>
 					<p class="text-xs text-gray-500 mb-2">
 						These messages will rotate in the hero section. Leave empty if you don't want rotating messages.
 					</p>
@@ -670,7 +739,12 @@
 						<h3 class="text-lg font-bold text-gray-900 mb-4">About Section</h3>
 						<div class="space-y-4">
 							<div>
-								<label class="block text-sm font-medium mb-1">About Label</label>
+								<div class="flex items-center gap-1 mb-1">
+									<label class="text-sm font-medium">About Label</label>
+									<HelpIcon helpId="field-page-about-label" position="right">
+										{@html getHelpContent('field-page-about-label').content}
+									</HelpIcon>
+								</div>
 								<p class="text-xs text-gray-500 mb-2">Small text that appears above the about title</p>
 								<input
 									type="text"
@@ -680,7 +754,12 @@
 								/>
 							</div>
 							<div>
-								<label class="block text-sm font-medium mb-1">About Title</label>
+								<div class="flex items-center gap-1 mb-1">
+									<label class="text-sm font-medium">About Title</label>
+									<HelpIcon helpId="field-page-about-title" position="right">
+										{@html getHelpContent('field-page-about-title').content}
+									</HelpIcon>
+								</div>
 								<input
 									type="text"
 									bind:value={editing.aboutTitle}
@@ -689,13 +768,23 @@
 								/>
 							</div>
 							<div>
-								<label class="block text-sm font-medium mb-1">About Content</label>
+								<div class="flex items-center gap-1 mb-1">
+									<label class="text-sm font-medium">About Content</label>
+									<HelpIcon helpId="field-page-about-content" position="right">
+										{@html getHelpContent('field-page-about-content').content}
+									</HelpIcon>
+								</div>
 								<div class="relative" style="height: 400px;">
 									<RichTextEditor bind:value={editing.aboutContent} height="400px" />
 								</div>
 							</div>
 							<div>
-								<label class="block text-sm font-medium mb-1">About Image</label>
+								<div class="flex items-center gap-1 mb-1">
+									<label class="text-sm font-medium">About Image</label>
+									<HelpIcon helpId="field-page-about-image" position="right">
+										{@html getHelpContent('field-page-about-image').content}
+									</HelpIcon>
+								</div>
 								<div class="flex gap-2 mb-2">
 									<input
 										type="text"
@@ -739,7 +828,12 @@
 						<h3 class="text-lg font-bold text-gray-900 mb-4">Vision Section</h3>
 						<div class="space-y-4">
 							<div>
-								<label class="block text-sm font-medium mb-1">Vision Label</label>
+								<div class="flex items-center gap-1 mb-1">
+									<label class="text-sm font-medium">Vision Label</label>
+									<HelpIcon helpId="field-page-vision-label" position="right">
+										{@html getHelpContent('field-page-vision-label').content}
+									</HelpIcon>
+								</div>
 								<p class="text-xs text-gray-500 mb-2">Small text that appears above the vision title</p>
 								<input
 									type="text"
@@ -749,7 +843,12 @@
 								/>
 							</div>
 							<div>
-								<label class="block text-sm font-medium mb-1">Vision Title</label>
+								<div class="flex items-center gap-1 mb-1">
+									<label class="text-sm font-medium">Vision Title</label>
+									<HelpIcon helpId="field-page-vision-title" position="right">
+										{@html getHelpContent('field-page-vision-title').content}
+									</HelpIcon>
+								</div>
 								<input
 									type="text"
 									bind:value={editing.visionTitle}
@@ -758,7 +857,12 @@
 								/>
 							</div>
 							<div>
-								<label class="block text-sm font-medium mb-1">Vision Text</label>
+								<div class="flex items-center gap-1 mb-1">
+									<label class="text-sm font-medium">Vision Text</label>
+									<HelpIcon helpId="field-page-vision-text" position="right">
+										{@html getHelpContent('field-page-vision-text').content}
+									</HelpIcon>
+								</div>
 								<p class="text-xs text-gray-500 mb-2">The main vision statement text</p>
 								<textarea
 									bind:value={editing.visionText}
@@ -889,27 +993,42 @@
 								{#if expandedSections.has(sectionIndex)}
 								<div class="mt-4">
 								{#if section.type === 'text'}
-									<div class="mb-3">
-										<label class="block text-xs font-medium mb-1 text-gray-600">Label (optional - appears above title)</label>
-										<p class="text-xs text-gray-500 mb-1">Small text that appears above the title, like "About Us" on the home page</p>
-										<input
-											type="text"
-											bind:value={section.label}
-											class="w-full px-3 py-2 border rounded"
-											placeholder="e.g., About Us, Our Story"
-										/>
+								<div class="mb-3">
+									<div class="flex items-center gap-1 mb-1">
+										<label class="text-xs font-medium text-gray-600">Label (optional - appears above title)</label>
+										<HelpIcon helpId="field-page-section-label" position="right">
+											{@html getHelpContent('field-page-section-label').content}
+										</HelpIcon>
 									</div>
-									<div class="mb-3">
-										<label class="block text-xs font-medium mb-1 text-gray-600">Title</label>
-										<input
-											type="text"
-											bind:value={section.title}
-											class="w-full px-3 py-2 border rounded"
-											placeholder="Section title"
-										/>
+									<p class="text-xs text-gray-500 mb-1">Small text that appears above the title, like "About Us" on the home page</p>
+									<input
+										type="text"
+										bind:value={section.label}
+										class="w-full px-3 py-2 border rounded"
+										placeholder="e.g., About Us, Our Story"
+									/>
+								</div>
+								<div class="mb-3">
+									<div class="flex items-center gap-1 mb-1">
+										<label class="text-xs font-medium text-gray-600">Title</label>
+										<HelpIcon helpId="field-page-section-title" position="right">
+											{@html getHelpContent('field-page-section-title').content}
+										</HelpIcon>
 									</div>
-									<div class="mb-3">
-										<label class="block text-xs font-medium mb-1 text-gray-600">Image URL</label>
+									<input
+										type="text"
+										bind:value={section.title}
+										class="w-full px-3 py-2 border rounded"
+										placeholder="Section title"
+									/>
+								</div>
+								<div class="mb-3">
+									<div class="flex items-center gap-1 mb-1">
+										<label class="text-xs font-medium text-gray-600">Image URL</label>
+										<HelpIcon helpId="field-page-section-image" position="right">
+											{@html getHelpContent('field-page-section-image').content}
+										</HelpIcon>
+									</div>
 										<div class="flex gap-2">
 											<input
 												type="text"
@@ -940,7 +1059,12 @@
 										{/if}
 									</div>
 									<div class="relative mb-3" style="height: 300px;">
-										<label class="block text-xs font-medium mb-1 text-gray-600">Content</label>
+										<div class="flex items-center gap-1 mb-1">
+											<label class="text-xs font-medium text-gray-600">Content</label>
+											<HelpIcon helpId="field-page-section-content" position="right">
+												{@html getHelpContent('field-page-section-content').content}
+											</HelpIcon>
+										</div>
 										<RichTextEditor bind:value={section.content} height="280px" />
 									</div>
 									{#if section.cta}
@@ -948,7 +1072,12 @@
 										{@const ctaText = section.cta?.text || ''}
 										<div class="mt-3 p-3 bg-white rounded border">
 											<div class="flex justify-between items-center mb-2">
-												<label class="block text-xs font-medium text-gray-600">Call to Action</label>
+												<div class="flex items-center gap-1 mb-1">
+												<label class="text-xs font-medium text-gray-600">Call to Action</label>
+												<HelpIcon helpId="field-page-section-cta" position="right">
+													{@html getHelpContent('field-page-section-cta').content}
+												</HelpIcon>
+											</div>
 												<button
 													type="button"
 													on:click={() => {
@@ -1035,7 +1164,12 @@
 												</button>
 											</div>
 											<div class="mb-2">
-												<label class="block text-xs font-medium mb-1 text-gray-600">Column Title</label>
+												<div class="flex items-center gap-1 mb-1">
+													<label class="text-xs font-medium text-gray-600">Column Title</label>
+													<HelpIcon helpId="field-page-column-title" position="right">
+														{@html getHelpContent('field-page-column-title').content}
+													</HelpIcon>
+												</div>
 												<input
 													type="text"
 													bind:value={column.title}
@@ -1044,6 +1178,12 @@
 												/>
 											</div>
 											<div class="relative" style="height: 200px;">
+												<div class="flex items-center gap-1 mb-1">
+													<label class="text-xs font-medium text-gray-600">Column Content</label>
+													<HelpIcon helpId="field-page-column-content" position="right">
+														{@html getHelpContent('field-page-column-content').content}
+													</HelpIcon>
+												</div>
 												<RichTextEditor bind:value={column.content} height="180px" />
 											</div>
 										</div>
@@ -1151,7 +1291,12 @@
 										/>
 									</div>
 									<div class="relative mb-3" style="height: 300px;">
-										<label class="block text-xs font-medium mb-1 text-gray-600">Content</label>
+										<div class="flex items-center gap-1 mb-1">
+											<label class="text-xs font-medium text-gray-600">Content</label>
+											<HelpIcon helpId="field-page-section-content" position="right">
+												{@html getHelpContent('field-page-section-content').content}
+											</HelpIcon>
+										</div>
 										<RichTextEditor bind:value={section.content} height="280px" />
 									</div>
 									<div class="mb-3">
@@ -1325,7 +1470,12 @@
 										/>
 									</div>
 									<div class="relative mb-3" style="height: 300px;">
-										<label class="block text-xs font-medium mb-1 text-gray-600">Content</label>
+										<div class="flex items-center gap-1 mb-1">
+											<label class="text-xs font-medium text-gray-600">Content</label>
+											<HelpIcon helpId="field-page-section-content" position="right">
+												{@html getHelpContent('field-page-section-content').content}
+											</HelpIcon>
+										</div>
 										<RichTextEditor bind:value={section.content} height="280px" />
 									</div>
 									<div class="mb-3">

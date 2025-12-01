@@ -1,8 +1,13 @@
 <script lang="js">
 	import { onMount } from 'svelte';
 	import ImagePicker from '$lib/components/ImagePicker.svelte';
+	import HelpIcon from '$lib/components/HelpIcon.svelte';
+	import { getHelpContent } from '$lib/utils/helpContent';
 
 	export let params = {};
+	
+	// Get help content for team page (safe for SSR)
+	const teamHelpContent = getHelpContent('admin-team-page');
 
 	let team = [];
 	let loading = true;
@@ -105,7 +110,12 @@
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8">
-	<h1 class="text-3xl font-bold mb-8">Manage Team</h1>
+	<div class="flex items-center gap-2 mb-8">
+		<h1 class="text-3xl font-bold">Manage Team</h1>
+		<HelpIcon helpId="admin-team-page" position="right">
+			{@html teamHelpContent.content}
+		</HelpIcon>
+	</div>
 
 	<div class="flex justify-between items-center mb-6">
 		<h2 class="text-2xl font-bold">Team Members</h2>
@@ -140,7 +150,12 @@
 			</div>
 			<div class="space-y-4">
 				<div>
-					<label class="block text-sm font-medium mb-1">ID</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">ID</label>
+						<HelpIcon helpId="field-team-id" position="right">
+							{@html getHelpContent('field-team-id').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="text"
 						bind:value={editing.id}
@@ -149,7 +164,12 @@
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Name</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Name</label>
+						<HelpIcon helpId="field-team-name" position="right">
+							{@html getHelpContent('field-team-name').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="text"
 						bind:value={editing.name}
@@ -157,7 +177,12 @@
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Category</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Category</label>
+						<HelpIcon helpId="field-team-category" position="right">
+							{@html getHelpContent('field-team-category').content}
+						</HelpIcon>
+					</div>
 					<select
 						bind:value={editing.category}
 						class="w-full px-3 py-2 border rounded-lg"
@@ -168,7 +193,12 @@
 					</select>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Role</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Role</label>
+						<HelpIcon helpId="field-team-role" position="right">
+							{@html getHelpContent('field-team-role').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="text"
 						bind:value={editing.role}
@@ -176,7 +206,12 @@
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Image URL</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Image URL</label>
+						<HelpIcon helpId="field-team-image" position="right">
+							{@html getHelpContent('field-team-image').content}
+						</HelpIcon>
+					</div>
 					<div class="space-y-2">
 						<div class="flex gap-2">
 							<input
@@ -205,7 +240,12 @@
 					</div>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Quote</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Quote</label>
+						<HelpIcon helpId="field-team-quote" position="right">
+							{@html getHelpContent('field-team-quote').content}
+						</HelpIcon>
+					</div>
 					<textarea
 						bind:value={editing.quote}
 						rows="3"
@@ -213,7 +253,12 @@
 					></textarea>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Social Links</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Social Links</label>
+						<HelpIcon helpId="field-team-social" position="right">
+							{@html getHelpContent('field-team-social').content}
+						</HelpIcon>
+					</div>
 					{#if editing && editing.social}
 						<div class="grid grid-cols-2 gap-2">
 							<input

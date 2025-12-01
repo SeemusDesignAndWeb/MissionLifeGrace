@@ -1,13 +1,9 @@
 import { env } from '$env/dynamic/private';
 import crypto from 'crypto';
+import { hashPassword, verifyPassword } from './password-encryption';
 
 const USER_SESSION_KEY = 'user_session';
 const SESSION_DURATION = 30 * 24 * 60 * 60 * 1000; // 30 days
-
-// Hash password using crypto (better than simple hash)
-function hashPassword(password) {
-	return crypto.createHash('sha256').update(password).digest('hex');
-}
 
 export function isUserAuthenticated(cookies) {
 	const session = cookies.get(USER_SESSION_KEY);
@@ -72,9 +68,7 @@ export function hashUserPassword(password) {
 	return hashPassword(password);
 }
 
-export function verifyPassword(password, hashedPassword) {
-	return hashPassword(password) === hashedPassword;
-}
+export { verifyPassword };
 
 // Generate a 6-digit verification code
 export function generateVerificationCode() {

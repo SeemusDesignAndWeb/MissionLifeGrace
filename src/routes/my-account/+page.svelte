@@ -151,6 +151,62 @@
 		return parts.length > 0 ? parts.join(', ') : 'N/A';
 	}
 
+	function getPaymentDeadline(conference) {
+		if (!conference || !conference.startDate) return null;
+		const startDate = new Date(conference.startDate);
+		// Payment deadline is typically 14 days before conference
+		const deadline = new Date(startDate);
+		deadline.setDate(deadline.getDate() - 14);
+		return deadline;
+	}
+
+	function getDaysUntilDeadline(deadline) {
+		if (!deadline) return null;
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+		const deadlineDate = new Date(deadline);
+		deadlineDate.setHours(0, 0, 0, 0);
+		const diffTime = deadlineDate - today;
+		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+		return diffDays;
+	}
+
+	function getPaymentUrgency(balanceDue, deadline) {
+		if (balanceDue <= 0) return null;
+		if (!deadline) return 'normal';
+		const daysUntil = getDaysUntilDeadline(deadline);
+		if (daysUntil === null) return 'normal';
+		if (daysUntil < 0) return 'overdue';
+		if (daysUntil <= 7) return 'urgent';
+		if (daysUntil <= 14) return 'soon';
+		return 'normal';
+	}
+
+	function getUpcomingBookings() {
+		if (!data.bookings) return [];
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+		return data.bookings
+			.filter(b => b.conference && b.conference.startDate)
+			.filter(b => {
+				const startDate = new Date(b.conference.startDate);
+				return startDate >= today;
+			})
+			.sort((a, b) => {
+				const dateA = new Date(a.conference.startDate);
+				const dateB = new Date(b.conference.startDate);
+				return dateA - dateB;
+			});
+	}
+
+	function getBookingsNeedingPayment() {
+		if (!data.bookings) return [];
+		return data.bookings.filter(b => {
+			const balance = (b.totalAmount || 0) - (b.paidAmount || 0);
+			return balance > 0;
+		});
+	}
+
 	async function handleChangePassword() {
 		changePasswordError = '';
 		changePasswordSuccess = false;
@@ -323,7 +379,115 @@
 		{/if}
 
 		{#if data.bookings && data.bookings.length > 0}
+			{@const upcomingBookings = getUpcomingBookings()}
+			{@const bookingsNeedingPayment = getBookingsNeedingPayment()}
+			
+			<!-- Next Steps & Alerts -->
+			{#if bookingsNeedingPayment.length > 0}
+				<div class="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300 rounded-lg p-6 mb-6">
+					<div class="flex items-start gap-4">
+						<div class="flex-shrink-0">
+							<svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+							</svg>
+						</div>
+						<div class="flex-1">
+							<h2 class="text-xl font-bold text-gray-900 mb-2">Action Required</h2>
+							<p class="text-gray-700 mb-4">
+								You have <strong>{bookingsNeedingPayment.length}</strong> booking{bookingsNeedingPayment.length !== 1 ? 's' : ''} with outstanding balances. 
+								Please complete payment to secure your booking{bookingsNeedingPayment.length !== 1 ? 's' : ''}.
+							</p>
+							<div class="space-y-2">
+								{#each bookingsNeedingPayment as booking}
+									{@const deadline = getPaymentDeadline(booking.conference)}
+									{@const urgency = getPaymentUrgency(booking.totalAmount - (booking.paidAmount || 0), deadline)}
+									{@const daysUntil = deadline ? getDaysUntilDeadline(deadline) : null}
+									<div class="bg-white rounded-lg p-4 border-2 {
+										urgency === 'overdue' ? 'border-red-400' :
+										urgency === 'urgent' ? 'border-orange-400' :
+										urgency === 'soon' ? 'border-yellow-400' :
+										'border-gray-300'
+									}">
+										<div class="flex justify-between items-start">
+											<div class="flex-1">
+												<div class="flex items-center gap-2 mb-1">
+													<span class="font-semibold text-gray-900">{booking.conference?.title || 'Conference'}</span>
+													<span class="px-2 py-0.5 text-xs rounded {
+														urgency === 'overdue' ? 'bg-red-100 text-red-800' :
+														urgency === 'urgent' ? 'bg-orange-100 text-orange-800' :
+														urgency === 'soon' ? 'bg-yellow-100 text-yellow-800' :
+														'bg-gray-100 text-gray-800'
+													}">
+														{urgency === 'overdue' ? '⚠️ Overdue' :
+														 urgency === 'urgent' ? '🔴 Urgent' :
+														 urgency === 'soon' ? '🟡 Due Soon' :
+														 'Payment Due'}
+													</span>
+												</div>
+												<p class="text-sm text-gray-600">
+													Balance: <strong class="text-lg text-red-600">{formatCurrency(booking.totalAmount - (booking.paidAmount || 0))}</strong>
+												</p>
+												{#if deadline && daysUntil !== null}
+													<p class="text-xs text-gray-500 mt-1">
+														{#if daysUntil < 0}
+															<span class="text-red-600 font-semibold">Payment was due {Math.abs(daysUntil)} day{Math.abs(daysUntil) !== 1 ? 's' : ''} ago</span>
+														{:else if daysUntil === 0}
+															<span class="text-red-600 font-semibold">Payment due today!</span>
+														{:else}
+															Payment due in {daysUntil} day{daysUntil !== 1 ? 's' : ''} ({formatDate(deadline)})
+														{/if}
+													</p>
+												{/if}
+											</div>
+											<button
+												on:click={() => openPaymentModal(booking)}
+												class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark font-semibold text-sm whitespace-nowrap"
+											>
+												Pay Now
+											</button>
+										</div>
+									</div>
+								{/each}
+							</div>
+						</div>
+					</div>
+				</div>
+			{/if}
+
+			<!-- Upcoming Conferences Summary -->
+			{#if upcomingBookings.length > 0}
+				<div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-lg p-6 mb-6">
+					<h2 class="text-xl font-bold text-gray-900 mb-4">Upcoming Conferences</h2>
+					<div class="grid md:grid-cols-2 gap-4">
+						{#each upcomingBookings.slice(0, 2) as booking}
+							<div class="bg-white rounded-lg p-4 border border-blue-200">
+								<h3 class="font-semibold text-gray-900 mb-2">{booking.conference?.title || 'Conference'}</h3>
+								<p class="text-sm text-gray-600 mb-2">
+									{formatDate(booking.conference.startDate)}
+									{#if booking.conference.endDate && booking.conference.endDate !== booking.conference.startDate}
+										- {formatDate(booking.conference.endDate)}
+									{/if}
+								</p>
+								<div class="flex items-center justify-between mt-3">
+									<span class="text-xs text-gray-500">Booking: {booking.bookingReference}</span>
+									<span class="px-2 py-1 text-xs rounded {
+										booking.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
+										booking.paymentStatus === 'partial' ? 'bg-yellow-100 text-yellow-800' :
+										'bg-red-100 text-red-800'
+									}">
+										{booking.paymentStatus === 'paid' ? '✓ Paid' :
+										 booking.paymentStatus === 'partial' ? 'Partial' : 'Unpaid'}
+									</span>
+								</div>
+							</div>
+						{/each}
+					</div>
+				</div>
+			{/if}
+
+			<!-- All Bookings -->
 			<div class="space-y-6">
+				<h2 class="text-2xl font-bold text-gray-900 mb-4">All Bookings</h2>
 				{#each data.bookings as booking}
 					<div class="bg-white shadow rounded-lg overflow-hidden">
 						<div class="p-6">
@@ -374,13 +538,62 @@
 							</div>
 
 							{#if booking.paymentStatus === 'partial' || (booking.paidAmount && booking.paidAmount < booking.totalAmount)}
-								<div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+								{@const deadline = getPaymentDeadline(booking.conference)}
+								{@const urgency = getPaymentUrgency(booking.totalAmount - (booking.paidAmount || 0), deadline)}
+								{@const daysUntil = deadline ? getDaysUntilDeadline(deadline) : null}
+								<div class="mt-4 p-4 rounded-lg border-2 {
+									urgency === 'overdue' ? 'bg-red-50 border-red-300' :
+									urgency === 'urgent' ? 'bg-orange-50 border-orange-300' :
+									urgency === 'soon' ? 'bg-yellow-50 border-yellow-300' :
+									'bg-yellow-50 border-yellow-200'
+								}">
 									<div class="flex justify-between items-center">
 										<div>
-											<p class="text-sm font-medium text-yellow-800">Balance Due</p>
-											<p class="text-2xl font-bold text-yellow-900 mt-1">
+											<div class="flex items-center gap-2 mb-1">
+												<p class="text-sm font-medium {
+													urgency === 'overdue' ? 'text-red-800' :
+													urgency === 'urgent' ? 'text-orange-800' :
+													urgency === 'soon' ? 'text-yellow-800' :
+													'text-yellow-800'
+												}">Balance Due</p>
+												{#if urgency && urgency !== 'normal'}
+													<span class="px-2 py-0.5 text-xs rounded {
+														urgency === 'overdue' ? 'bg-red-200 text-red-900' :
+														urgency === 'urgent' ? 'bg-orange-200 text-orange-900' :
+														'bg-yellow-200 text-yellow-900'
+													}">
+														{urgency === 'overdue' ? '⚠️ Overdue' :
+														 urgency === 'urgent' ? '🔴 Urgent' :
+														 '🟡 Due Soon'}
+													</span>
+												{/if}
+											</div>
+											<p class="text-2xl font-bold {
+												urgency === 'overdue' ? 'text-red-900' :
+												urgency === 'urgent' ? 'text-orange-900' :
+												urgency === 'soon' ? 'text-yellow-900' :
+												'text-yellow-900'
+											} mt-1">
 												{formatCurrency(booking.totalAmount - (booking.paidAmount || 0))}
 											</p>
+											{#if deadline && daysUntil !== null}
+												<p class="text-xs mt-1 {
+													urgency === 'overdue' ? 'text-red-700' :
+													urgency === 'urgent' ? 'text-orange-700' :
+													urgency === 'soon' ? 'text-yellow-700' :
+													'text-gray-600'
+												}">
+													{#if daysUntil < 0}
+														<span class="font-semibold">⚠️ Payment was due {Math.abs(daysUntil)} day{Math.abs(daysUntil) !== 1 ? 's' : ''} ago</span>
+													{:else if daysUntil === 0}
+														<span class="font-semibold">⚠️ Payment due today!</span>
+													{:else if daysUntil <= 7}
+														<span class="font-semibold">Payment due in {daysUntil} day{daysUntil !== 1 ? 's' : ''} ({formatDate(deadline)})</span>
+													{:else}
+														Payment due by {formatDate(deadline)}
+													{/if}
+												</p>
+											{/if}
 										</div>
 										<div class="flex gap-2">
 											<button

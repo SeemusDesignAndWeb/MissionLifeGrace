@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import ImagePicker from '$lib/components/ImagePicker.svelte';
 	import { notifyError, notifySuccess } from '$lib/utils/notify';
+	import HelpIcon from '$lib/components/HelpIcon.svelte';
+	import { getHelpContent } from '$lib/utils/helpContent';
 
 	export let params = {};
 
@@ -180,7 +182,12 @@
 			</div>
 			<div class="space-y-4">
 				<div>
-					<label class="block text-sm font-medium mb-1">Church Name *</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Church Name *</label>
+						<HelpIcon helpId="field-church-name" position="right">
+							{@html getHelpContent('field-church-name').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="text"
 						bind:value={editing.title}
@@ -189,7 +196,12 @@
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Website Link *</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Website Link *</label>
+						<HelpIcon helpId="field-church-link" position="right">
+							{@html getHelpContent('field-church-link').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="url"
 						bind:value={editing.link}
@@ -199,7 +211,12 @@
 					<p class="text-xs text-gray-500 mt-1">Enter the full website URL (e.g., https://www.egcc.co.uk)</p>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Church Logo *</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Church Logo *</label>
+						<HelpIcon helpId="field-church-logo" position="right">
+							{@html getHelpContent('field-church-logo').content}
+						</HelpIcon>
+					</div>
 					<div class="space-y-2">
 						<div class="flex gap-2">
 							<input
@@ -231,7 +248,9 @@
 					</div>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-2">Visibility Options</label>
+					<div class="flex items-center gap-1 mb-2">
+						<label class="text-sm font-medium">Visibility Options</label>
+					</div>
 					<div class="space-y-3">
 						<div class="flex items-center">
 							<input
@@ -242,7 +261,12 @@
 								on:change={(e) => updateShowOnFrontEnd(e.target.checked)}
 								disabled={editing.hideFromAll}
 							/>
-							<label for="visibility-frontend" class="cursor-pointer {editing.hideFromAll ? 'text-gray-400' : ''}">Show on front end</label>
+							<div class="flex items-center gap-1">
+								<label for="visibility-frontend" class="cursor-pointer {editing.hideFromAll ? 'text-gray-400' : ''}">Show on front end</label>
+								<HelpIcon helpId="field-church-show-frontend" position="right">
+									{@html getHelpContent('field-church-show-frontend').content}
+								</HelpIcon>
+							</div>
 						</div>
 						<div class="flex items-center">
 							<input
@@ -253,7 +277,12 @@
 								on:change={(e) => updateShowInConference(e.target.checked)}
 								disabled={editing.hideFromAll}
 							/>
-							<label for="visibility-conference" class="cursor-pointer {editing.hideFromAll ? 'text-gray-400' : ''}">Show in conference</label>
+							<div class="flex items-center gap-1">
+								<label for="visibility-conference" class="cursor-pointer {editing.hideFromAll ? 'text-gray-400' : ''}">Show in conference</label>
+								<HelpIcon helpId="field-church-show-conference" position="right">
+									{@html getHelpContent('field-church-show-conference').content}
+								</HelpIcon>
+							</div>
 						</div>
 						<div class="flex items-center">
 							<input
@@ -263,7 +292,12 @@
 								class="mr-2"
 								on:change={(e) => updateHideFromAll(e.target.checked)}
 							/>
-							<label for="visibility-hidden" class="cursor-pointer">Hide from all</label>
+							<div class="flex items-center gap-1">
+								<label for="visibility-hidden" class="cursor-pointer">Hide from all</label>
+								<HelpIcon helpId="field-church-hide-all" position="right">
+									{@html getHelpContent('field-church-hide-all').content}
+								</HelpIcon>
+							</div>
 						</div>
 					</div>
 					<p class="text-xs text-gray-500 mt-2">You can select both "Show on front end" and "Show in conference" together. "Hide from all" will disable the other options.</p>

@@ -1,6 +1,16 @@
 <script lang="js">
 	import { onMount } from 'svelte';
 	import { notifyError, notifySuccess } from '$lib/utils/notify';
+	import HelpIcon from '$lib/components/HelpIcon.svelte';
+	import { getHelpContent } from '$lib/utils/helpContent';
+
+	// Auto-generate ID from day and time
+	function generateIdFromDayTime(day, time) {
+		if (!day || !time) return '';
+		const dayPart = day.toLowerCase();
+		const timePart = time.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+		return `${dayPart}-${timePart}`.replace(/^-+|-+$/g, '');
+	}
 
 	export let params = {};
 
@@ -36,6 +46,11 @@
 					order: groups.length
 				};
 		showForm = true;
+	}
+
+	// Auto-generate ID when day and time change (only for new groups or if ID is empty)
+	$: if (editing && editing.day && editing.time && (!editing.id || editing.id === '')) {
+		editing.id = generateIdFromDayTime(editing.day, editing.time);
 	}
 
 	function cancelEdit() {
@@ -168,18 +183,18 @@
 				</div>
 			</div>
 			<div class="space-y-4">
+				<!-- ID field is hidden - auto-generated from day and time -->
+				<input
+					type="hidden"
+					bind:value={editing.id}
+				/>
 				<div>
-					<label class="block text-sm font-medium mb-1">ID *</label>
-					<input
-						type="text"
-						bind:value={editing.id}
-						class="w-full px-3 py-2 border rounded"
-						placeholder="e.g., tuesday-group"
-					/>
-					<p class="text-xs text-gray-500 mt-1">Unique identifier (lowercase, hyphens only)</p>
-				</div>
-				<div>
-					<label class="block text-sm font-medium mb-1">Day *</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Day *</label>
+						<HelpIcon helpId="field-group-day" position="right">
+							{@html getHelpContent('field-group-day').content}
+						</HelpIcon>
+					</div>
 					<select
 						bind:value={editing.day}
 						class="w-full px-3 py-2 border rounded"
@@ -195,16 +210,27 @@
 					</select>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Time *</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Time *</label>
+						<HelpIcon helpId="field-group-time" position="right">
+							{@html getHelpContent('field-group-time').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="text"
 						bind:value={editing.time}
 						class="w-full px-3 py-2 border rounded"
 						placeholder="e.g., 7:30 PM"
 					/>
+					<p class="text-xs text-gray-500 mt-1">Group ID will be automatically generated from day and time</p>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Description</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Description</label>
+						<HelpIcon helpId="field-group-description" position="right">
+							{@html getHelpContent('field-group-description').content}
+						</HelpIcon>
+					</div>
 					<textarea
 						bind:value={editing.description}
 						class="w-full px-3 py-2 border rounded"
@@ -213,7 +239,12 @@
 					></textarea>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Icon Color</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Icon Color</label>
+						<HelpIcon helpId="field-group-icon-color" position="right">
+							{@html getHelpContent('field-group-icon-color').content}
+						</HelpIcon>
+					</div>
 					<select
 						bind:value={editing.iconColor}
 						class="w-full px-3 py-2 border rounded"
@@ -226,7 +257,12 @@
 					<p class="text-xs text-gray-500 mt-1">Color for the calendar icon background</p>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Order</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Order</label>
+						<HelpIcon helpId="field-group-order" position="right">
+							{@html getHelpContent('field-group-order').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="number"
 						bind:value={editing.order}

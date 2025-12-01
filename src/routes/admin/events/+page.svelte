@@ -3,6 +3,17 @@
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import ImagePicker from '$lib/components/ImagePicker.svelte';
 	import { notifyError, notifySuccess } from '$lib/utils/notify';
+	import HelpIcon from '$lib/components/HelpIcon.svelte';
+	import { getHelpContent } from '$lib/utils/helpContent';
+
+	// Auto-generate ID from title
+	function generateIdFromTitle(title) {
+		if (!title) return '';
+		return title
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, '-')
+			.replace(/^-+|-+$/g, '');
+	}
 
 	export let params = {};
 
@@ -27,12 +38,13 @@
 		}
 	}
 
-	function startEdit(event) {
+		function startEdit(event) {
 		if (event) {
 			editing = {
 				...event,
 				description: event.description || '',
-				eventInfo: typeof event.eventInfo === 'string' ? event.eventInfo : ''
+				eventInfo: typeof event.eventInfo === 'string' ? event.eventInfo : '',
+				paymentSettings: event.paymentSettings || { paypalEnabled: false }
 			};
 		} else {
 			editing = {
@@ -47,10 +59,16 @@
 				featured: false,
 				highlighted: false,
 				published: true,
-				order: events.length
+				order: events.length,
+				paymentSettings: { paypalEnabled: false }
 			};
 		}
 		showForm = true;
+	}
+
+	// Auto-generate ID when title changes (only for new events or if ID is empty)
+	$: if (editing && editing.title && (!editing.id || editing.id === '')) {
+		editing.id = generateIdFromTitle(editing.title);
 	}
 
 	function cancelEdit() {
@@ -131,13 +149,26 @@
 
 <div class="container mx-auto px-4 py-8">
 	<div class="flex justify-between items-center mb-6">
-		<h1 class="text-3xl font-bold">Manage Events</h1>
-		<button
-			on:click={() => startEdit()}
-			class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
-		>
-			Add New Event
-		</button>
+		<div class="flex items-center gap-2">
+			<h1 class="text-3xl font-bold">Manage Events</h1>
+			<HelpIcon helpId="admin-events-page" position="right">
+				{@html getHelpContent('admin-events-page').content}
+			</HelpIcon>
+		</div>
+		<div class="flex gap-3">
+			<a
+				href="/admin/events/bookings"
+				class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+			>
+				View Bookings
+			</a>
+			<button
+				on:click={() => startEdit()}
+				class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
+			>
+				Add New Event
+			</button>
+		</div>
 	</div>
 
 	{#if showForm && editing}
@@ -162,19 +193,18 @@
 				</div>
 			</div>
 			<div class="space-y-4">
+				<!-- ID field is hidden - auto-generated from title -->
+				<input
+					type="hidden"
+					bind:value={editing.id}
+				/>
 				<div>
-					<label for="event-id" class="block text-sm font-medium mb-1">ID *</label>
-					<input
-						id="event-id"
-						type="text"
-						bind:value={editing.id}
-						class="w-full px-3 py-2 border rounded"
-						placeholder="e.g., easter-service-2024"
-					/>
-					<p class="text-xs text-gray-500 mt-1">Unique identifier (lowercase, hyphens only)</p>
-				</div>
-				<div>
-					<label for="event-title" class="block text-sm font-medium mb-1">Title *</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label for="event-title" class="text-sm font-medium">Title *</label>
+						<HelpIcon helpId="field-event-title" position="right">
+							{@html getHelpContent('field-event-title').content}
+						</HelpIcon>
+					</div>
 					<input
 						id="event-title"
 						type="text"
@@ -182,9 +212,15 @@
 						class="w-full px-3 py-2 border rounded"
 						placeholder="e.g., Easter Service"
 					/>
+					<p class="text-xs text-gray-500 mt-1">Event ID will be automatically generated from the title</p>
 				</div>
 				<div class="relative mb-4">
-					<label for="event-info" class="block text-sm font-medium mb-1">Event Info</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label for="event-info" class="text-sm font-medium">Event Info</label>
+						<HelpIcon helpId="field-event-info" position="right">
+							{@html getHelpContent('field-event-info').content}
+						</HelpIcon>
+					</div>
 					<div id="event-info" class="relative" style="height: 300px;">
 						<RichTextEditor bind:value={editing.eventInfo} height="300px" placeholder="" />
 					</div>
@@ -192,7 +228,12 @@
 				</div>
 				<div class="grid grid-cols-2 gap-4">
 					<div>
-						<label for="event-date" class="block text-sm font-medium mb-1">Date *</label>
+						<div class="flex items-center gap-1 mb-1">
+							<label for="event-date" class="text-sm font-medium">Date *</label>
+							<HelpIcon helpId="field-event-date" position="right">
+								{@html getHelpContent('field-event-date').content}
+							</HelpIcon>
+						</div>
 						<input
 							id="event-date"
 							type="date"
@@ -201,7 +242,12 @@
 						/>
 					</div>
 					<div>
-						<label for="event-time" class="block text-sm font-medium mb-1">Time</label>
+						<div class="flex items-center gap-1 mb-1">
+							<label for="event-time" class="text-sm font-medium">Time</label>
+							<HelpIcon helpId="field-event-time" position="right">
+								{@html getHelpContent('field-event-time').content}
+							</HelpIcon>
+						</div>
 						<input
 							id="event-time"
 							type="time"
@@ -211,7 +257,12 @@
 					</div>
 				</div>
 				<div>
-					<label for="event-location" class="block text-sm font-medium mb-1">Location</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label for="event-location" class="text-sm font-medium">Location</label>
+						<HelpIcon helpId="field-event-location" position="right">
+							{@html getHelpContent('field-event-location').content}
+						</HelpIcon>
+					</div>
 					<input
 						id="event-location"
 						type="text"
@@ -221,7 +272,12 @@
 					/>
 				</div>
 				<div>
-					<label for="event-image" class="block text-sm font-medium mb-1">Image URL</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label for="event-image" class="text-sm font-medium">Image URL</label>
+						<HelpIcon helpId="field-event-image" position="right">
+							{@html getHelpContent('field-event-image').content}
+						</HelpIcon>
+					</div>
 					<div class="space-y-2">
 						<div class="flex gap-2">
 							<input
@@ -251,21 +307,41 @@
 					</div>
 				</div>
 				<div class="flex gap-6 flex-wrap">
-					<label class="flex items-center gap-2">
+					<div class="flex items-center gap-2">
 						<input type="checkbox" bind:checked={editing.featured} class="rounded" />
-						<span class="text-sm font-medium">Featured (Show on home page)</span>
-					</label>
-					<label class="flex items-center gap-2">
+						<div class="flex items-center gap-1">
+							<span class="text-sm font-medium">Featured (Show on home page)</span>
+							<HelpIcon helpId="field-event-featured" position="right">
+								{@html getHelpContent('field-event-featured').content}
+							</HelpIcon>
+						</div>
+					</div>
+					<div class="flex items-center gap-2">
 						<input type="checkbox" bind:checked={editing.highlighted} class="rounded" />
-						<span class="text-sm font-medium">Highlight (Show banner at top)</span>
-					</label>
-					<label class="flex items-center gap-2">
+						<div class="flex items-center gap-1">
+							<span class="text-sm font-medium">Highlight (Show banner at top)</span>
+							<HelpIcon helpId="field-event-highlighted" position="right">
+								{@html getHelpContent('field-event-highlighted').content}
+							</HelpIcon>
+						</div>
+					</div>
+					<div class="flex items-center gap-2">
 						<input type="checkbox" bind:checked={editing.published} class="rounded" />
-						<span class="text-sm font-medium">Published</span>
-					</label>
+						<div class="flex items-center gap-1">
+							<span class="text-sm font-medium">Published</span>
+							<HelpIcon helpId="field-event-published" position="right">
+								{@html getHelpContent('field-event-published').content}
+							</HelpIcon>
+						</div>
+					</div>
 				</div>
 				<div>
-					<label for="event-order" class="block text-sm font-medium mb-1">Order</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label for="event-order" class="text-sm font-medium">Order</label>
+						<HelpIcon helpId="field-event-order" position="right">
+							{@html getHelpContent('field-event-order').content}
+						</HelpIcon>
+					</div>
 					<input
 						id="event-order"
 						type="number"
@@ -274,6 +350,23 @@
 						min="0"
 					/>
 					<p class="text-xs text-gray-500 mt-1">Lower numbers appear first</p>
+				</div>
+				<div>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Payment Settings</label>
+						<HelpIcon helpId="field-event-paypal" position="right">
+							{@html getHelpContent('field-event-paypal').content}
+						</HelpIcon>
+					</div>
+					<div class="flex items-center">
+						<input
+							type="checkbox"
+							bind:checked={editing.paymentSettings.paypalEnabled}
+							class="mr-2"
+						/>
+						<label>PayPal Enabled (Required for ticket sales)</label>
+					</div>
+					<p class="text-xs text-gray-500 mt-1">Enable PayPal to allow ticket purchases for this event</p>
 				</div>
 				<div class="flex gap-2">
 					<button
@@ -359,6 +452,12 @@
 								>
 									Edit
 								</button>
+								<a
+									href="/admin/events/{event.id}/ticket-types"
+									class="text-blue-600 hover:underline mr-4"
+								>
+									Ticket Types
+								</a>
 								<button
 									on:click={() => deleteEvent(event.id)}
 									class="text-red-600 hover:underline"

@@ -1,4 +1,4 @@
-import { getEvent, getContactInfo } from '$lib/server/database';
+import { getEvent, getContactInfo, getEventTicketTypes } from '$lib/server/database';
 import { error } from '@sveltejs/kit';
 
 export const load = async ({ params }) => {
@@ -9,7 +9,8 @@ export const load = async ({ params }) => {
 	}
 	
 	const contactInfo = getContactInfo();
+	const ticketTypes = getEventTicketTypes(event.id);
 	
-	return { event, contactInfo };
+	return { event, contactInfo, ticketTypes };
 };
 

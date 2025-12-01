@@ -1,5 +1,6 @@
 <script lang="js">
 	import Footer from '$lib/components/Footer.svelte';
+	import EventBookingForm from '$lib/components/EventBookingForm.svelte';
 	import { getContext } from 'svelte';
 
 	export let data;
@@ -18,6 +19,9 @@
 	} catch (e) {
 		// Context not available
 	}
+
+	// Check if booking is enabled (has ticket types and payment settings)
+	$: bookingEnabled = data.ticketTypes && data.ticketTypes.length > 0 && data.event.paymentSettings?.paypalEnabled;
 
 	function formatDate(dateString) {
 		if (!dateString) return '';
@@ -178,21 +182,40 @@
 							{/if}
 						</div>
 
-						<div class="mt-8 pt-6 border-t border-gray-200">
-							<h3 class="font-semibold text-gray-900 mb-3">Need more information?</h3>
-							<a
-								href="/#contact"
-								class="block w-full text-center px-6 py-3 bg-primary text-white rounded-full font-semibold hover:bg-opacity-90 transition-all"
-							>
-								Contact Us
-							</a>
-						</div>
+						{#if bookingEnabled}
+							<div class="mt-8 pt-6 border-t border-gray-200">
+								<h3 class="font-semibold text-gray-900 mb-3">Book Tickets</h3>
+								<p class="text-sm text-gray-600 mb-4">Purchase tickets for this event using the form below.</p>
+							</div>
+						{:else}
+							<div class="mt-8 pt-6 border-t border-gray-200">
+								<h3 class="font-semibold text-gray-900 mb-3">Need more information?</h3>
+								<a
+									href="/#contact"
+									class="block w-full text-center px-6 py-3 bg-primary text-white rounded-full font-semibold hover:bg-opacity-90 transition-all"
+								>
+									Contact Us
+								</a>
+							</div>
+						{/if}
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 </section>
+
+<!-- Booking Form Section -->
+{#if bookingEnabled}
+	<section class="py-20 bg-gray-50">
+		<div class="container mx-auto px-4">
+			<div class="max-w-4xl mx-auto">
+				<h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Book Your Tickets</h2>
+				<EventBookingForm event={data.event} ticketTypes={data.ticketTypes} />
+			</div>
+		</div>
+	</section>
+{/if}
 
 <Footer contactInfo={data.contactInfo} />
 

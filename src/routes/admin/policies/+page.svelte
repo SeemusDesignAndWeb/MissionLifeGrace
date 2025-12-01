@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import { notifyError, notifySuccess } from '$lib/utils/notify';
+	import HelpIcon from '$lib/components/HelpIcon.svelte';
+	import { getHelpContent } from '$lib/utils/helpContent';
 
 	let policies = {
 		privacyPolicy: { title: '', content: '' },
@@ -112,7 +114,12 @@
 			</div>
 			<div class="space-y-4">
 				<div>
-					<label class="block text-sm font-medium mb-1">Title</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Title</label>
+						<HelpIcon helpId="field-policy-title" position="right">
+							{@html getHelpContent('field-policy-title').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="text"
 						bind:value={editing.title}
@@ -120,7 +127,12 @@
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Content</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Content</label>
+						<HelpIcon helpId="field-policy-content" position="right">
+							{@html getHelpContent('field-policy-content').content}
+						</HelpIcon>
+					</div>
 					<div class="relative" style="height: 500px;">
 						<RichTextEditor bind:value={editing.content} height="480px" />
 					</div>

@@ -45,9 +45,13 @@ const defaultDatabase = {
 	conferenceDiscountCodes: [],
 	conferencePaymentSchedules: [],
 	conferenceFormFields: [],
+	eventTicketTypes: [],
+	eventBookings: [],
+	eventAttendees: [],
 	userAccounts: [],
 	emailVerificationCodes: [],
 	passwordResetTokens: [],
+	adminUsers: [],
 	contact: {
 		address: '542 Westhorne Avenue, Eltham, London, SE9 6RR',
 		email: 'enquiries@egcc.co.uk',
@@ -605,6 +609,117 @@ export function deleteEvent(id) {
 	const db = readDatabase();
 	if (db.events) {
 		db.events = db.events.filter((e) => e.id !== id);
+		writeDatabase(db);
+	}
+}
+
+// CRUD operations for Event Ticket Types
+export function getEventTicketTypes(eventId) {
+	const db = readDatabase();
+	if (!db.eventTicketTypes) {
+		db.eventTicketTypes = [];
+	}
+	return db.eventTicketTypes.filter((t) => t.eventId === eventId) || [];
+}
+
+export function getEventTicketType(id) {
+	const db = readDatabase();
+	return db.eventTicketTypes?.find((t) => t.id === id);
+}
+
+export function saveEventTicketType(ticketType) {
+	const db = readDatabase();
+	if (!db.eventTicketTypes) {
+		db.eventTicketTypes = [];
+	}
+	const index = db.eventTicketTypes.findIndex((t) => t.id === ticketType.id);
+	if (index >= 0) {
+		db.eventTicketTypes[index] = ticketType;
+	} else {
+		db.eventTicketTypes.push(ticketType);
+	}
+	writeDatabase(db);
+}
+
+export function deleteEventTicketType(id) {
+	const db = readDatabase();
+	if (db.eventTicketTypes) {
+		db.eventTicketTypes = db.eventTicketTypes.filter((t) => t.id !== id);
+		writeDatabase(db);
+	}
+}
+
+// CRUD operations for Event Bookings
+export function getEventBookings(eventId = null) {
+	const db = readDatabase();
+	if (!db.eventBookings) {
+		db.eventBookings = [];
+	}
+	if (eventId) {
+		return db.eventBookings.filter((b) => b.eventId === eventId) || [];
+	}
+	return db.eventBookings || [];
+}
+
+export function getEventBooking(id) {
+	const db = readDatabase();
+	return db.eventBookings?.find((b) => b.id === id);
+}
+
+export function saveEventBooking(booking) {
+	const db = readDatabase();
+	if (!db.eventBookings) {
+		db.eventBookings = [];
+	}
+	const index = db.eventBookings.findIndex((b) => b.id === booking.id);
+	if (index >= 0) {
+		db.eventBookings[index] = booking;
+	} else {
+		db.eventBookings.push(booking);
+	}
+	writeDatabase(db);
+}
+
+export function deleteEventBooking(id) {
+	const db = readDatabase();
+	if (db.eventBookings) {
+		db.eventBookings = db.eventBookings.filter((b) => b.id !== id);
+		writeDatabase(db);
+	}
+}
+
+// CRUD operations for Event Attendees
+export function getEventAttendees(bookingId) {
+	const db = readDatabase();
+	if (!db.eventAttendees) {
+		db.eventAttendees = [];
+	}
+	return db.eventAttendees.filter((a) => a.bookingId === bookingId) || [];
+}
+
+export function getEventAttendee(id) {
+	const db = readDatabase();
+	return db.eventAttendees?.find((a) => a.id === id);
+}
+
+export function saveEventAttendee(attendee) {
+	const db = readDatabase();
+	if (!db.eventAttendees) {
+		db.eventAttendees = [];
+	}
+	const index = db.eventAttendees.findIndex((a) => a.id === attendee.id);
+	if (index >= 0) {
+		db.eventAttendees[index] = attendee;
+	} else {
+		db.eventAttendees.push(attendee);
+	}
+	writeDatabase(db);
+}
+
+export function deleteEventAttendee(id) {
+	const db = readDatabase();
+	if (db.eventAttendees) {
+		db.eventAttendees = db.eventAttendees.filter((a) => a.id !== id);
 		writeDatabase(db);
 	}
 }
@@ -1236,5 +1351,51 @@ export function markPasswordResetTokenUsed(email, token) {
 			db.passwordResetTokens[index].used = true;
 			writeDatabase(db);
 		}
+	}
+}
+
+// CRUD operations for Admin Users
+export function getAdminUsers() {
+	const db = readDatabase();
+	if (!db.adminUsers) {
+		db.adminUsers = [];
+	}
+	return db.adminUsers || [];
+}
+
+export function getAdminUser(id) {
+	const db = readDatabase();
+	return db.adminUsers?.find((u) => u.id === id);
+}
+
+export function getAdminUserByEmail(email) {
+	const db = readDatabase();
+	return db.adminUsers?.find((u) => u.email.toLowerCase() === email.toLowerCase());
+}
+
+export function getAdminUserByUsername(username) {
+	const db = readDatabase();
+	return db.adminUsers?.find((u) => u.username.toLowerCase() === username.toLowerCase());
+}
+
+export function saveAdminUser(adminUser) {
+	const db = readDatabase();
+	if (!db.adminUsers) {
+		db.adminUsers = [];
+	}
+	const index = db.adminUsers.findIndex((u) => u.id === adminUser.id);
+	if (index >= 0) {
+		db.adminUsers[index] = adminUser;
+	} else {
+		db.adminUsers.push(adminUser);
+	}
+	writeDatabase(db);
+}
+
+export function deleteAdminUser(id) {
+	const db = readDatabase();
+	if (db.adminUsers) {
+		db.adminUsers = db.adminUsers.filter((u) => u.id !== id);
+		writeDatabase(db);
 	}
 }

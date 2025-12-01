@@ -1,6 +1,8 @@
 <script lang="js">
 	import { onMount } from 'svelte';
 	import { notifyError, notifySuccess } from '$lib/utils/notify';
+	import HelpIcon from '$lib/components/HelpIcon.svelte';
+	import { getHelpContent } from '$lib/utils/helpContent';
 
 	let conferences = [];
 	let discountCodes = [];
@@ -176,7 +178,12 @@
 			</div>
 			<div class="space-y-4">
 				<div>
-					<label class="block text-sm font-medium mb-1">Conference *</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Conference *</label>
+						<HelpIcon helpId="field-discount-conference" position="right">
+							{@html getHelpContent('field-discount-conference').content}
+						</HelpIcon>
+					</div>
 					<select
 						bind:value={editing.conferenceId}
 						class="w-full px-3 py-2 border rounded"
@@ -188,7 +195,12 @@
 					</select>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Code *</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Code *</label>
+						<HelpIcon helpId="field-discount-code" position="right">
+							{@html getHelpContent('field-discount-code').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="text"
 						bind:value={editing.code}
@@ -198,14 +210,24 @@
 				</div>
 				<div class="grid grid-cols-2 gap-4">
 					<div>
-						<label class="block text-sm font-medium mb-1">Type</label>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Type</label>
+							<HelpIcon helpId="field-discount-type" position="right">
+								{@html getHelpContent('field-discount-type').content}
+							</HelpIcon>
+						</div>
 						<select bind:value={editing.type} class="w-full px-3 py-2 border rounded">
 							<option value="percentage">Percentage</option>
 							<option value="fixed">Fixed Amount</option>
 						</select>
 					</div>
 					<div>
-						<label class="block text-sm font-medium mb-1">Value *</label>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Value *</label>
+							<HelpIcon helpId="field-discount-value" position="right">
+								{@html getHelpContent('field-discount-value').content}
+							</HelpIcon>
+						</div>
 						<input
 							type="number"
 							bind:value={editing.value}
@@ -217,7 +239,12 @@
 					</div>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Max Usage (0 = unlimited)</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Max Usage (0 = unlimited)</label>
+						<HelpIcon helpId="field-discount-max-usage" position="right">
+							{@html getHelpContent('field-discount-max-usage').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="number"
 						bind:value={editing.maxUsage}
@@ -226,7 +253,12 @@
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1">Expiry Date</label>
+					<div class="flex items-center gap-1 mb-1">
+						<label class="text-sm font-medium">Expiry Date</label>
+						<HelpIcon helpId="field-discount-expiry" position="right">
+							{@html getHelpContent('field-discount-expiry').content}
+						</HelpIcon>
+					</div>
 					<input
 						type="date"
 						bind:value={editing.expiryDate}
@@ -239,7 +271,12 @@
 						bind:checked={editing.enabled}
 						class="mr-2"
 					/>
-					<label>Enabled</label>
+					<div class="flex items-center gap-1">
+						<label>Enabled</label>
+						<HelpIcon helpId="field-discount-enabled" position="right">
+							{@html getHelpContent('field-discount-enabled').content}
+						</HelpIcon>
+					</div>
 				</div>
 				<div class="flex gap-2 pt-4">
 					<button

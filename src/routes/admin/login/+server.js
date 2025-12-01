@@ -1,12 +1,18 @@
 import { json } from '@sveltejs/kit';
-import { createSession } from '$lib/server/auth';
+import { createSession } from '$lib/server/admin-auth';
 
 export const POST = async ({ request, cookies }) => {
-	const { password } = await request.json();
+	const { email, password } = await request.json();
 
-	if (createSession(cookies, password)) {
-		return json({ success: true });
+	if (!email || !password) {
+		return json({ error: 'Email and password are required' }, { status: 400 });
+	}
+
+	const result = createSession(cookies, email, password);
+	
+	if (result.success) {
+		return json({ success: true, accessLevel: result.adminUser.accessLevel });
 	} else {
-		return json({ error: 'Invalid password' }, { status: 401 });
+		return json({ error: result.error || 'Invalid credentials' }, { status: 401 });
 	}
 };

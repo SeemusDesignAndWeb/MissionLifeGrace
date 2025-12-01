@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import { capturePayPalOrder, getPayPalOrder } from '$lib/server/paypal';
 import { getConferenceBooking, saveConferenceBooking, saveConferencePaymentSchedule, getConference, getUserAccountByEmail } from '$lib/server/database';
+import { sendAdminPaymentNotification, sendPaymentConfirmationEmail } from '$lib/server/conference-emails';
 
 export const POST = async ({ request }) => {
 	try {
@@ -88,6 +89,25 @@ export const POST = async ({ request }) => {
 				paymentStatus: booking.paymentStatus,
 				amountPaid
 			});
+
+			// Send notifications (don't wait for them)
+			const conference = getConference(booking.conferenceId);
+			if (conference) {
+				// Send admin notification
+				sendAdminPaymentNotification({
+					booking,
+					conference,
+					paymentAmount: amountPaid,
+					paymentMethod: 'PayPal (Test Mode)'
+				}).catch(err => console.error('Admin payment notification failed:', err));
+
+				// Send user confirmation
+				sendPaymentConfirmationEmail({
+					booking,
+					conference,
+					paymentAmount: amountPaid
+				}).catch(err => console.error('Payment confirmation email failed:', err));
+			}
 
 			const accountStatus = checkAccountStatus(booking.groupLeaderEmail);
 
@@ -181,6 +201,25 @@ export const POST = async ({ request }) => {
 		booking.paypalCaptureId = payment.id;
 		booking.paymentDate = new Date().toISOString();
 		saveConferenceBooking(booking);
+
+		// Send notifications (don't wait for them)
+		const conference = getConference(booking.conferenceId);
+		if (conference) {
+			// Send admin notification
+			sendAdminPaymentNotification({
+				booking,
+				conference,
+				paymentAmount: amountPaid,
+				paymentMethod: 'PayPal'
+			}).catch(err => console.error('Admin payment notification failed:', err));
+
+			// Send user confirmation
+			sendPaymentConfirmationEmail({
+				booking,
+				conference,
+				paymentAmount: amountPaid
+			}).catch(err => console.error('Payment confirmation email failed:', err));
+		}
 
 		const accountStatus = checkAccountStatus(booking.groupLeaderEmail);
 

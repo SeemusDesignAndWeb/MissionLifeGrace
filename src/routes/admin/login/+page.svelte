@@ -3,6 +3,7 @@
 
 	export let params = {};
 
+	let email = '';
 	let password = '';
 	let error = '';
 	let loading = false;
@@ -18,14 +19,17 @@
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ password })
+				body: JSON.stringify({ 
+					email: email.trim(),
+					password 
+				})
 			});
 
 			if (response.ok) {
 				goto('/admin');
 			} else {
 				const data = await response.json();
-				error = data.error || 'Invalid password';
+				error = data.error || 'Invalid credentials';
 			}
 		} catch (err) {
 			error = 'An error occurred. Please try again.';
@@ -57,7 +61,25 @@
 			{/if}
 
 			<div>
-				<label for="password" class="sr-only">Password</label>
+				<label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+					Email
+				</label>
+				<input
+					id="email"
+					name="email"
+					type="email"
+					required
+					bind:value={email}
+					class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+					placeholder="Enter your email"
+					autocomplete="email"
+				/>
+			</div>
+
+			<div>
+				<label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+					Password
+				</label>
 				<input
 					id="password"
 					name="password"
@@ -65,7 +87,8 @@
 					required
 					bind:value={password}
 					class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-					placeholder="Password"
+					placeholder="Enter your password"
+					autocomplete="current-password"
 				/>
 			</div>
 

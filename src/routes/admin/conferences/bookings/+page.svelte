@@ -1,5 +1,7 @@
 <script lang="js">
 	import { onMount } from 'svelte';
+	import HelpIcon from '$lib/components/HelpIcon.svelte';
+	import { getHelpContent } from '$lib/utils/helpContent';
 
 	export let data;
 
@@ -13,6 +15,15 @@
 	let selectedBookingAttendees = [];
 	let ticketTypes = [];
 	let loadingDetails = false;
+	
+	// Bulk communication
+	let selectedBookings = new Set();
+	let showBulkEmailModal = false;
+	let bulkEmailSubject = '';
+	let bulkEmailMessage = '';
+	let bulkEmailLoading = false;
+	let bulkEmailError = '';
+	let bulkEmailSuccess = false;
 
 	onMount(async () => {
 		await loadConferences();
@@ -215,6 +226,87 @@
 		if (address.country) parts.push(address.country);
 		return parts.length > 0 ? parts.join(', ') : 'N/A';
 	}
+
+	function toggleBookingSelection(bookingId, event) {
+		event.stopPropagation();
+		if (selectedBookings.has(bookingId)) {
+			selectedBookings.delete(bookingId);
+		} else {
+			selectedBookings.add(bookingId);
+		}
+		selectedBookings = new Set(selectedBookings); // Trigger reactivity
+	}
+
+	function toggleAllBookings() {
+		const filtered = filterBookings();
+		if (selectedBookings.size === filtered.length) {
+			selectedBookings.clear();
+		} else {
+			filtered.forEach(b => selectedBookings.add(b.id));
+		}
+		selectedBookings = new Set(selectedBookings);
+	}
+
+	function openBulkEmailModal() {
+		if (selectedBookings.size === 0) {
+			alert('Please select at least one booking');
+			return;
+		}
+		bulkEmailSubject = '';
+		bulkEmailMessage = '';
+		bulkEmailError = '';
+		bulkEmailSuccess = false;
+		showBulkEmailModal = true;
+	}
+
+	function closeBulkEmailModal() {
+		showBulkEmailModal = false;
+		bulkEmailSubject = '';
+		bulkEmailMessage = '';
+		bulkEmailError = '';
+		bulkEmailSuccess = false;
+	}
+
+	async function sendBulkEmail() {
+		if (!bulkEmailSubject.trim() || !bulkEmailMessage.trim()) {
+			bulkEmailError = 'Subject and message are required';
+			return;
+		}
+
+		bulkEmailLoading = true;
+		bulkEmailError = '';
+		bulkEmailSuccess = false;
+
+		try {
+			const response = await fetch('/api/admin/bulk-email', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					bookingIds: Array.from(selectedBookings),
+					subject: bulkEmailSubject,
+					message: bulkEmailMessage
+				})
+			});
+
+			const result = await response.json();
+
+			if (response.ok) {
+				bulkEmailSuccess = true;
+				selectedBookings.clear();
+				selectedBookings = new Set(selectedBookings);
+				setTimeout(() => {
+					closeBulkEmailModal();
+				}, 2000);
+			} else {
+				bulkEmailError = result.error || 'Failed to send emails';
+			}
+		} catch (error) {
+			bulkEmailError = 'An error occurred. Please try again.';
+			console.error('Bulk email error:', error);
+		} finally {
+			bulkEmailLoading = false;
+		}
+	}
 </script>
 
 <svelte:head>
@@ -222,7 +314,12 @@
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8 admin-page">
-	<h1 class="text-3xl font-bold mb-6">Conference Bookings</h1>
+	<div class="flex items-center gap-2 mb-6">
+		<h1 class="text-3xl font-bold">Conference Bookings</h1>
+		<HelpIcon helpId="admin-bookings-page" position="right">
+			{@html getHelpContent('admin-bookings-page').content}
+		</HelpIcon>
+	</div>
 
 	<div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
 		<div>
@@ -277,17 +374,38 @@
 		</div>
 	</div>
 
-	<div class="mb-4 text-sm text-gray-600">
-		Showing {filterBookings().length} {showArchived ? 'archived' : 'active'} booking{filterBookings().length !== 1 ? 's' : ''}
-		{#if !showArchived}
-			<span class="text-gray-400">
-				({bookings.filter(b => b.archived).length} archived)
-			</span>
-		{/if}
-		{#if searchQuery}
-			<span class="ml-2">
-				matching "<strong>{searchQuery}</strong>"
-			</span>
+	<div class="mb-4 flex items-center justify-between">
+		<div class="text-sm text-gray-600">
+			Showing {filterBookings().length} {showArchived ? 'archived' : 'active'} booking{filterBookings().length !== 1 ? 's' : ''}
+			{#if !showArchived}
+				<span class="text-gray-400">
+					({bookings.filter(b => b.archived).length} archived)
+				</span>
+			{/if}
+			{#if searchQuery}
+				<span class="ml-2">
+					matching "<strong>{searchQuery}</strong>"
+				</span>
+			{/if}
+		</div>
+		{#if selectedBookings.size > 0}
+			<div class="flex items-center gap-3">
+				<span class="text-sm font-medium text-gray-700">
+					{selectedBookings.size} booking{selectedBookings.size !== 1 ? 's' : ''} selected
+				</span>
+				<button
+					on:click={openBulkEmailModal}
+					class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark font-semibold text-sm"
+				>
+					Send Email to Selected
+				</button>
+				<button
+					on:click={() => { selectedBookings.clear(); selectedBookings = new Set(selectedBookings); }}
+					class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold text-sm"
+				>
+					Clear Selection
+				</button>
+			</div>
 		{/if}
 	</div>
 
@@ -300,6 +418,14 @@
 			<table class="min-w-full divide-y divide-gray-200">
 				<thead class="bg-gray-50">
 					<tr>
+						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+							<input
+								type="checkbox"
+								checked={selectedBookings.size === filterBookings().length && filterBookings().length > 0}
+								on:change={toggleAllBookings}
+								class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+							/>
+						</th>
 						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
 						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Conference</th>
 						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Group Leader</th>
@@ -316,7 +442,7 @@
 				<tbody class="bg-white divide-y divide-gray-200">
 					{#each filterBookings() as booking}
 						<tr 
-							class="cursor-pointer hover:bg-gray-50 transition-colors {booking.archived ? 'opacity-60 bg-gray-50' : ''}"
+							class="cursor-pointer hover:bg-gray-50 transition-colors {booking.archived ? 'opacity-60 bg-gray-50' : ''} {selectedBookings.has(booking.id) ? 'bg-blue-50' : ''}"
 							on:click={() => viewBookingDetails(booking)}
 							role="button"
 							tabindex="0"
@@ -327,6 +453,15 @@
 								}
 							}}
 						>
+							<td class="px-6 py-4 whitespace-nowrap" on:click={(e) => toggleBookingSelection(booking.id, e)}>
+								<input
+									type="checkbox"
+									checked={selectedBookings.has(booking.id)}
+									on:change={(e) => toggleBookingSelection(booking.id, e)}
+									on:click|stopPropagation
+									class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+								/>
+							</td>
 							<td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
 								<div class="flex items-center gap-2">
 									{booking.bookingReference}
@@ -395,6 +530,102 @@
 		</div>
 	{/if}
 </div>
+
+<!-- Bulk Email Modal -->
+{#if showBulkEmailModal}
+	<div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+		<div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
+			<div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+				<h2 class="text-2xl font-bold text-gray-900">Send Bulk Email</h2>
+				<button
+					on:click={closeBulkEmailModal}
+					class="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+					aria-label="Close"
+				>
+					×
+				</button>
+			</div>
+			
+			<div class="p-6">
+				{#if bulkEmailSuccess}
+					<div class="text-center py-8">
+						<div class="mb-4">
+							<svg class="w-16 h-16 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+							</svg>
+						</div>
+						<p class="text-lg font-semibold text-gray-900 mb-2">Emails Sent Successfully!</p>
+						<p class="text-sm text-gray-600">Your email has been sent to {selectedBookings.size} booking{selectedBookings.size !== 1 ? 's' : ''}.</p>
+					</div>
+				{:else}
+					<div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+						<p class="text-sm text-blue-800">
+							<strong>{selectedBookings.size}</strong> booking{selectedBookings.size !== 1 ? 's' : ''} selected. 
+							This email will be sent to the group leader of each selected booking.
+						</p>
+					</div>
+
+					{#if bulkEmailError}
+						<div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+							<p class="text-sm text-red-800">{bulkEmailError}</p>
+						</div>
+					{/if}
+
+					<form on:submit|preventDefault={sendBulkEmail} class="space-y-4">
+						<div>
+							<label for="bulk-email-subject" class="block text-sm font-medium text-gray-700 mb-1">
+								Subject *
+							</label>
+							<input
+								id="bulk-email-subject"
+								type="text"
+								bind:value={bulkEmailSubject}
+								required
+								class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+								placeholder="Email subject line"
+							/>
+						</div>
+
+						<div>
+							<label for="bulk-email-message" class="block text-sm font-medium text-gray-700 mb-1">
+								Message *
+							</label>
+							<textarea
+								id="bulk-email-message"
+								bind:value={bulkEmailMessage}
+								required
+								rows="10"
+								class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+								placeholder="Enter your message here. You can use {bookingReference} and {groupLeaderName} as placeholders."
+							></textarea>
+							<p class="text-xs text-gray-500 mt-1">
+								Tip: Use <code class="bg-gray-100 px-1 rounded">{'{bookingReference}'}</code> and <code class="bg-gray-100 px-1 rounded">{'{groupLeaderName}'}</code> for personalization
+							</p>
+						</div>
+
+						<div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+							<button
+								type="button"
+								on:click={closeBulkEmailModal}
+								disabled={bulkEmailLoading}
+								class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold disabled:opacity-50"
+							>
+								Cancel
+							</button>
+							<button
+								type="submit"
+								disabled={bulkEmailLoading}
+								class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark font-semibold disabled:opacity-50"
+							>
+								{bulkEmailLoading ? 'Sending...' : `Send to ${selectedBookings.size} Booking${selectedBookings.size !== 1 ? 's' : ''}`}
+							</button>
+						</div>
+					</form>
+				{/if}
+			</div>
+		</div>
+	</div>
+{/if}
 
 <!-- Booking Details Modal -->
 {#if selectedBooking}

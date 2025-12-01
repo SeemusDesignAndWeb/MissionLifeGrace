@@ -240,6 +240,43 @@
 		return Number(amount).toFixed(2);
 	}
 
+	function generateCalendarLink() {
+		if (!conference || !conference.startDate) return '';
+		
+		const startDate = new Date(conference.startDate);
+		const endDate = conference.endDate ? new Date(conference.endDate) : new Date(startDate);
+		
+		// Set default times if not specified
+		if (!conference.startTime) {
+			startDate.setHours(9, 0, 0);
+		} else {
+			const [hours, minutes] = conference.startTime.split(':');
+			startDate.setHours(parseInt(hours), parseInt(minutes || 0), 0);
+		}
+		
+		if (!conference.endTime) {
+			endDate.setHours(17, 0, 0);
+		} else {
+			const [hours, minutes] = conference.endTime.split(':');
+			endDate.setHours(parseInt(hours), parseInt(minutes || 0), 0);
+		}
+
+		// Format dates for Google Calendar (YYYYMMDDTHHMMSSZ)
+		const formatDate = (date) => {
+			return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+		};
+
+		const params = new URLSearchParams({
+			action: 'TEMPLATE',
+			text: conference.title,
+			dates: `${formatDate(startDate)}/${formatDate(endDate)}`,
+			details: conference.description || '',
+			location: conference.venue?.name || conference.venue?.address || ''
+		});
+
+		return `https://calendar.google.com/calendar/render?${params.toString()}`;
+	}
+
 	function calculateDiscount() {
 		if (!discountCodeData) return 0;
 		const subtotal = calculateSubtotal();
@@ -743,35 +780,10 @@
 			} else if (result.accountNeedsSetup || (booking.paymentStatus !== 'paid' && booking.groupLeaderEmail)) {
 				showAccountSetup = true;
 				accountSetupEmail = booking.groupLeaderEmail;
-				// Start with verification step - create account and send code
+				// Start with verification step - account should already be created and code sent by backend
 				accountSetupStep = 'verify';
-				// Automatically send verification code if not already sent by backend
-				if (result.accountNeedsSetup) {
-					try {
-						// The backend might have already sent the code if accountNeedsSetup was true
-						// But let's double check or resend if user requests
-					} catch (error) {
-						console.error('Error initiating account creation:', error);
-					}
-				} else {
-					// If backend didn't flag it but we're showing it due to unpaid status and no account
-					try {
-						const registerResponse = await fetch('/api/user/register', {
-							method: 'POST',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								email: booking.groupLeaderEmail,
-								bookingId: result.bookingId,
-								name: booking.groupLeaderName || booking.groupLeaderEmail.split('@')[0]
-							})
-						});
-						if (!registerResponse.ok) {
-							console.error('Failed to initiate account creation');
-						}
-					} catch (error) {
-						console.error('Error initiating account creation:', error);
-					}
-				}
+				// The backend should have already created the account and sent the verification code
+				// If for some reason it didn't, the user can use the resend button
 			}
 			
 			// If PayPal is enabled, create PayPal order (unless in TEST mode)
@@ -2061,6 +2073,49 @@
 					</div>
 				</div>
 				<p class="text-gray-600 mb-4">A confirmation email has been sent to {orderSummary.groupLeaderEmail}</p>
+				
+				<!-- Next Steps -->
+				<div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-6">
+					<h4 class="font-semibold text-lg mb-3 text-blue-900">Next Steps</h4>
+					<ul class="space-y-2 text-left text-sm">
+						<li class="flex items-start">
+							<span class="text-blue-600 mr-2">✓</span>
+							<span>Check your email for booking confirmation and important details</span>
+						</li>
+						{#if conference.startDate}
+							<li class="flex items-start">
+								<span class="text-blue-600 mr-2">✓</span>
+								<span>Add the conference to your calendar using the link in your email</span>
+							</li>
+						{/if}
+						{#if orderSummary.paymentStatus === 'partial' || orderSummary.paymentStatus === 'unpaid'}
+							<li class="flex items-start">
+								<span class="text-blue-600 mr-2">✓</span>
+								<span>Complete your account setup below to manage your booking and payments</span>
+							</li>
+						{:else}
+							<li class="flex items-start">
+								<span class="text-blue-600 mr-2">✓</span>
+								<span>Your booking is confirmed! We'll send you more information closer to the event</span>
+							</li>
+						{/if}
+					</ul>
+					{#if conference.startDate}
+						<div class="mt-4">
+							<a 
+								href={generateCalendarLink()} 
+								target="_blank" 
+								rel="noopener noreferrer"
+								class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark font-semibold"
+							>
+								<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+								</svg>
+								Add to Calendar
+							</a>
+						</div>
+					{/if}
+				</div>
 				
 				<!-- Account Setup Section -->
 				{#if showAccountSetup && (orderSummary.paymentStatus === 'partial' || orderSummary.paymentStatus === 'unpaid')}
