@@ -194,6 +194,13 @@
 					navigationLabel: ''
 				};
 		showForm = true;
+		// Reset section index
+		currentSectionIndex = null;
+		currentImageIndex = null;
+		// Load hero slides if editing home page
+		if (page && page.id === 'home') {
+			await loadHeroSlides();
+		}
 	}
 
 	// Auto-generate ID when title changes (only for new pages or if ID is empty)
