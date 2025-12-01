@@ -326,7 +326,10 @@
       "showInNavigation": false,
       "navigationLabel": "Home",
       "navigationOrder": 0,
-      "heroMessages": []
+      "heroMessages": [],
+      "visionLabel": "Our Vision",
+      "visionTitle": "We Believe",
+      "visionText": "We believe every church exists to be part of God's mission to show the world Christ and that we are better equipped to do this in partnership with other churches. As a network our focus is to encourage each other through sharing our hearts, ideas and lessons learned along the way, to challenge one another to stay true to the course and to invest in helping people fulfil their God given calling. We believe that by journeying together we can see God do great things in our nation and around the world."
     },
     {
       "id": "events",
