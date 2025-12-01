@@ -41,8 +41,9 @@ async function getAllCloudinaryImages() {
 			console.log(`[Cloudinary Sync] Fetching page ${pageCount}...`);
 			
 			// Build the search query using the chainable API
+			// We use resource_type:image to find all images, regardless of folder
 			let search = cloudinary.search
-				.expression('folder:egcc')
+				.expression('resource_type:image')
 				.max_results(500)
 				.with_field('context')
 				.with_field('tags');
