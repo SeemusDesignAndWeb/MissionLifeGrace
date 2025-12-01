@@ -2970,10 +2970,16 @@
     "aboutImage": "https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763390998/egcc/375d5fb3-6856-49be-a8d1-48859a442bca.jpg",
     "id": "home",
     "title": "Home Page",
-    "heroTitle": "",
-    "heroSubtitle": "",
-    "heroButtons": [],
-    "heroImage": "",
+    "heroTitle": "Mission Life Grace",
+    "heroSubtitle": "Churches on mission together",
+    "heroButtons": [
+      {
+        "text": "Learn more",
+        "url": "#about-us",
+        "style": "primary"
+      }
+    ],
+    "heroImage": "https://res.cloudinary.com/dsnceqtza/image/upload/v1764355863/cld-sample-2.jpg",
     "heroOverlay": 40,
     "sections": [],
     "metaDescription": "Home page content and hero slides",

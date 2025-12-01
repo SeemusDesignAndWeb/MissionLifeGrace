@@ -1294,67 +1294,79 @@
 			<div class="space-y-4 mb-6">
 				{#each availableTickets as ticketType (ticketType.id)}
 					<div class="border rounded p-4">
-						{#if ticketType.description}
-							<p class="md:hidden text-sm text-gray-700 mb-3 w-full border-b pb-2">{ticketType.description}</p>
-						{/if}
-						<div class="flex justify-between items-start">
+						<div class="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+							<!-- Left Column: Name (1) and Description (2) -->
 							<div class="flex-1">
-								<h4 class="font-semibold text-lg">{ticketType.name}</h4>
-								<p class="text-sm text-gray-600 capitalize">{ticketType.type}</p>
+								<!-- 1. Name & Type -->
+								<div class="flex flex-wrap items-center gap-2 mb-2">
+									<h4 class="font-semibold text-lg">{ticketType.name}</h4>
+									<span class="text-xs text-gray-600 capitalize px-2 py-0.5 bg-gray-100 rounded">{ticketType.type}</span>
+									{#if ticketType.camping}
+										<span class="inline-block px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded">Camping</span>
+									{/if}
+								</div>
+								
+								<!-- 2. Description -->
 								{#if ticketType.description}
-									<p class="hidden md:block text-sm text-gray-700 mt-1">{ticketType.description}</p>
-								{/if}
-								{#if ticketType.camping}
-									<span class="inline-block mt-2 px-2 py-1 text-xs bg-green-100 text-green-800 rounded">Camping</span>
+									<p class="text-sm text-gray-700">{ticketType.description}</p>
 								{/if}
 							</div>
-							<div class="text-right ml-4">
-								<div class="flex items-center gap-2 justify-end mb-1">
-									{#if isEarlyBirdActive()}
+
+							<!-- Right Column: Early Bird (3), Price (4), Button (5) -->
+							<div class="flex flex-col md:items-end gap-2 md:min-w-[200px]">
+								<!-- 3. Early Bird -->
+								{#if isEarlyBirdActive()}
+									<div class="mb-1">
 										{#if isEarlyBirdEndingSoon()}
 											<span class="px-2 py-1 text-xs font-semibold bg-orange-100 text-orange-800 rounded">Early Bird Ending Soon</span>
 										{:else}
 											<span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded">Early Bird</span>
 										{/if}
-									{/if}
-								</div>
-								<div class="flex items-baseline gap-2 justify-end">
+									</div>
+								{/if}
+
+								<!-- 4. Price -->
+								<div class="flex items-baseline gap-2">
 									{#if isEarlyBirdActive() && getCurrentPrice(ticketType) < ticketType.price}
 										<p class="text-sm text-gray-400 line-through">£{formatCurrency(ticketType.price)}</p>
 									{/if}
 									<p class="font-bold text-lg">£{formatCurrency(getCurrentPrice(ticketType))}</p>
 								</div>
+								
 								{#if ticketType.capacity}
-									<p class="text-xs text-gray-500">{ticketType.capacity - (ticketType.sold || 0)} remaining</p>
+									<p class="text-xs text-gray-500 -mt-1 mb-1">{ticketType.capacity - (ticketType.sold || 0)} remaining</p>
 								{/if}
+
+								<!-- 5. Button -->
+								<div class="flex items-center gap-4">
+									{#if !selectedTickets.find(t => t.ticketTypeId === ticketType.id)}
+										<button
+											on:click={() => addTicket(ticketType)}
+											class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark w-full md:w-auto"
+										>
+											Add
+										</button>
+									{:else}
+										{#each [selectedTickets.find(t => t.ticketTypeId === ticketType.id)] as selected}
+											<div class="flex items-center gap-2">
+												<button
+													on:click={() => updateQuantity(ticketType.id, selected.quantity - 1)}
+													class="w-8 h-8 rounded border flex items-center justify-center hover:bg-gray-50"
+												>
+													−
+												</button>
+												<span class="w-12 text-center font-semibold">{selected.quantity}</span>
+												<button
+													on:click={() => updateQuantity(ticketType.id, selected.quantity + 1)}
+													class="w-8 h-8 rounded border flex items-center justify-center hover:bg-gray-50"
+												>
+													+
+												</button>
+											</div>
+										{/each}
+									{/if}
+								</div>
 							</div>
-						</div>
-						<div class="mt-4 flex items-center gap-4">
-							<button
-								on:click={() => addTicket(ticketType)}
-								class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
-							>
-								Add
-							</button>
-							{#if selectedTickets.find(t => t.ticketTypeId === ticketType.id)}
-								{#each [selectedTickets.find(t => t.ticketTypeId === ticketType.id)] as selected}
-									<div class="flex items-center gap-2">
-									<button
-										on:click={() => updateQuantity(ticketType.id, selected.quantity - 1)}
-										class="w-8 h-8 rounded border flex items-center justify-center"
-									>
-										−
-									</button>
-									<span class="w-12 text-center">{selected.quantity}</span>
-									<button
-										on:click={() => updateQuantity(ticketType.id, selected.quantity + 1)}
-										class="w-8 h-8 rounded border flex items-center justify-center"
-									>
-										+
-									</button>
-									</div>
-								{/each}
-							{/if}
 						</div>
 					</div>
 				{/each}
