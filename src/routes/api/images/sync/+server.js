@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { requireAuth } from '$lib/server/auth';
+import { isAuthenticated } from '$lib/server/auth';
 import { readDatabase, writeDatabase } from '$lib/server/database';
 import { v2 as cloudinary } from 'cloudinary';
 import { env } from '$env/dynamic/private';
@@ -74,7 +74,9 @@ async function getAllCloudinaryImages() {
 
 // GET endpoint to list Cloudinary images for selection
 export const GET = async ({ cookies }) => {
-	requireAuth({ cookies });
+	if (!isAuthenticated(cookies)) {
+		return json({ error: 'Unauthorized' }, { status: 401 });
+	}
 
 	try {
 		console.log('[Cloudinary Sync] Starting to fetch images...');
@@ -146,7 +148,9 @@ export const GET = async ({ cookies }) => {
 
 // POST endpoint to import selected images
 export const POST = async ({ request, cookies }) => {
-	requireAuth({ cookies });
+	if (!isAuthenticated(cookies)) {
+		return json({ error: 'Unauthorized' }, { status: 401 });
+	}
 
 	try {
 		const { publicIds } = await request.json();
