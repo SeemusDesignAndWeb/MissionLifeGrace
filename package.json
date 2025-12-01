@@ -5,6 +5,7 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
+		"postbuild": "node scripts/copy-database-to-build.js",
 		"preview": "vite preview",
 		"start": "node build/index.js",
 		"import-podcasts": "node scripts/import-podcasts.js",
