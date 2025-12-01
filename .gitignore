@@ -9,8 +9,6 @@ node_modules
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-# Data folder - database.json should not be in git
-# It will be stored in Railway volume at /data/database.json
-/data/*.json
-data/database.json
+# Data folder - database.json is now in git for deployment
+# data/database.json is included in git for deployment
 

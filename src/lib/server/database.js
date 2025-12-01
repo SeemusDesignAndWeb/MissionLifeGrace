@@ -147,10 +147,41 @@ export function readDatabase() {
 	} catch (error) {
 		const isProduction = process.env.NODE_ENV === 'production' || dbPath.startsWith('/');
 		
-		if (isProduction) {
+		if (isProduction && dbPath === '/data/database.json') {
+			// In production, try to copy from build location if /data doesn't exist
+			// Check multiple possible build locations
+			const possiblePaths = [
+				join(process.cwd(), 'data/database.json'),  // /app/data/database.json
+				join(process.cwd(), 'build/data/database.json'),  // /app/build/data/database.json
+				'/app/data/database.json',  // Explicit absolute path
+				'/app/build/data/database.json'  // Explicit build path
+			];
+			
+			for (const buildDbPath of possiblePaths) {
+				if (existsSync(buildDbPath)) {
+					console.log('[DB] Database not found at /data/database.json, copying from build location:', buildDbPath);
+					try {
+						const buildData = readFileSync(buildDbPath, 'utf-8');
+						// Validate it's valid JSON
+						JSON.parse(buildData);
+						// Ensure /data directory exists
+						mkdirSync('/data', { recursive: true });
+						// Copy to /data
+						writeFileSync(dbPath, buildData, 'utf-8');
+						console.log('[DB] Successfully copied database to /data/database.json');
+						return JSON.parse(buildData);
+					} catch (copyError) {
+						console.error('[DB] Failed to copy database from build location:', copyError.message);
+						// Try next path
+						continue;
+					}
+				}
+			}
+			
 			// In production, database must exist on the volume
 			console.error('[DB] CRITICAL: Failed to read database in production:', error.message);
 			console.error('[DB] Database file path:', dbPath);
+			console.error('[DB] Checked build locations:', possiblePaths.map(p => `${p} (${existsSync(p) ? 'EXISTS' : 'NOT FOUND'})`).join(', '));
 			throw new Error(`Database file not found at ${dbPath}. Please ensure the Railway volume is mounted and the database file exists.`);
 		}
 		
