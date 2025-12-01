@@ -133,7 +133,7 @@
 			.replace(/^-+|-+$/g, '');
 	}
 
-	function startEdit(page) {
+	async function startEdit(page) {
 		// Reset expanded sections when starting to edit
 		expandedSections = new Set();
 		editing = page
