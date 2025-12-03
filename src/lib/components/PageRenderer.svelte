@@ -10,32 +10,6 @@
 		email: 'enquiries@egcc.co.uk'
 	};
 
-	let currentMessage = 0;
-	let autoplayInterval = null;
-	let bannerVisible = false;
-	
-	// Get banner visibility from context
-	try {
-		const bannerVisibleStore = getContext('bannerVisible');
-		if (bannerVisibleStore) {
-			bannerVisibleStore.subscribe(value => {
-				bannerVisible = value;
-			});
-		}
-	} catch (e) {
-		// Context not available
-	}
-
-	onMount(() => {
-		if (page.heroMessages && page.heroMessages.length > 0) {
-			autoplayInterval = window.setInterval(() => {
-				currentMessage = (currentMessage + 1) % page.heroMessages.length;
-			}, 4000);
-		}
-		return () => {
-			if (autoplayInterval) window.clearInterval(autoplayInterval);
-		};
-	});
 
 	function getBackgroundClass(bg) {
 		switch (bg) {
@@ -128,65 +102,7 @@
 	}
 </script>
 
-<!-- Hero Section -->
-{#if page.heroImage}
-	<section
-		id="hero"
-		class="relative h-[35vh] overflow-hidden transition-all duration-300"
-		class:mt-[5px]={bannerVisible}
-		style="background-image: url('{page.heroImage}'); background-size: cover; background-position: center;"
-	>
-		<div
-			class="absolute inset-0 bg-black"
-			style="opacity: {(page.heroOverlay || 40) / 100};"
-		></div>
-		<!-- Circular decorative elements -->
-		<div class="absolute top-20 right-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl opacity-50"></div>
-		<div class="absolute bottom-20 left-10 w-24 h-24 bg-brand-blue/10 rounded-full blur-2xl opacity-40"></div>
-		<div class="relative h-full flex items-end pb-16">
-			<div class="container mx-auto px-4">
-				<div class="max-w-2xl">
-					{#if page.heroTitle}
-						<h1 class="text-white text-4xl md:text-5xl font-bold mb-4 animate-fade-in">
-							{@html page.heroTitle}
-						</h1>
-					{/if}
-					{#if page.heroSubtitle}
-						<p class="text-white text-lg md:text-xl animate-fade-in">{page.heroSubtitle}</p>
-					{/if}
-					{#if page.heroMessages && page.heroMessages.length > 0}
-						<div class="relative h-12 mb-4">
-							{#each page.heroMessages as msg, index}
-								<div
-									class="absolute inset-0 transition-opacity duration-1000"
-									class:opacity-0={currentMessage !== index}
-									class:opacity-100={currentMessage === index}
-								>
-									<p class="text-white text-lg md:text-xl font-light animate-fade-in">
-										{msg}
-									</p>
-								</div>
-							{/each}
-						</div>
-					{/if}
-					{#if page.heroButtons && page.heroButtons.length > 0}
-						<div class="flex flex-wrap gap-3 mt-4">
-							{#each page.heroButtons as button}
-								<a
-									href={button.link}
-									target={button.target || '_self'}
-									class="px-6 py-3 {button.style === 'secondary' ? 'bg-white text-primary hover:bg-gray-100' : 'bg-primary text-white hover:bg-opacity-90'} rounded-full font-semibold transition-all transform hover:scale-105 shadow-lg text-sm"
-								>
-									{button.text}
-								</a>
-							{/each}
-						</div>
-					{/if}
-				</div>
-			</div>
-		</div>
-	</section>
-{/if}
+<!-- Hero section removed - pages now use HeroSlides component -->
 
 <!-- Page Sections -->
 {#if page.sections}

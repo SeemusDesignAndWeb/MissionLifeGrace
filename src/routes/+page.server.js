@@ -1,8 +1,7 @@
-import { getHeroSlides, getContactInfo, getEvents, getConferences, getServices, getHome, getSettings, getPage } from '$lib/server/database';
+import { getContactInfo, getEvents, getConferences, getServices, getHome, getSettings, getPage, getHeroSlides, migrateHeroSlidesToPages } from '$lib/server/database';
 import { getPlaylistVideos, getChannelVideos } from '$lib/server/youtube';
 
 export const load = async () => {
-	let heroSlides = getHeroSlides();
 	const contactInfo = getContactInfo();
 	const allEvents = getEvents();
 	const allConferences = getConferences();
@@ -102,30 +101,38 @@ export const load = async () => {
 	const homePage = getPage('home');
 	const home = homePage || getHome();
 	
-	// Use home page configuration for hero if available (prioritize over hero slides)
-	// Check for non-empty heroTitle or heroImage
-	const hasHomeHero = home && ((home.heroTitle && home.heroTitle.trim()) || (home.heroImage && home.heroImage.trim()));
+	// Migrate hero slides from global to page-specific if needed
+	migrateHeroSlidesToPages();
 	
-	if (hasHomeHero) {
-		const homeSlide = {
-			id: 'home-hero',
-			title: home.heroTitle || '',
-			subtitle: home.heroSubtitle || '',
-			image: home.heroImage || '',
-			cta: home.heroButtons?.[0]?.text || '',
-			ctaLink: home.heroButtons?.[0]?.link || home.heroButtons?.[0]?.url || '',
-			messages: home.heroMessages || [] // Pass rotating messages if any
-		};
-		// Use ONLY this slide as requested
-		heroSlides = [homeSlide];
-	} else {
-		// Use hero slides from database (managed in pages admin)
-		// These are the hero slides managed in the pages admin area
-		heroSlides = heroSlides.length > 0 ? heroSlides : null;
+	// Get hero slides from home page (page-specific)
+	let heroSlides = homePage?.heroSlides || [];
+	
+	// Fallback: If home page has old hero fields, create a slide from them
+	if (heroSlides.length === 0 && home) {
+		const hasHomeHero = (home.heroTitle && home.heroTitle.trim()) || (home.heroImage && home.heroImage.trim());
+		if (hasHomeHero) {
+			const homeSlide = {
+				id: 'home-hero',
+				title: home.heroTitle || '',
+				subtitle: home.heroSubtitle || '',
+				image: home.heroImage || '',
+				cta: home.heroButtons?.[0]?.text || '',
+				ctaLink: home.heroButtons?.[0]?.link || home.heroButtons?.[0]?.url || ''
+			};
+			heroSlides = [homeSlide];
+		}
+	}
+	
+	// Final fallback: use global hero slides if page-specific ones don't exist
+	if (heroSlides.length === 0) {
+		const globalHeroSlides = getHeroSlides();
+		if (globalHeroSlides.length > 0) {
+			heroSlides = globalHeroSlides;
+		}
 	}
 	
 	return {
-		heroSlides,
+		heroSlides: heroSlides.length > 0 ? heroSlides : null,
 		contactInfo,
 		services,
 		featuredEvents: featuredEvents.length > 0 ? featuredEvents : [],

@@ -5,6 +5,7 @@ export const load = async () => {
 	const podcasts = getPodcasts();
 	const contactInfo = getContactInfo();
 	const settings = getSettings();
+	const heroSlides = page?.heroSlides || [];
 	return {
 		page: page || {
 			id: 'audio',
@@ -12,10 +13,12 @@ export const load = async () => {
 			heroTitle: 'Messages & Audio',
 			heroImage: '/images/audio-bg.jpg',
 			content: '',
-			sections: []
+			sections: [],
+			heroSlides: []
 		},
 		podcasts,
 		contactInfo,
+		heroSlides,
 		spotifyShowUrl: settings.spotifyShowUrl || 'https://open.spotify.com/show/7aczNe2FL8GCTxpaqM9WF1?si=9bab49974d2e48bc'
 	};
 };

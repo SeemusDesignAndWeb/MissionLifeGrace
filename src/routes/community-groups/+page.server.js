@@ -4,8 +4,9 @@ export const load = async () => {
 	const page = getPage('community-groups');
 	const contactInfo = getContactInfo();
 	const communityGroups = getCommunityGroups();
+	const heroSlides = page?.heroSlides || [];
 	if (page) {
-		return { page, contactInfo, communityGroups };
+		return { page, contactInfo, communityGroups, heroSlides };
 	}
 	const fallbackPage = {
 		id: 'community-groups',
@@ -14,7 +15,8 @@ export const load = async () => {
 		heroImage: '/images/community-groups-bg.jpg',
 		content: '',
 		sections: [],
-		published: true
+		published: true,
+		heroSlides: []
 	};
-	return { page: fallbackPage, contactInfo, communityGroups };
+	return { page: fallbackPage, contactInfo, communityGroups, heroSlides: [] };
 };

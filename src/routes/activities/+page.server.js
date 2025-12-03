@@ -4,8 +4,9 @@ export const load = async () => {
 	const page = getPage('activities');
 	const contactInfo = getContactInfo();
 	const activities = getActivities().sort((a, b) => (a.order || 0) - (b.order || 0));
+	const heroSlides = page?.heroSlides || [];
 	if (page) {
-		return { page, contactInfo, activities };
+		return { page, contactInfo, activities, heroSlides };
 	}
 	const fallbackPage = {
 		id: 'activities',
@@ -14,7 +15,8 @@ export const load = async () => {
 		heroImage: '/images/activities-bg.jpg',
 		content: '',
 		sections: [],
-		published: true
+		published: true,
+		heroSlides: []
 	};
-	return { page: fallbackPage, contactInfo, activities };
+	return { page: fallbackPage, contactInfo, activities, heroSlides: [] };
 };

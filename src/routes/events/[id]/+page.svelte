@@ -42,6 +42,20 @@
 		const hour12 = hour % 12 || 12;
 		return `${hour12}:${minutes} ${ampm}`;
 	}
+
+	function getEventDetailsString() {
+		const parts = [];
+		if (data.event.date) {
+			parts.push(`Date: ${formatDate(data.event.date)}`);
+		}
+		if (data.event.time) {
+			parts.push(`Time: ${formatTime(data.event.time)}`);
+		}
+		if (data.event.location) {
+			parts.push(`Location: ${data.event.location}`);
+		}
+		return parts.join(', ');
+	}
 </script>
 
 <svelte:head>
@@ -119,10 +133,10 @@
 <!-- Event Details -->
 <section class="py-20 bg-white">
 	<div class="container mx-auto px-4">
-		<div class="max-w-4xl mx-auto">
-			<div class="grid md:grid-cols-3 gap-8">
+		<div class="max-w-7xl mx-auto">
+			<div class="grid lg:grid-cols-3 gap-8">
 				<!-- Main Content -->
-				<div class="md:col-span-2">
+				<div class="lg:col-span-2">
 					{#if data.event.description}
 						<div class="prose prose-lg max-w-none mb-8">
 							{@html data.event.description}
@@ -131,91 +145,94 @@
 					{#if data.event.eventInfo}
 						<div class="bg-gray-50 rounded-lg p-6 mb-8">
 							<h2 class="text-2xl font-bold text-gray-900 mb-4">Event Information</h2>
+							<div class="space-y-2 mb-4 text-gray-700">
+								{#if data.event.date}
+									<div class="flex items-center gap-2">
+										<svg class="w-5 h-5 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+										</svg>
+										<span class="font-bold">{formatDate(data.event.date)}</span>
+									</div>
+								{/if}
+								{#if data.event.time}
+									<div class="flex items-center gap-2">
+										<svg class="w-5 h-5 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+										</svg>
+										<span class="font-bold">{formatTime(data.event.time)}</span>
+									</div>
+								{/if}
+								{#if data.event.location}
+									<div class="flex items-center gap-2">
+										<svg class="w-5 h-5 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+										</svg>
+										<span class="font-bold">{data.event.location}</span>
+									</div>
+								{/if}
+							</div>
 							<div class="prose prose-lg max-w-none text-gray-700">
 								{@html data.event.eventInfo}
 							</div>
 						</div>
+					{:else if getEventDetailsString()}
+						<div class="bg-gray-50 rounded-lg p-6 mb-8">
+							<h2 class="text-2xl font-bold text-gray-900 mb-4">Event Information</h2>
+							<div class="space-y-2 text-gray-700">
+								{#if data.event.date}
+									<div class="flex items-center gap-2">
+										<svg class="w-5 h-5 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+										</svg>
+										<span class="font-bold">{formatDate(data.event.date)}</span>
+									</div>
+								{/if}
+								{#if data.event.time}
+									<div class="flex items-center gap-2">
+										<svg class="w-5 h-5 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+										</svg>
+										<span class="font-bold">{formatTime(data.event.time)}</span>
+									</div>
+								{/if}
+								{#if data.event.location}
+									<div class="flex items-center gap-2">
+										<svg class="w-5 h-5 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+										</svg>
+										<span class="font-bold">{data.event.location}</span>
+									</div>
+								{/if}
+							</div>
+						</div>
+					{/if}
+					{#if !bookingEnabled}
+						<div class="bg-gray-50 rounded-lg p-6">
+							<h3 class="font-semibold text-gray-900 mb-3">Need more information?</h3>
+							<a
+								href="/#contact"
+								class="inline-block px-6 py-3 bg-primary text-white rounded-full font-semibold hover:bg-opacity-90 transition-all"
+							>
+								Contact Us
+							</a>
+						</div>
 					{/if}
 				</div>
 
-				<!-- Sidebar -->
-				<div class="md:col-span-1">
-					<div class="bg-gray-50 rounded-lg p-6 sticky top-4">
-						<h2 class="text-2xl font-bold text-gray-900 mb-6">Event Details</h2>
-						
-						<div class="space-y-4">
-							{#if data.event.date}
-								<div class="flex items-start gap-3">
-									<svg class="w-6 h-6 text-primary mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-									</svg>
-									<div>
-										<div class="text-sm text-gray-600">Date</div>
-										<div class="font-semibold text-gray-900">{formatDate(data.event.date)}</div>
-									</div>
-								</div>
-							{/if}
-
-							{#if data.event.time}
-								<div class="flex items-start gap-3">
-									<svg class="w-6 h-6 text-primary mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-									</svg>
-									<div>
-										<div class="text-sm text-gray-600">Time</div>
-										<div class="font-semibold text-gray-900">{formatTime(data.event.time)}</div>
-									</div>
-								</div>
-							{/if}
-
-							{#if data.event.location}
-								<div class="flex items-start gap-3">
-									<svg class="w-6 h-6 text-primary mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-									</svg>
-									<div>
-										<div class="text-sm text-gray-600">Location</div>
-										<div class="font-semibold text-gray-900">{data.event.location}</div>
-									</div>
-								</div>
-							{/if}
+				<!-- Booking Form -->
+				{#if bookingEnabled}
+					<div class="lg:col-span-1">
+						<div class="sticky top-4">
+							<EventBookingForm event={data.event} ticketTypes={data.ticketTypes} />
 						</div>
-
-						{#if bookingEnabled}
-							<div class="mt-8 pt-6 border-t border-gray-200">
-								<h3 class="font-semibold text-gray-900 mb-3">Book Tickets</h3>
-								<p class="text-sm text-gray-600 mb-4">Purchase tickets for this event using the form below.</p>
-							</div>
-						{:else}
-							<div class="mt-8 pt-6 border-t border-gray-200">
-								<h3 class="font-semibold text-gray-900 mb-3">Need more information?</h3>
-								<a
-									href="/#contact"
-									class="block w-full text-center px-6 py-3 bg-primary text-white rounded-full font-semibold hover:bg-opacity-90 transition-all"
-								>
-									Contact Us
-								</a>
-							</div>
-						{/if}
 					</div>
-				</div>
+				{/if}
 			</div>
 		</div>
 	</div>
 </section>
-
-<!-- Booking Form Section -->
-{#if bookingEnabled}
-	<section class="py-20 bg-gray-50">
-		<div class="container mx-auto px-4">
-			<div class="max-w-4xl mx-auto">
-				<h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Book Your Tickets</h2>
-				<EventBookingForm event={data.event} ticketTypes={data.ticketTypes} />
-			</div>
-		</div>
-	</section>
-{/if}
 
 <Footer contactInfo={data.contactInfo} />
 

@@ -5,6 +5,7 @@ export const load = async () => {
 	const page = getPage('media');
 	const contactInfo = getContactInfo();
 	const settings = getSettings();
+	const heroSlides = page?.heroSlides || [];
 	
 	let videos = [];
 	let playlistInfo = null;
@@ -54,7 +55,7 @@ export const load = async () => {
 	}
 	
 	if (page) {
-		return { page, contactInfo, videos, playlistInfo };
+		return { page, contactInfo, videos, playlistInfo, heroSlides };
 	}
 	const fallbackPage = {
 		id: 'media',
@@ -63,7 +64,8 @@ export const load = async () => {
 		heroImage: '/images/media-bg.jpg',
 		content: '',
 		sections: [],
-		published: true
+		published: true,
+		heroSlides: []
 	};
-	return { page: fallbackPage, contactInfo, videos, playlistInfo };
+	return { page: fallbackPage, contactInfo, videos, playlistInfo, heroSlides: [] };
 };

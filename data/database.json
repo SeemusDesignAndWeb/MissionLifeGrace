@@ -122,7 +122,17 @@
       "eventsSectionDescription": "",
       "isLink": false,
       "linkUrl": "",
-      "linkTarget": "_self"
+      "linkTarget": "_self",
+      "heroSlides": [
+        {
+          "id": "churches-hero-1764799016840",
+          "title": "The churches",
+          "subtitle": "Churches in the Mission Life Grace Network",
+          "image": "https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066407/egcc/egcc/page-hero-church.jpg",
+          "cta": "",
+          "ctaLink": ""
+        }
+      ]
     },
     {
       "id": "values",
@@ -191,7 +201,17 @@
       "eventsSectionDescription": "",
       "isLink": false,
       "linkUrl": "",
-      "linkTarget": "_self"
+      "linkTarget": "_self",
+      "heroSlides": [
+        {
+          "id": "values-hero-1764799016840",
+          "title": "Our values",
+          "subtitle": "",
+          "image": "https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066407/egcc/egcc/page-hero-church.jpg",
+          "cta": "",
+          "ctaLink": ""
+        }
+      ]
     },
     {
       "id": "audio",
@@ -239,7 +259,17 @@
       "teamDescription": "",
       "showInNavigation": false,
       "navigationLabel": "",
-      "navigationOrder": 8
+      "navigationOrder": 8,
+      "heroSlides": [
+        {
+          "id": "audio-hero-1764799016841",
+          "title": "Teaching audio",
+          "subtitle": "Keep up to date with our messages and teachings",
+          "image": "https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066410/egcc/egcc/page-hero-audio.jpg",
+          "cta": "Apple Podcasts",
+          "ctaLink": "/api/podcast-feed"
+        }
+      ]
     },
     {
       "id": "media",
@@ -283,7 +313,17 @@
       "navigationOrder": 9,
       "showInNavigation": false,
       "navigationLabel": "Catch up",
-      "teamDescription": ""
+      "teamDescription": "",
+      "heroSlides": [
+        {
+          "id": "media-hero-1764799016841",
+          "title": "Online catch up",
+          "subtitle": "Watch our services online",
+          "image": "https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066411/egcc/egcc/page-hero-media.jpg",
+          "cta": "Subscribe online",
+          "ctaLink": "https://www.youtube.com/channel/UCqRV8s8Vzza9zScNpQz8CTw"
+        }
+      ]
     },
     {
       "id": "team",
@@ -307,7 +347,31 @@
       "content": "",
       "navigationOrder": 5,
       "showInNavigation": true,
-      "navigationLabel": "Team"
+      "navigationLabel": "Team",
+      "heroSlides": [
+        {
+          "id": "team-hero-1764799016841",
+          "title": "Meet the team",
+          "subtitle": "Working together",
+          "image": "https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763390998/egcc/375d5fb3-6856-49be-a8d1-48859a442bca.jpg",
+          "cta": "Get in touch",
+          "ctaLink": "#contact"
+        }
+      ],
+      "aboutLabel": "",
+      "aboutTitle": "",
+      "aboutContent": "",
+      "aboutImage": "",
+      "visionLabel": "",
+      "visionTitle": "",
+      "visionText": "",
+      "eventsSectionLabel": "",
+      "eventsSectionTitle": "",
+      "eventsSectionDescription": "",
+      "isLink": false,
+      "linkUrl": "",
+      "linkTarget": "_self",
+      "keywords": ""
     },
     {
       "id": "home",
@@ -329,7 +393,41 @@
       "heroMessages": [],
       "visionLabel": "Our Vision",
       "visionTitle": "We Believe",
-      "visionText": "We believe every church exists to be part of God's mission to show the world Christ and that we are better equipped to do this in partnership with other churches. As a network our focus is to encourage each other through sharing our hearts, ideas and lessons learned along the way, to challenge one another to stay true to the course and to invest in helping people fulfil their God given calling. We believe that by journeying together we can see God do great things in our nation and around the world."
+      "visionText": "We believe every church exists to be part of God's mission to show the world Christ and that we are better equipped to do this in partnership with other churches. As a network our focus is to encourage each other through sharing our hearts, ideas and lessons learned along the way, to challenge one another to stay true to the course and to invest in helping people fulfil their God given calling. We believe that by journeying together we can see God do great things in our nation and around the world.",
+      "heroSlides": [
+        {
+          "id": "hero-slide-1",
+          "title": "Mission Life Grace",
+          "subtitle": "Churches on mission together",
+          "cta": "Learn more",
+          "ctaLink": "#about-us",
+          "image": "https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763390998/egcc/375d5fb3-6856-49be-a8d1-48859a442bca.jpg"
+        },
+        {
+          "id": "hero-slide-2",
+          "title": "A Network of Churches",
+          "subtitle": "Working together to see the Kingdom of God come",
+          "cta": "Our Churches",
+          "ctaLink": "/churches",
+          "image": "https://res.cloudinary.com/dsnceqtza/image/upload/v1764355863/cld-sample-2.jpg"
+        },
+        {
+          "id": "hero-slide-3",
+          "title": "Training & Networking",
+          "subtitle": "Equipping leaders and building community across the network",
+          "cta": "Get involved",
+          "ctaLink": "#services",
+          "image": "https://res.cloudinary.com/dsnceqtza/image/upload/v1764355863/cld-sample-2.jpg"
+        }
+      ],
+      "teamDescription": "",
+      "eventsSectionLabel": "",
+      "eventsSectionTitle": "",
+      "eventsSectionDescription": "",
+      "isLink": false,
+      "linkUrl": "",
+      "linkTarget": "_self",
+      "keywords": ""
     },
     {
       "id": "events",
@@ -364,7 +462,17 @@
       "visionText": "",
       "eventsSectionLabel": "What's Happening",
       "eventsSectionTitle": "Events & Activities",
-      "eventsSectionDescription": "Join us for training, networking, and community events"
+      "eventsSectionDescription": "Join us for training, networking, and community events",
+      "heroSlides": [
+        {
+          "id": "events-hero-1764799016841",
+          "title": "Events",
+          "subtitle": "Join us for training, networking, and community events",
+          "image": "https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066409/egcc/egcc/page-hero-activities.jpg",
+          "cta": "",
+          "ctaLink": ""
+        }
+      ]
     },
     {
       "id": "about",
@@ -394,7 +502,33 @@
       "linkTarget": "_self",
       "showInNavigation": true,
       "navigationLabel": "About",
-      "navigationOrder": 1
+      "navigationOrder": 1,
+      "heroSlides": [
+        {
+          "id": "hero-slide-1",
+          "title": "Mission Life Grace",
+          "subtitle": "Churches on mission together",
+          "cta": "Learn more",
+          "ctaLink": "#about-us",
+          "image": "https://res.cloudinary.com/dsnceqtza/image/upload/v1764355863/cld-sample-2.jpg"
+        },
+        {
+          "id": "hero-slide-2",
+          "title": "A Network of Churches",
+          "subtitle": "Working together to see the Kingdom of God come",
+          "cta": "Our Churches",
+          "ctaLink": "/churches",
+          "image": "https://res.cloudinary.com/dsnceqtza/image/upload/v1764355863/cld-sample-2.jpg"
+        },
+        {
+          "id": "hero-slide-3",
+          "title": "Training & Networking",
+          "subtitle": "Equipping leaders and building community across the network",
+          "cta": "Get involved",
+          "ctaLink": "#services",
+          "image": "https://res.cloudinary.com/dsnceqtza/image/upload/v1764355863/cld-sample-2.jpg"
+        }
+      ]
     },
     {
       "id": "conferences",
@@ -411,7 +545,17 @@
       "navigationOrder": 7,
       "sections": [],
       "heroMessages": [],
-      "heroButtons": []
+      "heroButtons": [],
+      "heroSlides": [
+        {
+          "id": "conferences-hero-1764799016841",
+          "title": "Conferences",
+          "subtitle": "Join us for our upcoming conferences",
+          "image": "/images/activities-bg.jpg",
+          "cta": "",
+          "ctaLink": ""
+        }
+      ]
     }
   ],
   "team": [
@@ -2976,7 +3120,7 @@
     "heroTitle": "",
     "heroSubtitle": "",
     "heroButtons": [],
-    "heroImage": "https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763390998/egcc/375d5fb3-6856-49be-a8d1-48859a442bca.jpg",
+    "heroImage": "",
     "heroOverlay": 40,
     "sections": [],
     "metaDescription": "Home page content and hero slides",
@@ -2993,7 +3137,34 @@
     "eventsSectionDescription": "",
     "isLink": false,
     "linkUrl": "",
-    "linkTarget": "_self"
+    "linkTarget": "_self",
+    "heroSlides": [
+      {
+        "id": "hero-slide-1",
+        "title": "Mission Life Grace",
+        "subtitle": "Churches on mission together",
+        "cta": "Learn more",
+        "ctaLink": "#about-us",
+        "image": "https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763390998/egcc/375d5fb3-6856-49be-a8d1-48859a442bca.jpg"
+      },
+      {
+        "id": "hero-slide-2",
+        "title": "A Network of Churches",
+        "subtitle": "Working together to see the Kingdom of God come",
+        "cta": "Our Churches",
+        "ctaLink": "/churches",
+        "image": "https://res.cloudinary.com/dsnceqtza/image/upload/v1764355863/cld-sample-2.jpg"
+      },
+      {
+        "id": "hero-slide-3",
+        "title": "Training & Networking",
+        "subtitle": "Equipping leaders and building community across the network",
+        "cta": "Get involved",
+        "ctaLink": "#services",
+        "image": "https://res.cloudinary.com/dsnceqtza/image/upload/v1764355863/cld-sample-2.jpg"
+      }
+    ],
+    "keywords": ""
   },
   "conferences": [
     {
@@ -3590,7 +3761,7 @@
       "name": "General Admission",
       "price": 3,
       "capacity": 30,
-      "sold": 4,
+      "sold": 8,
       "description": "",
       "enabled": true
     }
@@ -3631,6 +3802,24 @@
       "paypalOrderStatus": "COMPLETED",
       "paypalCaptureId": "TEST-CAPTURE-1764593446953",
       "paymentDate": "2025-12-01T12:50:46.953Z"
+    },
+    {
+      "id": "event-booking-1764800588593",
+      "eventId": "candle",
+      "bookingReference": "EVT-MIQKPD81",
+      "customerName": "John Watson",
+      "customerEmail": "johnwatson@seemus.co.uk",
+      "customerPhone": "07713403755",
+      "ticketCount": 4,
+      "subtotal": 12,
+      "totalAmount": 12,
+      "paymentStatus": "paid",
+      "paidAmount": 12,
+      "createdAt": "2025-12-03T22:23:08.705Z",
+      "paypalOrderId": "TEST-event-booking-1764800588593",
+      "paypalOrderStatus": "COMPLETED",
+      "paypalCaptureId": "TEST-CAPTURE-1764800589325",
+      "paymentDate": "2025-12-03T22:23:09.325Z"
     }
   ],
   "eventAttendees": [
@@ -3697,6 +3886,70 @@
       },
       "fullName": "John Watson",
       "bookingId": "event-booking-1764593446641"
+    },
+    {
+      "id": "attendee-1764800588593-0",
+      "ticketTypeId": "event-ticket-1764592618551",
+      "ticketType": {
+        "id": "event-ticket-1764592618551",
+        "eventId": "candle",
+        "name": "General Admission",
+        "price": 3,
+        "capacity": 30,
+        "sold": 4,
+        "description": "",
+        "enabled": true
+      },
+      "fullName": "John Watson",
+      "bookingId": "event-booking-1764800588593"
+    },
+    {
+      "id": "attendee-1764800588593-1",
+      "ticketTypeId": "event-ticket-1764592618551",
+      "ticketType": {
+        "id": "event-ticket-1764592618551",
+        "eventId": "candle",
+        "name": "General Admission",
+        "price": 3,
+        "capacity": 30,
+        "sold": 4,
+        "description": "",
+        "enabled": true
+      },
+      "fullName": "John Watson",
+      "bookingId": "event-booking-1764800588593"
+    },
+    {
+      "id": "attendee-1764800588593-2",
+      "ticketTypeId": "event-ticket-1764592618551",
+      "ticketType": {
+        "id": "event-ticket-1764592618551",
+        "eventId": "candle",
+        "name": "General Admission",
+        "price": 3,
+        "capacity": 30,
+        "sold": 4,
+        "description": "",
+        "enabled": true
+      },
+      "fullName": "John Watson",
+      "bookingId": "event-booking-1764800588593"
+    },
+    {
+      "id": "attendee-1764800588593-3",
+      "ticketTypeId": "event-ticket-1764592618551",
+      "ticketType": {
+        "id": "event-ticket-1764592618551",
+        "eventId": "candle",
+        "name": "General Admission",
+        "price": 3,
+        "capacity": 30,
+        "sold": 4,
+        "description": "",
+        "enabled": true
+      },
+      "fullName": "John Watson",
+      "bookingId": "event-booking-1764800588593"
     }
   ]
 }

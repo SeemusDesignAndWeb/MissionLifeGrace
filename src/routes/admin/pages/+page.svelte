@@ -19,16 +19,12 @@
 	let draggedSectionIndex = null;
 	let draggedOverSectionIndex = null;
 	let expandedSections = new Set(); // Track which sections are expanded
-	let heroSlides = []; // Hero slides for home page
 	let editingSlide = null; // Currently editing hero slide
 	let showSlideForm = false; // Show hero slide form
 	let slideImagePickerTarget = null; // Track which slide is picking image
 
 	onMount(async () => {
 		await loadPages();
-		if (editing && editing.id === 'home') {
-			await loadHeroSlides();
-		}
 	});
 
 	// Reset section index when image picker closes without selection
@@ -37,17 +33,8 @@
 		currentImageIndex = null;
 	}
 
-	async function loadHeroSlides() {
-		try {
-			const response = await fetch('/api/content?type=hero-slides');
-			if (response.ok) {
-				heroSlides = await response.json();
-			}
-		} catch (error) {
-			console.error('Failed to load hero slides:', error);
-			heroSlides = [];
-		}
-	}
+	// Hero slides are now stored in the page object (editing.heroSlides)
+	$: heroSlides = editing?.heroSlides || [];
 
 	async function loadPages() {
 		try {
@@ -134,6 +121,16 @@
 	}
 
 	async function startEdit(page) {
+		// If editing an existing page, move it to the top of the list
+		if (page && page.id) {
+			const pageIndex = pages.findIndex(p => p.id === page.id);
+			if (pageIndex > 0) {
+				// Move the page to the top
+				const [movedPage] = pages.splice(pageIndex, 1);
+				pages = [movedPage, ...pages];
+			}
+		}
+		
 		// Reset expanded sections when starting to edit
 		expandedSections = new Set();
 		editing = page
@@ -144,6 +141,7 @@
 				heroSubtitle: page.heroSubtitle || '',
 				heroButtons: page.heroButtons || [],
 				heroOverlay: page.heroOverlay || 40,
+				heroSlides: page.heroSlides || [],
 				// Include all sections (churches-grid will be protected but visible for reordering)
 				sections: page.sections || [],
 				teamDescription: page.teamDescription || '',
@@ -162,7 +160,8 @@
 				linkTarget: page.linkTarget || '_self',
 				showInNavigation: page.showInNavigation !== undefined ? page.showInNavigation : true,
 				navigationLabel: page.navigationLabel || '',
-				navigationOrder: page.navigationOrder !== undefined ? page.navigationOrder : 999
+				navigationOrder: page.navigationOrder !== undefined ? page.navigationOrder : 999,
+				keywords: page.keywords || ''
 			}
 			: {
 					id: '',
@@ -174,7 +173,9 @@
 					heroButtons: [],
 					heroOverlay: 40,
 					metaDescription: '',
+					keywords: '',
 					heroMessages: [],
+					heroSlides: [],
 					sections: [],
 					teamDescription: '',
 				aboutLabel: '',
@@ -197,10 +198,14 @@
 		// Reset section index
 		currentSectionIndex = null;
 		currentImageIndex = null;
-		// Load hero slides if editing home page
-		if (page && page.id === 'home') {
-			await loadHeroSlides();
-		}
+		
+		// Scroll to top of form
+		setTimeout(() => {
+			const formElement = document.querySelector('[data-page-form]');
+			if (formElement) {
+				formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			}
+		}, 100);
 	}
 
 	// Auto-generate ID when title changes (only for new pages or if ID is empty)
@@ -297,12 +302,12 @@
 		if (!editing) return;
 
 		try {
-			// If it's the home page, save it as 'home' type, otherwise as 'page' type
-			const saveType = editing.id === 'home' ? 'home' : 'page';
+			// Always save as 'page' type to ensure heroSlides and all page data is saved correctly
+			// The home page is now stored in the pages array, not the old db.home object
 			const response = await fetch('/api/content', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ type: saveType, data: editing })
+				body: JSON.stringify({ type: 'page', data: editing })
 			});
 
 			if (response.ok) {
@@ -507,53 +512,52 @@
 	</div>
 
 	{#if showForm && editing}
-		<div class="bg-white p-6 rounded-lg shadow mb-6">
-			<div class="flex items-center justify-between mb-4">
-				<h2 class="text-2xl font-bold">
-					{editing.id ? 'Edit Page' : 'New Page'}
-				</h2>
-				<div class="flex gap-2">
-					<button
-						type="button"
-						on:click={savePage}
-						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
-					>
-						Save
-					</button>
-					<button
-						type="button"
-						on:click={cancelEdit}
-						class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-					>
-						Cancel
-					</button>
+		<div class="bg-white rounded-lg shadow-lg mb-6 overflow-hidden" data-page-form>
+			<!-- Header -->
+			<div class="bg-gradient-to-r from-primary to-brand-blue text-white px-6 py-4">
+				<div class="flex items-center justify-between">
+					<h2 class="text-2xl font-bold">
+						{editing.id ? `Edit: ${editing.title || editing.id}` : 'New Page'}
+					</h2>
+					<div class="flex gap-2">
+						<button
+							type="button"
+							on:click={savePage}
+							class="px-4 py-2 bg-white text-primary rounded hover:bg-gray-100 font-semibold"
+						>
+							Save
+						</button>
+						<button
+							type="button"
+							on:click={cancelEdit}
+							class="px-4 py-2 bg-white/20 text-white rounded hover:bg-white/30 font-semibold"
+						>
+							Cancel
+						</button>
+					</div>
 				</div>
 			</div>
-			<div class="space-y-4">
+			
+			<div class="p-6 space-y-6">
 				<!-- ID field is hidden - auto-generated from title -->
 				<input
 					type="hidden"
 					bind:value={editing.id}
 				/>
-				<div>
-					<div class="flex items-center gap-1 mb-1">
-						<label class="text-sm font-medium">Title</label>
-						<HelpIcon helpId="field-page-title" position="right">
-							{@html getHelpContent('field-page-title').content}
-						</HelpIcon>
+				
+				<!-- Navigation Panel -->
+				<div class="bg-purple-50 border-l-4 border-purple-500 rounded p-5">
+					<div class="flex items-center gap-2 mb-4">
+						<div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+							<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+							</svg>
+						</div>
+						<h3 class="text-lg font-bold text-purple-900">Navigation Settings</h3>
 					</div>
-					<input
-						type="text"
-						bind:value={editing.title}
-						class="w-full px-3 py-2 border rounded"
-						placeholder="Page title"
-					/>
-					<p class="text-xs text-gray-500 mt-1">Page ID will be automatically generated from the title</p>
-				</div>
-				<div class="border-t pt-4 mt-4">
-					<h3 class="text-lg font-semibold mb-4">Navigation Settings</h3>
 					<div class="space-y-4">
-						<div>
+						<!-- Navigation options on one line -->
+						<div class="flex flex-wrap items-center gap-6">
 							<div class="flex items-center gap-2">
 								<input
 									type="checkbox"
@@ -567,9 +571,19 @@
 									</HelpIcon>
 								</div>
 							</div>
-							<p class="text-xs text-gray-500 mt-1 ml-6">
-								When checked, this will be a navigation link instead of a page. Use for external URLs, anchor links, or custom paths.
-							</p>
+							<div class="flex items-center gap-2">
+								<input
+									type="checkbox"
+									bind:checked={editing.showInNavigation}
+									class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+								/>
+								<div class="flex items-center gap-1">
+									<span class="text-sm font-medium">Show in Navigation Menu</span>
+									<HelpIcon helpId="field-page-show-in-navigation" position="right">
+										{@html getHelpContent('field-page-show-in-navigation').content}
+									</HelpIcon>
+								</div>
+							</div>
 						</div>
 						{#if editing.isLink}
 							<div>
@@ -585,10 +599,6 @@
 									class="w-full px-3 py-2 border rounded"
 									placeholder="e.g., /contact, https://example.com, /#section, or /page#section"
 								/>
-								<div class="text-xs text-gray-500 mt-1 space-y-1">
-									<p><strong>Anchor Links:</strong> <code class="bg-gray-100 px-1 rounded">/#section-id</code> (home page) or <code class="bg-gray-100 px-1 rounded">/page-id#section-id</code> (other pages)</p>
-									<p><strong>Other:</strong> Relative path (<code class="bg-gray-100 px-1 rounded">/page</code>) or external URL (<code class="bg-gray-100 px-1 rounded">https://example.com</code>)</p>
-								</div>
 							</div>
 							<div>
 								<div class="flex items-center gap-1 mb-1">
@@ -601,181 +611,232 @@
 									<option value="_self">Same Window</option>
 									<option value="_blank">New Window</option>
 								</select>
-								<p class="text-xs text-gray-500 mt-1">How the link should open (usually "New Window" for external URLs)</p>
 							</div>
 						{/if}
 						<div>
+							<div class="flex items-center gap-1 mb-1">
+								<label class="text-sm font-medium">Navigation Label</label>
+								<HelpIcon helpId="field-page-navigation-label" position="right">
+								{@html getHelpContent('field-page-navigation-label').content}
+							</HelpIcon>
+						</div>
+						<input
+								type="text"
+								bind:value={editing.navigationLabel}
+								class="w-full px-3 py-2 border rounded"
+								placeholder={editing.title || 'Page title'}
+							/>
+						</div>
+					</div>
+				</div>
+				
+				{#if !editing.isLink}
+				<!-- Hero Slides Panel -->
+				<div class="bg-pink-50 border-l-4 border-pink-500 rounded p-5">
+						<div class="flex justify-between items-center mb-4">
 							<div class="flex items-center gap-2">
-								<input
-									type="checkbox"
-									bind:checked={editing.showInNavigation}
-									class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
-								/>
-								<div class="flex items-center gap-1">
-									<span class="text-sm font-medium">Show in Navigation Menu</span>
-									<HelpIcon helpId="field-page-show-in-navigation" position="right">
-										{@html getHelpContent('field-page-show-in-navigation').content}
-									</HelpIcon>
+								<div class="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center">
+									<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+									</svg>
+								</div>
+								<h3 class="text-lg font-bold text-pink-900">Hero Slides</h3>
+							</div>
+							<button
+								type="button"
+								on:click={() => {
+									editingSlide = {
+										id: '',
+										title: '',
+										subtitle: '',
+										cta: '',
+										ctaLink: '',
+										image: ''
+									};
+									showSlideForm = true;
+								}}
+								class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark text-sm"
+							>
+								+ Add New Slide
+							</button>
+						</div>
+						<p class="text-sm text-gray-600 mb-4">Manage the rotating hero slides displayed on this page. Each page has its own unique hero slides.</p>
+
+						{#if showSlideForm && editingSlide}
+							<div class="mb-6 p-4 bg-gray-50 border rounded-lg">
+								<h4 class="font-semibold mb-4">{editingSlide.id ? 'Edit' : 'Add'} Hero Slide</h4>
+								<div class="space-y-4">
+									<div>
+										<label class="block text-sm font-medium mb-1">Strap line</label>
+										<input
+											type="text"
+											bind:value={editingSlide.title}
+											class="w-full px-3 py-2 border rounded"
+											placeholder="e.g., Mission Life Grace"
+										/>
+									</div>
+									<div>
+										<label class="block text-sm font-medium mb-1">Title</label>
+										<input
+											type="text"
+											bind:value={editingSlide.subtitle}
+											class="w-full px-3 py-2 border rounded"
+											placeholder="e.g., Churches on mission together"
+										/>
+									</div>
+									<div>
+										<label class="block text-sm font-medium mb-1">Call to Action Text</label>
+										<input
+											type="text"
+											bind:value={editingSlide.cta}
+											class="w-full px-3 py-2 border rounded"
+											placeholder="e.g., Learn more"
+										/>
+									</div>
+									<div>
+										<label class="block text-sm font-medium mb-1">Call to Action Link</label>
+										<input
+											type="text"
+											bind:value={editingSlide.ctaLink}
+											class="w-full px-3 py-2 border rounded"
+											placeholder="e.g., #about-us or /page"
+										/>
+									</div>
+									<div>
+										<label class="block text-sm font-medium mb-1">Image</label>
+										<div class="flex gap-2">
+											<input
+												type="text"
+												bind:value={editingSlide.image}
+												class="flex-1 px-3 py-2 border rounded"
+												placeholder="Image URL"
+											/>
+											<button
+												type="button"
+												on:click={() => {
+													showImagePicker = true;
+													slideImagePickerTarget = 'slide';
+												}}
+												class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm"
+											>
+												Select Image
+											</button>
+										</div>
+										{#if editingSlide.image}
+											<div class="mt-2">
+												<img
+													src={editingSlide.image}
+													alt="Slide preview"
+													class="max-w-xs h-32 object-cover rounded border"
+													on:error={(e) => { e.currentTarget.style.display = 'none'; }}
+												/>
+											</div>
+										{/if}
+									</div>
+									<div class="flex gap-2">
+										<button
+											type="button"
+											on:click={() => {
+												if (!editingSlide.id) {
+													editingSlide.id = `hero-slide-${Date.now()}`;
+												}
+												// Update hero slides in the editing page object
+												if (!editing.heroSlides) editing.heroSlides = [];
+												const slideIndex = editing.heroSlides.findIndex(s => s.id === editingSlide.id);
+												if (slideIndex >= 0) {
+													editing.heroSlides[slideIndex] = { ...editingSlide };
+												} else {
+													editing.heroSlides = [...editing.heroSlides, { ...editingSlide }];
+												}
+												editing = editing; // Trigger reactivity
+												editingSlide = null;
+												showSlideForm = false;
+											}}
+											class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
+										>
+											Save Slide
+										</button>
+										<button
+											type="button"
+											on:click={() => {
+												editingSlide = null;
+												showSlideForm = false;
+												slideImagePickerTarget = null;
+											}}
+											class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+										>
+											Cancel
+										</button>
+									</div>
 								</div>
 							</div>
-							<p class="text-xs text-gray-500 mt-1 ml-6">
-								When enabled, this page/link will appear in the main website navigation menu.
-							</p>
-						</div>
-						{#if editing.showInNavigation}
-							<div>
-								<div class="flex items-center gap-1 mb-1">
-									<label class="text-sm font-medium">Navigation Label</label>
-									<HelpIcon helpId="field-page-navigation-label" position="right">
-										{@html getHelpContent('field-page-navigation-label').content}
-									</HelpIcon>
-								</div>
-								<p class="text-xs text-gray-500 mb-2">
-									Custom label for the navigation menu. If left empty, the page title will be used.
-								</p>
-								<input
-									type="text"
-									bind:value={editing.navigationLabel}
-									class="w-full px-3 py-2 border rounded"
-									placeholder={editing.title || 'Page title'}
-								/>
+						{/if}
+
+						{#if heroSlides.length === 0}
+							<p class="text-gray-600 text-center py-8">No hero slides found. Add your first slide!</p>
+						{:else}
+							<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+								{#each heroSlides as slide}
+									<div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
+										{#if slide.image}
+											<img
+												src={slide.image}
+												alt={slide.title}
+												class="w-full h-32 object-cover rounded-lg mb-3"
+												on:error={(e) => {
+													e.target.style.display = 'none';
+												}}
+											/>
+										{/if}
+										<h4 class="font-semibold text-gray-900 mb-1">{slide.title || 'Untitled'}</h4>
+										<p class="text-sm text-gray-600 mb-2 line-clamp-2">{slide.subtitle || ''}</p>
+										{#if slide.cta}
+											<p class="text-xs text-primary font-medium mb-3">{slide.cta}</p>
+										{/if}
+										<div class="flex gap-2">
+											<button
+												type="button"
+												on:click={() => {
+													editingSlide = { ...slide };
+													showSlideForm = true;
+												}}
+												class="flex-1 px-3 py-1.5 bg-primary text-white rounded hover:bg-primary-dark text-sm"
+											>
+												Edit
+											</button>
+											<button
+												type="button"
+												on:click={() => {
+													if (!confirm('Are you sure you want to delete this hero slide?')) return;
+													// Remove slide from editing page's hero slides
+													if (editing.heroSlides) {
+														editing.heroSlides = editing.heroSlides.filter(s => s.id !== slide.id);
+														editing = editing; // Trigger reactivity
+													}
+												}}
+												class="flex-1 px-3 py-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm"
+											>
+												Delete
+											</button>
+										</div>
+									</div>
+								{/each}
 							</div>
 						{/if}
 					</div>
-				</div>
-				<div>
-					<div class="flex items-center gap-1 mb-1">
-						<label class="text-sm font-medium">Hero Title</label>
-						<HelpIcon helpId="field-page-hero-title" position="right">
-							{@html getHelpContent('field-page-hero-title').content}
-						</HelpIcon>
-					</div>
-					<p class="text-xs text-gray-500 mb-2">
-						The main title in the hero section. You can use HTML like &lt;span style="color:#4BB170;"&gt;text&lt;/span&gt; for colored text.
-					</p>
-					<input
-						type="text"
-						bind:value={editing.heroTitle}
-						class="w-full px-3 py-2 border rounded"
-						placeholder="e.g., Online"
-					/>
-				</div>
-				<div>
-					<div class="flex items-center gap-1 mb-1">
-						<label class="text-sm font-medium">Hero Subtitle</label>
-						<HelpIcon helpId="field-page-hero-subtitle" position="right">
-							{@html getHelpContent('field-page-hero-subtitle').content}
-						</HelpIcon>
-					</div>
-					<input
-						type="text"
-						bind:value={editing.heroSubtitle}
-						class="w-full px-3 py-2 border rounded"
-						placeholder="e.g., Watch our services online"
-					/>
-				</div>
-				<div>
-					<div class="flex items-center gap-1 mb-1">
-						<label class="text-sm font-medium">Hero Buttons</label>
-						<HelpIcon helpId="field-page-hero-buttons" position="right">
-							{@html getHelpContent('field-page-hero-buttons').content}
-						</HelpIcon>
-					</div>
-					<p class="text-xs text-gray-500 mb-2">
-						Add buttons to display in the hero section.
-					</p>
-					{#if editing.heroButtons && editing.heroButtons.length > 0}
-						<div class="space-y-3 mb-2">
-							{#each editing.heroButtons as button, index}
-								<div class="border p-3 rounded space-y-2">
-									<div class="flex gap-2">
-										<input
-											type="text"
-											bind:value={editing.heroButtons[index].text}
-											class="flex-1 px-3 py-2 border rounded"
-											placeholder="Button text"
-										/>
-										<button
-											type="button"
-											on:click={() => removeHeroButton(index)}
-											class="px-3 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200"
-											aria-label="Remove button"
-										>
-											×
-										</button>
-									</div>
-									<input
-										type="text"
-										bind:value={editing.heroButtons[index].link}
-										class="w-full px-3 py-2 border rounded"
-										placeholder="Button link (e.g., /contact or https://example.com)"
-									/>
-									<div class="flex gap-2">
-										<select bind:value={editing.heroButtons[index].style} class="flex-1 px-3 py-2 border rounded">
-											<option value="primary">Primary (colored)</option>
-											<option value="secondary">Secondary (white)</option>
-										</select>
-										<select bind:value={editing.heroButtons[index].target} class="flex-1 px-3 py-2 border rounded">
-											<option value="_self">Same window</option>
-											<option value="_blank">New window</option>
-										</select>
-									</div>
-								</div>
-							{/each}
-						</div>
-					{/if}
-					<button
-						type="button"
-						on:click={addHeroButton}
-						class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
-					>
-						+ Add Button
-					</button>
-				</div>
-				<div>
-					<div class="flex items-center gap-1 mb-1">
-						<label class="text-sm font-medium">Hero Messages (Rotating Subtitles)</label>
-						<HelpIcon helpId="field-page-hero-messages" position="right">
-							{@html getHelpContent('field-page-hero-messages').content}
-						</HelpIcon>
-					</div>
-					<p class="text-xs text-gray-500 mb-2">
-						These messages will rotate in the hero section. Leave empty if you don't want rotating messages.
-					</p>
-					{#if editing.heroMessages && editing.heroMessages.length > 0}
-						<div class="space-y-2 mb-2">
-							{#each editing.heroMessages as msg, index}
-								<div class="flex gap-2">
-									<input
-										type="text"
-										bind:value={editing.heroMessages[index]}
-										class="flex-1 px-3 py-2 border rounded"
-										placeholder="Enter rotating message..."
-									/>
-									<button
-										type="button"
-										on:click={() => removeHeroMessage(index)}
-										class="px-3 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200"
-										aria-label="Remove message"
-									>
-										×
-									</button>
-								</div>
-							{/each}
-						</div>
-					{/if}
-					<button
-						type="button"
-						on:click={addHeroMessage}
-						class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
-					>
-						+ Add Message
-					</button>
-				</div>
-				{#if editing.id === 'home'}
+				{/if}
+				
+				{#if !editing.isLink && editing.id === 'home'}
 					<!-- Home Page About Section -->
-					<div class="border-t border-gray-200 pt-6 mt-6">
-						<h3 class="text-lg font-bold text-gray-900 mb-4">About Section</h3>
+					<div class="bg-indigo-50 border-l-4 border-indigo-500 rounded p-5">
+						<div class="flex items-center gap-2 mb-4">
+							<div class="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
+								<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+								</svg>
+							</div>
+							<h3 class="text-lg font-bold text-indigo-900">About Section</h3>
+						</div>
 						<div class="space-y-4">
 							<div>
 								<div class="flex items-center gap-1 mb-1">
@@ -857,206 +918,17 @@
 						</div>
 					</div>
 
-					<!-- Home Page Hero Slides Section -->
-					<div class="border-t border-gray-200 pt-6 mt-6">
-						<div class="flex justify-between items-center mb-4">
-							<h3 class="text-lg font-bold text-gray-900">Hero Slides</h3>
-							<button
-								type="button"
-								on:click={() => {
-									editingSlide = {
-										id: '',
-										title: '',
-										subtitle: '',
-										cta: '',
-										ctaLink: '',
-										image: ''
-									};
-									showSlideForm = true;
-								}}
-								class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark text-sm"
-							>
-								+ Add New Slide
-							</button>
-						</div>
-						<p class="text-sm text-gray-600 mb-4">Manage the rotating hero slides displayed on the home page.</p>
-
-						{#if showSlideForm && editingSlide}
-							<div class="mb-6 p-4 bg-gray-50 border rounded-lg">
-								<h4 class="font-semibold mb-4">{editingSlide.id ? 'Edit' : 'Add'} Hero Slide</h4>
-								<div class="space-y-4">
-									<div>
-										<label class="block text-sm font-medium mb-1">Title</label>
-										<input
-											type="text"
-											bind:value={editingSlide.title}
-											class="w-full px-3 py-2 border rounded"
-											placeholder="e.g., Mission Life Grace"
-										/>
-									</div>
-									<div>
-										<label class="block text-sm font-medium mb-1">Subtitle</label>
-										<input
-											type="text"
-											bind:value={editingSlide.subtitle}
-											class="w-full px-3 py-2 border rounded"
-											placeholder="e.g., Churches on mission together"
-										/>
-									</div>
-									<div>
-										<label class="block text-sm font-medium mb-1">Call to Action Text</label>
-										<input
-											type="text"
-											bind:value={editingSlide.cta}
-											class="w-full px-3 py-2 border rounded"
-											placeholder="e.g., Learn more"
-										/>
-									</div>
-									<div>
-										<label class="block text-sm font-medium mb-1">Call to Action Link</label>
-										<input
-											type="text"
-											bind:value={editingSlide.ctaLink}
-											class="w-full px-3 py-2 border rounded"
-											placeholder="e.g., #about-us or /page"
-										/>
-									</div>
-									<div>
-										<label class="block text-sm font-medium mb-1">Image</label>
-										<div class="flex gap-2">
-											<input
-												type="text"
-												bind:value={editingSlide.image}
-												class="flex-1 px-3 py-2 border rounded"
-												placeholder="Image URL"
-											/>
-											<button
-												type="button"
-												on:click={() => {
-													showImagePicker = true;
-													slideImagePickerTarget = 'slide';
-												}}
-												class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm"
-											>
-												Select Image
-											</button>
-										</div>
-										{#if editingSlide.image}
-											<div class="mt-2">
-												<img
-													src={editingSlide.image}
-													alt="Slide preview"
-													class="max-w-xs h-32 object-cover rounded border"
-													on:error={(e) => { e.currentTarget.style.display = 'none'; }}
-												/>
-											</div>
-										{/if}
-									</div>
-									<div class="flex gap-2">
-										<button
-											type="button"
-											on:click={async () => {
-												if (!editingSlide.id) {
-													editingSlide.id = `hero-slide-${Date.now()}`;
-												}
-												try {
-													const response = await fetch('/api/content', {
-														method: 'POST',
-														headers: { 'Content-Type': 'application/json' },
-														body: JSON.stringify({ type: 'hero-slide', data: editingSlide })
-													});
-													if (response.ok) {
-														await loadHeroSlides();
-														editingSlide = null;
-														showSlideForm = false;
-													}
-												} catch (error) {
-													console.error('Failed to save hero slide:', error);
-													alert('Failed to save hero slide');
-												}
-											}}
-											class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
-										>
-											Save Slide
-										</button>
-										<button
-											type="button"
-											on:click={() => {
-												editingSlide = null;
-												showSlideForm = false;
-												slideImagePickerTarget = null;
-											}}
-											class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-										>
-											Cancel
-										</button>
-									</div>
-								</div>
-							</div>
-						{/if}
-
-						{#if heroSlides.length === 0}
-							<p class="text-gray-600 text-center py-8">No hero slides found. Add your first slide!</p>
-						{:else}
-							<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-								{#each heroSlides as slide}
-									<div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
-										{#if slide.image}
-											<img
-												src={slide.image}
-												alt={slide.title}
-												class="w-full h-32 object-cover rounded-lg mb-3"
-												on:error={(e) => {
-													e.target.style.display = 'none';
-												}}
-											/>
-										{/if}
-										<h4 class="font-semibold text-gray-900 mb-1">{slide.title || 'Untitled'}</h4>
-										<p class="text-sm text-gray-600 mb-2 line-clamp-2">{slide.subtitle || ''}</p>
-										{#if slide.cta}
-											<p class="text-xs text-primary font-medium mb-3">{slide.cta}</p>
-										{/if}
-										<div class="flex gap-2">
-											<button
-												type="button"
-												on:click={() => {
-													editingSlide = { ...slide };
-													showSlideForm = true;
-												}}
-												class="flex-1 px-3 py-1.5 bg-primary text-white rounded hover:bg-primary-dark text-sm"
-											>
-												Edit
-											</button>
-											<button
-												type="button"
-												on:click={async () => {
-													if (!confirm('Are you sure you want to delete this hero slide?')) return;
-													try {
-														const response = await fetch(`/api/content?type=hero-slide&id=${slide.id}`, {
-															method: 'DELETE'
-														});
-														if (response.ok) {
-															await loadHeroSlides();
-														}
-													} catch (error) {
-														console.error('Failed to delete hero slide:', error);
-														alert('Failed to delete hero slide');
-													}
-												}}
-												class="flex-1 px-3 py-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm"
-											>
-												Delete
-											</button>
-										</div>
-									</div>
-								{/each}
-							</div>
-						{/if}
-					</div>
-
 					<!-- Home Page Vision Section -->
-					<div class="border-t border-gray-200 pt-6 mt-6">
-						<h3 class="text-lg font-bold text-gray-900 mb-4">Vision Section</h3>
+					<div class="bg-teal-50 border-l-4 border-teal-500 rounded p-5">
+						<div class="flex items-center gap-2 mb-4">
+							<div class="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center">
+								<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+								</svg>
+							</div>
+							<h3 class="text-lg font-bold text-teal-900">Vision Section</h3>
+						</div>
 						<div class="space-y-4">
 							<div>
 								<div class="flex items-center gap-1 mb-1">
@@ -1140,10 +1012,17 @@
 					</div>
 				{/if}
 				
-				{#if editing.sections && editing.sections.length > 0}
-					<div class="border-t pt-6 mt-6">
+				{#if !editing.isLink && editing.sections && editing.sections.length > 0}
+					<div class="bg-cyan-50 border-l-4 border-cyan-500 rounded p-5">
 						<div class="flex justify-between items-center mb-4">
-							<h3 class="text-lg font-semibold">Page Sections</h3>
+							<div class="flex items-center gap-2">
+								<div class="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center">
+									<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+									</svg>
+								</div>
+								<h3 class="text-lg font-bold text-cyan-900">Page Sections</h3>
+							</div>
 							<div class="flex gap-2">
 								<button
 									type="button"
@@ -1985,7 +1864,7 @@
 				{/if}
 				
 				<!-- Show "Add Section" buttons when no sections exist (for all pages) -->
-				{#if (!editing.sections || editing.sections.length === 0)}
+				{#if !editing.isLink && (!editing.sections || editing.sections.length === 0)}
 					<div class="border-t pt-6 mt-6">
 						<h3 class="text-lg font-semibold mb-4">Page Sections</h3>
 						<div class="flex gap-2 flex-wrap">
@@ -2128,9 +2007,16 @@
 					</div>
 				{/if}
 				
-				{#if editing.id === 'team'}
-					<div class="border-t pt-6 mt-6">
-						<h3 class="text-lg font-semibold mb-4">Team Description</h3>
+				{#if !editing.isLink && editing.id === 'team'}
+					<div class="bg-amber-50 border-l-4 border-amber-500 rounded p-5">
+						<div class="flex items-center gap-2 mb-4">
+							<div class="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center">
+								<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+								</svg>
+							</div>
+							<h3 class="text-lg font-bold text-amber-900">Team Description</h3>
+						</div>
 						<p class="text-sm text-gray-600 mb-4">
 							This description appears above the team members list on the team page.
 						</p>
@@ -2146,10 +2032,17 @@
 					</div>
 				{/if}
 				
-				{#if editing.id === 'events'}
+				{#if !editing.isLink && editing.id === 'events'}
 					<!-- Events Page Section Header -->
-					<div class="border-t border-gray-200 pt-6 mt-6">
-						<h3 class="text-lg font-bold text-gray-900 mb-4">Events Section Header</h3>
+					<div class="bg-red-50 border-l-4 border-red-500 rounded p-5">
+						<div class="flex items-center gap-2 mb-4">
+							<div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+								<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+								</svg>
+							</div>
+							<h3 class="text-lg font-bold text-red-900">Events Section Header</h3>
+						</div>
 						<div class="space-y-4">
 							<div>
 								<label class="block text-sm font-medium mb-1">Section Label</label>
@@ -2185,68 +2078,67 @@
 					</div>
 				{/if}
 				
-				<div class="mt-6">
-					<label class="block text-sm font-medium mb-1">Hero Image URL</label>
-					<div class="space-y-2">
-						<div class="flex gap-2">
+				{#if !editing.isLink}
+				<!-- SEO Panel (moved to bottom) -->
+				<div class="bg-green-50 border-l-4 border-green-500 rounded p-5">
+					<div class="flex items-center gap-2 mb-4">
+						<div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+							<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+							</svg>
+						</div>
+						<h3 class="text-lg font-bold text-green-900">SEO Settings</h3>
+					</div>
+					<div class="space-y-4">
+						<div>
+							<div class="flex items-center gap-1 mb-1">
+								<label class="text-sm font-medium text-green-900">Title</label>
+								<HelpIcon helpId="field-page-title" position="right">
+									{@html getHelpContent('field-page-title').content}
+								</HelpIcon>
+							</div>
 							<input
 								type="text"
-								bind:value={editing.heroImage}
-								class="flex-1 px-3 py-2 border rounded"
-								placeholder="/images/hero-bg.jpg"
+								bind:value={editing.title}
+								class="w-full px-3 py-2 border border-green-200 rounded bg-white"
+								placeholder="Page title"
 							/>
-							<button
-								type="button"
-								on:click={openImagePicker}
-								class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-							>
-								Select Image
-							</button>
 						</div>
-						{#if editing.heroImage}
-							<div class="mt-2">
-								<img
-									src={editing.heroImage}
-									alt="Preview"
-									class="max-w-xs h-32 object-cover rounded border"
-								/>
-							</div>
-						{/if}
+						<div>
+							<label class="block text-sm font-medium text-green-900 mb-1">Meta Description</label>
+							<input
+								type="text"
+								bind:value={editing.metaDescription}
+								class="w-full px-3 py-2 border border-green-200 rounded bg-white"
+								placeholder="Enter meta description for SEO..."
+							/>
+						</div>
+						<div>
+							<label class="block text-sm font-medium text-green-900 mb-1">Keywords</label>
+							<input
+								type="text"
+								bind:value={editing.keywords}
+								class="w-full px-3 py-2 border border-green-200 rounded bg-white"
+								placeholder="Enter keywords separated by commas..."
+							/>
+						</div>
 					</div>
 				</div>
-				<div>
-					<label class="block text-sm font-medium mb-1">Hero Overlay Opacity</label>
-					<p class="text-xs text-gray-500 mb-2">
-						Dark overlay opacity over hero image (0-100). Higher = darker.
-					</p>
-					<input
-						type="number"
-						bind:value={editing.heroOverlay}
-						min="0"
-						max="100"
-						class="w-full px-3 py-2 border rounded"
-					/>
-				</div>
-				<div>
-					<label class="block text-sm font-medium mb-1">Meta Description</label>
-					<input
-						type="text"
-						bind:value={editing.metaDescription}
-						class="w-full px-3 py-2 border rounded"
-					/>
-				</div>
-				<div class="flex gap-2">
+				{/if}
+				
+				<!-- Action Buttons -->
+				<div class="flex gap-2 pt-4 border-t border-gray-200">
 					<button
 						type="button"
 						on:click={savePage}
-						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
+						class="px-6 py-3 bg-primary text-white rounded hover:bg-primary-dark font-semibold"
 					>
-						Save
+						Save Page
 					</button>
 					<button
 						type="button"
 						on:click={cancelEdit}
-						class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+						class="px-6 py-3 bg-gray-300 rounded hover:bg-gray-400 font-semibold"
 					>
 						Cancel
 					</button>
@@ -2290,12 +2182,22 @@
 					</tr>
 				</thead>
 				<tbody class="bg-white divide-y divide-gray-200">
-					{#each pages.sort((a, b) => (a.navigationOrder !== undefined ? a.navigationOrder : 999) - (b.navigationOrder !== undefined ? b.navigationOrder : 999)) as page, index}
+					{#each pages.sort((a, b) => {
+						// If editing, show the edited page first
+						if (editing && editing.id) {
+							if (a.id === editing.id) return -1;
+							if (b.id === editing.id) return 1;
+						}
+						// Otherwise sort by navigationOrder
+						const orderA = a.navigationOrder !== undefined ? a.navigationOrder : 999;
+						const orderB = b.navigationOrder !== undefined ? b.navigationOrder : 999;
+						return orderA - orderB;
+					}) as page, index}
 						<tr
 							on:dragover={(e) => handleDragOver(e, index)}
 							on:dragleave={(e) => handleDragLeave(e)}
 							on:drop={(e) => handleDrop(e, index)}
-							class="transition-colors {draggedOverIndex === index ? 'bg-primary/10' : ''}"
+							class="transition-colors {draggedOverIndex === index ? 'bg-primary/10' : ''} {editing && editing.id === page.id ? 'bg-primary/20 font-semibold' : ''}"
 						>
 							<td class="px-6 py-4 whitespace-nowrap">
 								<div 
@@ -2309,7 +2211,12 @@
 									</svg>
 								</div>
 							</td>
-							<td class="px-6 py-4 whitespace-nowrap text-sm font-medium">{page.id}</td>
+							<td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+								{page.id}
+								{#if editing && editing.id === page.id}
+									<span class="ml-2 px-2 py-0.5 bg-primary text-white text-xs rounded-full">Editing</span>
+								{/if}
+							</td>
 							<td class="px-6 py-4 whitespace-nowrap text-sm">
 								{page.title}
 								{#if page.isLink}

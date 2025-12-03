@@ -3,6 +3,7 @@ import { getPage, getContactInfo, getEvents, getServices } from '$lib/server/dat
 export const load = async () => {
 	const page = getPage('events');
 	const contactInfo = getContactInfo();
+	const heroSlides = page?.heroSlides || [];
 	// Get published events, sorted by date
 	const allEvents = getEvents();
 	const events = allEvents
@@ -15,7 +16,7 @@ export const load = async () => {
 	// Get services (training & networking events), sorted by order
 	const services = getServices().sort((a, b) => (a.order || 0) - (b.order || 0));
 	if (page) {
-		return { page, contactInfo, events, services };
+		return { page, contactInfo, events, services, heroSlides };
 	}
 	const fallbackPage = {
 		id: 'events',
@@ -24,8 +25,9 @@ export const load = async () => {
 		heroImage: '/images/activities-bg.jpg',
 		content: '',
 		sections: [],
-		published: true
+		published: true,
+		heroSlides: []
 	};
-	return { page: fallbackPage, contactInfo, events, services };
+	return { page: fallbackPage, contactInfo, events, services, heroSlides: [] };
 };
 

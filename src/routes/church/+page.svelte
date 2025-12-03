@@ -1,35 +1,13 @@
 <script lang="js">
 	import Footer from '$lib/components/Footer.svelte';
-	import { onMount, getContext } from 'svelte';
+	import HeroSlides from '$lib/components/HeroSlides.svelte';
+	import { onMount } from 'svelte';
 
 	export let data;
 	export let params = {};
 
-	let currentMessage = 0;
-	let autoplayInterval = null;
-	let bannerVisible = false;
-	
-	// Get banner visibility from context
-	try {
-		const bannerVisibleStore = getContext('bannerVisible');
-		if (bannerVisibleStore) {
-			bannerVisibleStore.subscribe(value => {
-				bannerVisible = value;
-			});
-		}
-	} catch (e) {
-		// Context not available
-	}
-
 	onMount(() => {
-		if (data.page.heroMessages && data.page.heroMessages.length > 0) {
-			autoplayInterval = window.setInterval(() => {
-				currentMessage = (currentMessage + 1) % data.page.heroMessages.length;
-			}, 4000);
-		}
-		return () => {
-			if (autoplayInterval) window.clearInterval(autoplayInterval);
-		};
+		// Component mounted
 	});
 
 	// Extract sections from page data
@@ -69,68 +47,15 @@
 </script>
 
 <svelte:head>
-	<title>{data.page.title} - Eltham Green Community Church</title>
-	<meta name="description" content={data.page.metaDescription || data.page.title} />
+	<title>{data.page?.title || 'Church'} - Mission Life Grace</title>
+	<meta name="description" content={data.page?.metaDescription || data.page?.title || 'Mission Life Grace'} />
+	{#if data.page?.keywords}
+		<meta name="keywords" content={data.page.keywords} />
+	{/if}
 </svelte:head>
 
-<!-- Hero Section -->
-{#if data.page?.heroImage}
-	<section
-		id="hero"
-		class="relative h-[35vh] overflow-hidden transition-all duration-300"
-		class:mt-[5px]={bannerVisible}
-		style="background-image: url('{data.page.heroImage}'); background-size: cover; background-position: center;"
-	>
-		<div
-			class="absolute inset-0 bg-black"
-			style="opacity: {(data.page.heroOverlay || 40) / 100};"
-		></div>
-		<div class="relative h-full flex items-end pb-12">
-			<div class="container mx-auto px-4">
-				<div class="max-w-2xl">
-					{#if data.page.heroTitle}
-						<h1 class="text-white text-4xl md:text-5xl font-bold mb-3 animate-fade-in">
-							{@html data.page.heroTitle}
-						</h1>
-					{/if}
-					{#if data.page.heroSubtitle}
-						<p class="text-white text-lg md:text-xl mb-4 animate-fade-in">
-							{data.page.heroSubtitle}
-						</p>
-					{/if}
-					{#if data.page.heroMessages && data.page.heroMessages.length > 0}
-						<div class="relative h-12 mb-4">
-							{#each data.page.heroMessages as msg, index}
-								<div
-									class="absolute inset-0 transition-opacity duration-1000"
-									class:opacity-0={currentMessage !== index}
-									class:opacity-100={currentMessage === index}
-								>
-									<p class="text-white text-lg md:text-xl font-light animate-fade-in">
-										{msg}
-									</p>
-								</div>
-							{/each}
-						</div>
-					{/if}
-					{#if data.page.heroButtons && data.page.heroButtons.length > 0}
-						<div class="flex flex-wrap gap-3 mt-4">
-							{#each data.page.heroButtons as button}
-								<a
-									href={button.link}
-									target={button.target || '_self'}
-									class="px-6 py-3 {button.style === 'secondary' ? 'bg-white text-primary hover:bg-gray-100' : 'bg-primary text-white hover:bg-opacity-90'} rounded-full font-semibold transition-all transform hover:scale-105 shadow-lg text-sm"
-								>
-									{button.text}
-								</a>
-							{/each}
-						</div>
-					{/if}
-				</div>
-			</div>
-		</div>
-	</section>
-{/if}
+<!-- Hero Slides -->
+<HeroSlides heroSlides={data.heroSlides} />
 
 <!-- History Section -->
 {#if historySection}
@@ -398,8 +323,3 @@
 		}
 	}
 
-	.animate-fade-in-up {
-		animation: fade-in-up 0.8s ease-out forwards;
-		opacity: 0;
-	}
-</style>

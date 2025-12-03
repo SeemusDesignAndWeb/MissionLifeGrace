@@ -5,6 +5,7 @@ export async function load() {
 	const settings = getSettings();
 	const team = getTeam();
 	const contactInfo = getContactInfo();
+	const heroSlides = page?.heroSlides || [];
 	
 	// Use page data if available, otherwise fall back to settings for backward compatibility
 	const defaultPage = {
@@ -30,7 +31,8 @@ export async function load() {
 	return {
 		page: finalPage,
 		team: team || [],
-		contactInfo
+		contactInfo,
+		heroSlides
 	};
 }
 

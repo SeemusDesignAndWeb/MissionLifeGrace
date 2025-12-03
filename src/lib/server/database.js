@@ -292,6 +292,7 @@ export function savePage(page) {
 			// Preserve other important fields
 			heroMessages: page.heroMessages !== undefined ? page.heroMessages : (existingPage.heroMessages || []),
 			heroButtons: page.heroButtons !== undefined ? page.heroButtons : (existingPage.heroButtons || []),
+			heroSlides: page.heroSlides !== undefined ? page.heroSlides : (existingPage.heroSlides || []),
 			// Preserve navigation fields
 			showInNavigation: page.showInNavigation !== undefined ? page.showInNavigation : (existingPage.showInNavigation !== undefined ? existingPage.showInNavigation : true),
 			navigationLabel: page.navigationLabel !== undefined ? page.navigationLabel : (existingPage.navigationLabel || ''),
@@ -312,6 +313,7 @@ export function savePage(page) {
 			sections: page.sections || [],
 			heroMessages: page.heroMessages || [],
 			heroButtons: page.heroButtons || [],
+			heroSlides: page.heroSlides || [],
 			showInNavigation: page.showInNavigation !== undefined ? page.showInNavigation : true,
 			navigationLabel: page.navigationLabel || '',
 			navigationOrder: page.navigationOrder !== undefined ? page.navigationOrder : 999,
@@ -467,7 +469,7 @@ export function deleteActivity(id) {
 	}
 }
 
-// CRUD operations for Hero Slides
+// CRUD operations for Hero Slides (legacy - kept for migration)
 export function getHeroSlides() {
 	const db = readDatabase();
 	return db.heroSlides || [];
@@ -488,6 +490,55 @@ export function deleteHeroSlide(id) {
 	const db = readDatabase();
 	db.heroSlides = db.heroSlides.filter((s) => s.id !== id);
 	writeDatabase(db);
+}
+
+// Migration function: Copy global hero slides to pages that don't have them
+// Also converts old hero fields (heroTitle, heroImage) to hero slides
+export function migrateHeroSlidesToPages() {
+	const db = readDatabase();
+	const globalHeroSlides = db.heroSlides || [];
+	
+	let migrated = false;
+	
+	if (db.pages) {
+		db.pages.forEach(page => {
+			// Initialize heroSlides array if it doesn't exist
+			if (!page.heroSlides) {
+				page.heroSlides = [];
+			}
+			
+			// If page has no hero slides, check for old hero fields or global slides
+			if (page.heroSlides.length === 0) {
+				// Check if page has old hero fields (heroTitle, heroImage)
+				const hasOldHeroFields = (page.heroTitle && page.heroTitle.trim()) || (page.heroImage && page.heroImage.trim());
+				
+				if (hasOldHeroFields) {
+					// Convert old hero fields to a hero slide
+					const heroSlide = {
+						id: `${page.id}-hero-${Date.now()}`,
+						title: page.heroTitle || '',
+						subtitle: page.heroSubtitle || '',
+						image: page.heroImage || '',
+						cta: page.heroButtons?.[0]?.text || '',
+						ctaLink: page.heroButtons?.[0]?.link || page.heroButtons?.[0]?.url || ''
+					};
+					page.heroSlides = [heroSlide];
+					migrated = true;
+					console.log(`[Migration] Converted old hero fields to hero slide for page: ${page.id}`);
+				} else if (globalHeroSlides.length > 0) {
+					// Copy global hero slides to this page
+					page.heroSlides = [...globalHeroSlides];
+					migrated = true;
+					console.log(`[Migration] Copied ${globalHeroSlides.length} hero slides to page: ${page.id}`);
+				}
+			}
+		});
+	}
+	
+	if (migrated) {
+		writeDatabase(db);
+		console.log('[Migration] Hero slides migration completed');
+	}
 }
 
 // Contact info operations

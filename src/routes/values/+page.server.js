@@ -20,11 +20,13 @@ export const load = async () => {
 				type: 'values',
 				id: 'values-section',
 				values: []
-			}]
+			}],
+			heroSlides: []
 		};
 	}
 	
-	return { page, contactInfo };
+	const heroSlides = page?.heroSlides || [];
+	return { page, contactInfo, heroSlides };
 };
 
 

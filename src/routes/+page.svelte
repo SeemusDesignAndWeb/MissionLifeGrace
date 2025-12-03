@@ -27,7 +27,10 @@
 
 <svelte:head>
 	<title>Mission Life Grace - Churches on Mission Together</title>
-	<meta name="description" content="Mission Life Grace - A network of churches on mission together to see the Kingdom of God come" />
+	<meta name="description" content={data.home?.metaDescription || "Mission Life Grace - A network of churches on mission together to see the Kingdom of God come"} />
+	{#if data.home?.keywords}
+		<meta name="keywords" content={data.home.keywords} />
+	{/if}
 </svelte:head>
 
 <Hero heroSlides={data.heroSlides} featuredEvents={data.heroEvents} />

@@ -39,7 +39,8 @@ export const load = async ({ params }) => {
 	}
 	
 	const contactInfo = getContactInfo();
+	const heroSlides = page?.heroSlides || [];
 	
-	return { page, contactInfo };
+	return { page, contactInfo, heroSlides };
 };
 

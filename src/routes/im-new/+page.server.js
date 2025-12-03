@@ -3,8 +3,9 @@ import { getPage, getContactInfo } from '$lib/server/database';
 export const load = async () => {
 	const page = getPage('im-new');
 	const contactInfo = getContactInfo();
+	const heroSlides = page?.heroSlides || [];
 	if (page) {
-		return { page, contactInfo };
+		return { page, contactInfo, heroSlides };
 	}
 	// Return a properly typed fallback that matches PageContent interface
 	const fallbackPage = {
@@ -14,7 +15,8 @@ export const load = async () => {
 		heroImage: '/images/church-bg.jpg',
 		content: '',
 		sections: [],
-		published: true
+		published: true,
+		heroSlides: []
 	};
-	return { page: fallbackPage, contactInfo };
+	return { page: fallbackPage, contactInfo, heroSlides: [] };
 };

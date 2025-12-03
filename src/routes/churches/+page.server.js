@@ -3,6 +3,7 @@ import { getPage, getContactInfo } from '$lib/server/database';
 export const load = async () => {
 	const page = getPage('churches');
 	const contactInfo = getContactInfo();
+	const heroSlides = page?.heroSlides || [];
 	
 	// Filter churches to only show those with showOnFrontEnd = true and hideFromAll = false
 	if (page && page.sections) {
@@ -33,7 +34,7 @@ export const load = async () => {
 			sectionsCount: page.sections?.length || 0,
 			sectionsTypes: page.sections?.map(s => s.type) || []
 		});
-		return { page, contactInfo };
+		return { page, contactInfo, heroSlides };
 	}
 	
 	console.warn('[Churches Page] Page not found in database, using fallback');
@@ -44,8 +45,9 @@ export const load = async () => {
 		heroImage: '/images/church-bg.jpg',
 		content: '',
 		sections: [],
-		published: true
+		published: true,
+		heroSlides: []
 	};
-	return { page: fallbackPage, contactInfo };
+	return { page: fallbackPage, contactInfo, heroSlides: [] };
 };
 

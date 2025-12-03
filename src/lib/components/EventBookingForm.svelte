@@ -302,80 +302,47 @@
 </script>
 
 <div class="event-booking-form">
-	<!-- Step Indicator -->
-	<div class="mb-6">
-		<div class="flex items-center justify-between">
-			{#each [1, 2, 3] as step}
-				<div class="flex items-center flex-1">
-					<div class="flex flex-col items-center flex-1">
-						<div class="w-10 h-10 rounded-full flex items-center justify-center {step <= currentStep ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'}">
-							{step}
-						</div>
-						<div class="mt-2 text-xs text-center">
-							{#if step === 1}Select Tickets
-							{:else if step === 2}Your Details
-							{:else}Confirmation{/if}
-						</div>
-					</div>
-					{#if step < 3}
-						<div class="flex-1 h-1 mx-2 {step < currentStep ? 'bg-primary' : 'bg-gray-200'}"></div>
-					{/if}
-				</div>
-			{/each}
-		</div>
-	</div>
-	
 	<!-- Step 1: Ticket Selection -->
 	{#if currentStep === 1}
 		<div>
-			<h3 class="text-2xl font-bold mb-4">Select Tickets</h3>
 			{#if availableTickets.length === 0}
-				<div class="p-4 bg-yellow-50 border border-yellow-200 rounded">
-					<p class="text-yellow-800">No tickets available for this event.</p>
+				<div class="p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+					No tickets available.
 				</div>
 			{:else}
-			<div class="space-y-4 mb-6">
+			<div class="space-y-3 mb-4">
 				{#each availableTickets as ticketType (ticketType.id)}
-					<div class="border rounded p-4">
-						<div class="flex justify-between items-start">
+					<div class="border border-gray-200 rounded-lg p-3">
+						<div class="flex justify-between items-start mb-2">
 							<div class="flex-1">
-								<h4 class="font-semibold text-lg">{ticketType.name}</h4>
-								{#if ticketType.description}
-									<p class="text-sm text-gray-700 mt-1">{ticketType.description}</p>
-								{/if}
+								<h4 class="font-semibold text-sm">{ticketType.name}</h4>
+								<p class="font-bold text-primary mt-1">£{formatCurrency(ticketType.price)}</p>
 							</div>
-							<div class="text-right ml-4">
-								<p class="font-bold text-lg">£{formatCurrency(ticketType.price)}</p>
-								{#if ticketType.capacity}
-									<p class="text-xs text-gray-500">{ticketType.capacity - (ticketType.sold || 0)} remaining</p>
-								{/if}
-							</div>
-						</div>
-						<div class="mt-4 flex items-center gap-4">
-							<button
-								on:click={() => addTicket(ticketType)}
-								class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
-							>
-								Add
-							</button>
 							{#if selectedTickets.find(t => t.ticketTypeId === ticketType.id)}
 								{#each [selectedTickets.find(t => t.ticketTypeId === ticketType.id)] as selected}
-									<div class="flex items-center gap-2">
+									<div class="flex items-center gap-2 ml-2">
 									<button
 										on:click={() => updateQuantity(ticketType.id, selected.quantity - 1)}
-										class="w-8 h-8 rounded border flex items-center justify-center"
+										class="w-7 h-7 rounded border border-gray-300 flex items-center justify-center hover:bg-gray-50 text-sm"
 									>
 										−
 									</button>
-									<span class="w-12 text-center">{selected.quantity}</span>
+									<span class="w-8 text-center text-sm font-medium">{selected.quantity}</span>
 									<button
 										on:click={() => updateQuantity(ticketType.id, selected.quantity + 1)}
-										class="w-8 h-8 rounded border flex items-center justify-center"
+										class="w-7 h-7 rounded border border-gray-300 flex items-center justify-center hover:bg-gray-50 text-sm"
 									>
 										+
 									</button>
 									</div>
 								{/each}
+							{:else}
+								<button
+									on:click={() => addTicket(ticketType)}
+									class="px-3 py-1.5 bg-primary text-white rounded text-sm hover:bg-primary-dark ml-2"
+								>
+									Add
+								</button>
 							{/if}
 						</div>
 					</div>
@@ -383,54 +350,49 @@
 			</div>
 
 			{#if selectedTickets.length > 0}
-				<div class="bg-gray-50 p-4 rounded mb-4">
-					<h4 class="font-semibold mb-2">Selected Tickets</h4>
-					<div class="space-y-2">
+				<div class="bg-gray-50 p-3 rounded-lg mb-4 border border-gray-200">
+					<div class="space-y-1.5 mb-2 text-sm">
 						{#each selectedTickets as ticket}
 							{#if ticket.ticketType}
 							<div class="flex justify-between">
-								<span>{ticket.ticketType.name} × {ticket.quantity}</span>
-								<span>£{formatCurrency(ticket.ticketType.price * ticket.quantity)}</span>
+								<span class="text-gray-700">{ticket.ticketType.name} × {ticket.quantity}</span>
+								<span class="font-medium">£{formatCurrency(ticket.ticketType.price * ticket.quantity)}</span>
 							</div>
-						{/if}
-					{/each}
-					<div class="border-t pt-2 mt-2 flex justify-between font-bold">
+							{/if}
+						{/each}
+					</div>
+					<div class="border-t border-gray-300 pt-2 flex justify-between font-bold text-base">
 						<span>Total:</span>
 						<span>£{formatCurrency(calculateTotal())}</span>
 					</div>
 				</div>
-			</div>
-		{/if}
+			{/if}
 
 			{#if errors.tickets}
-				<p class="text-red-600 text-sm mb-4">{errors.tickets}</p>
+				<p class="text-red-600 text-xs mb-3">{errors.tickets}</p>
 			{/if}
 
-			<div class="flex justify-end">
-				<button
-					on:click={nextStep}
-					class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark font-semibold"
-				>
-					Continue
-				</button>
-			</div>
-			{/if}
+			<button
+				on:click={nextStep}
+				class="w-full px-4 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-dark font-semibold text-sm"
+			>
+				Continue
+			</button>
+		{/if}
 		</div>
 	{/if}
 
 	<!-- Step 2: Customer Details -->
 	{#if currentStep === 2}
 		<div>
-			<h3 class="text-2xl font-bold mb-4">Your Details</h3>
-			
-			<div class="space-y-4">
+			<div class="space-y-3 mb-4">
 				<div>
-					<label for="customer-name" class="block text-sm font-medium mb-1">Full Name *</label>
+					<label for="customer-name" class="block text-xs font-medium mb-1 text-gray-700">Full Name *</label>
 					<input
 						id="customer-name"
 						type="text"
 						bind:value={customerDetails.fullName}
-						class="w-full px-3 py-2 border rounded"
+						class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
 					/>
 					{#if errors.fullName}
 						<p class="text-red-600 text-xs mt-1">{errors.fullName}</p>
@@ -438,12 +400,12 @@
 				</div>
 				
 				<div>
-					<label for="customer-email" class="block text-sm font-medium mb-1">Email *</label>
+					<label for="customer-email" class="block text-xs font-medium mb-1 text-gray-700">Email *</label>
 					<input
 						id="customer-email"
 						type="email"
 						bind:value={customerDetails.email}
-						class="w-full px-3 py-2 border rounded"
+						class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
 						placeholder="email@example.com"
 					/>
 					{#if errors.email}
@@ -452,12 +414,12 @@
 				</div>
 				
 				<div>
-					<label for="customer-phone" class="block text-sm font-medium mb-1">Phone *</label>
+					<label for="customer-phone" class="block text-xs font-medium mb-1 text-gray-700">Phone *</label>
 					<input
 						id="customer-phone"
 						type="tel"
 						bind:value={customerDetails.phone}
-						class="w-full px-3 py-2 border rounded"
+						class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
 					/>
 					{#if errors.phone}
 						<p class="text-red-600 text-xs mt-1">{errors.phone}</p>
@@ -465,10 +427,10 @@
 				</div>
 			</div>
 
-			<div class="flex justify-between mt-6">
+			<div class="flex gap-2">
 				<button
 					on:click={prevStep}
-					class="px-6 py-3 bg-gray-300 rounded-lg hover:bg-gray-400"
+					class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm font-medium"
 				>
 					Back
 				</button>
@@ -496,10 +458,10 @@
 							await submitBooking();
 						}
 					}}
-					class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark font-semibold"
+					class="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark font-semibold text-sm"
 					disabled={processingPayment}
 				>
-					{processingPayment ? 'Processing...' : 'Complete Booking'}
+					{processingPayment ? 'Processing...' : 'Book'}
 				</button>
 			</div>
 		</div>
@@ -508,8 +470,8 @@
 	<!-- Step 3: Payment & Confirmation -->
 	{#if currentStep === 3}
 		{#if !orderSummary}
-			<div class="p-4 bg-yellow-50 border border-yellow-200 rounded">
-				<p class="text-yellow-800 mb-4">No booking found. Please start a new booking.</p>
+			<div class="p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+				<p class="mb-3">No booking found. Please start a new booking.</p>
 				<button
 					on:click={() => {
 						currentStep = 1;
@@ -517,66 +479,58 @@
 						selectedTickets = [];
 						customerDetails = { fullName: '', email: '', phone: '' };
 					}}
-					class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark font-semibold"
+					class="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark font-semibold text-sm"
 				>
 					Select Tickets
 				</button>
 			</div>
 		{:else}
-		<div class="text-center">
-			<div class="mb-6">
+		<div>
+			<div class="mb-4">
 				{#if processingPayment}
-					<div class="mb-4">
-						<div class="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
-						<p class="text-gray-600">Processing payment...</p>
+					<div class="text-center">
+						<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-3"></div>
+						<p class="text-sm text-gray-600">Processing payment...</p>
 					</div>
 				{:else}
-					<svg class="w-16 h-16 text-green-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-					</svg>
-					<h3 class="text-2xl font-bold mb-2">Booking {orderSummary.paymentStatus === 'paid' ? 'Confirmed' : 'Created'}!</h3>
-					<p class="text-gray-600">Your booking reference is: <strong>{orderSummary.bookingReference}</strong></p>
+					<div class="text-center mb-4">
+						<svg class="w-12 h-12 text-green-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+						</svg>
+						<h3 class="text-lg font-bold mb-1">Booking {orderSummary.paymentStatus === 'paid' ? 'Confirmed' : 'Created'}!</h3>
+						<p class="text-xs text-gray-600">Ref: <strong>{orderSummary.bookingReference}</strong></p>
+					</div>
 				{/if}
 			</div>
 			{#if !processingPayment}
-				<div class="bg-gray-50 p-6 rounded mb-6 text-left">
-					<h4 class="font-semibold mb-4">Booking Details</h4>
-					<div class="space-y-2">
-						<p><strong>Event:</strong> {event.title}</p>
-						<p><strong>Total Amount:</strong> £{formatCurrency(orderSummary.totalAmount)}</p>
-						<p><strong>Payment Status:</strong> 
-							<span class="px-2 py-1 rounded text-sm {
+				<div class="bg-gray-50 p-3 rounded-lg mb-3 text-sm border border-gray-200">
+					<div class="space-y-1.5">
+						<p class="text-xs text-gray-600">Total: <span class="font-bold text-gray-900">£{formatCurrency(orderSummary.totalAmount)}</span></p>
+						<p class="text-xs">
+							Status: <span class="px-2 py-0.5 rounded text-xs {
 								orderSummary.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
 								'bg-red-100 text-red-800'
 							}">
-								{orderSummary.paymentStatus === 'paid' ? 'Paid' : 'Pending Payment'}
+								{orderSummary.paymentStatus === 'paid' ? 'Paid' : 'Pending'}
 							</span>
 						</p>
-						{#if orderSummary.paidAmount}
-							<p><strong>Amount Paid:</strong> £{formatCurrency(orderSummary.paidAmount)}</p>
-						{/if}
-						<p><strong>Tickets:</strong> {orderSummary.ticketCount}</p>
+						<p class="text-xs text-gray-600">Tickets: {orderSummary.ticketCount}</p>
 					</div>
 				</div>
-				<p class="text-gray-600 mb-4">A confirmation email has been sent to {orderSummary.customerEmail}</p>
+				<p class="text-xs text-gray-600 mb-3">Confirmation sent to {orderSummary.customerEmail}</p>
 				
 				{#if orderSummary.paymentStatus === 'unpaid' && event.paymentSettings?.paypalEnabled && !env.PUBLIC_TEST}
-					<div class="mb-4">
-						<p class="text-sm text-gray-600 mb-2">Complete your payment:</p>
-						<button
-							on:click={() => createPayPalOrder(orderSummary.bookingId || orderSummary.id)}
-							class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold"
-							disabled={processingPayment}
-						>
-							{processingPayment ? 'Processing...' : 'Pay with PayPal'}
-						</button>
-					</div>
+					<button
+						on:click={() => createPayPalOrder(orderSummary.bookingId || orderSummary.id)}
+						class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold text-sm mb-3"
+						disabled={processingPayment}
+					>
+						{processingPayment ? 'Processing...' : 'Pay with PayPal'}
+					</button>
 				{/if}
 				{#if env.PUBLIC_TEST && orderSummary.paymentStatus === 'unpaid'}
-					<div class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-						<p class="text-sm text-yellow-800">
-							🧪 <strong>TEST MODE:</strong> PayPal payment bypassed. Payment status: {orderSummary.paymentStatus}
-						</p>
+					<div class="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+						🧪 TEST MODE: Payment bypassed
 					</div>
 				{/if}
 			{/if}
@@ -587,8 +541,7 @@
 
 <style>
 	.event-booking-form {
-		max-width: 800px;
-		margin: 0 auto;
+		width: 100%;
 	}
 </style>
 

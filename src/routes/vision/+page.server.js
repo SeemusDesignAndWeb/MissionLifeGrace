@@ -16,11 +16,13 @@ export const load = async () => {
 			metaDescription: 'The vision of Mission Life Grace',
 			content: '',
 			published: true,
-			sections: []
+			sections: [],
+			heroSlides: []
 		};
 	}
 	
-	return { page, contactInfo };
+	const heroSlides = page?.heroSlides || [];
+	return { page, contactInfo, heroSlides };
 };
 
 

@@ -4,6 +4,7 @@ import { redirect } from '@sveltejs/kit';
 export const load = async () => {
 	const page = getPage('conferences');
 	const contactInfo = getContactInfo();
+	const heroSlides = page?.heroSlides || [];
 	// Get published conferences, sorted by start date
 	const allConferences = getConferences();
 	const conferences = allConferences
@@ -20,7 +21,7 @@ export const load = async () => {
 	}
 	
 	if (page) {
-		return { page, contactInfo, conferences };
+		return { page, contactInfo, conferences, heroSlides };
 	}
 	
 	const fallbackPage = {
@@ -30,8 +31,9 @@ export const load = async () => {
 		heroImage: '/images/activities-bg.jpg',
 		content: '',
 		sections: [],
-		published: true
+		published: true,
+		heroSlides: []
 	};
-	return { page: fallbackPage, contactInfo, conferences };
+	return { page: fallbackPage, contactInfo, conferences, heroSlides: [] };
 };
 
