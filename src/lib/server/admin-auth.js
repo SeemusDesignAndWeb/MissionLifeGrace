@@ -67,10 +67,13 @@ export function getCurrentAdminUser(cookies) {
 		
 		// Return virtual superadmin user if session is superadmin
 		if (isSuperadmin && userId === SUPERADMIN_EMAIL) {
+			// Try to find existing admin user profile to get name
+			const existingUser = getAdminUserByEmail(SUPERADMIN_EMAIL);
 			return {
 				id: 'superadmin',
 				email: SUPERADMIN_EMAIL,
-				fullName: 'Super Admin',
+				name: existingUser?.name || 'Super Admin',
+				fullName: existingUser?.name || 'Super Admin',
 				accessLevel: ACCESS_LEVELS.FULL_ACCESS,
 				active: true,
 				isSuperadmin: true
@@ -140,10 +143,14 @@ export function createSession(cookies, email, password) {
 				secure: process.env.NODE_ENV === 'production'
 			});
 
+			// Try to find existing admin user profile to get name
+			const existingUser = getAdminUserByEmail(email);
+
 			const superadminUser = {
 				id: 'superadmin',
 				email: email,
-				fullName: 'Super Admin',
+				name: existingUser?.name || 'Super Admin',
+				fullName: existingUser?.name || 'Super Admin',
 				accessLevel: ACCESS_LEVELS.FULL_ACCESS,
 				active: true,
 				isSuperadmin: true

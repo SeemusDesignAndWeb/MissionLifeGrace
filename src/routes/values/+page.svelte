@@ -138,11 +138,58 @@
 
 <!-- Values Section Description (if exists, shown below hero) -->
 {#if valuesSection?.description}
-	<section class="py-8 bg-gray-50">
-		<div class="container mx-auto px-4">
-			<div class="max-w-3xl mx-auto">
-				<div class="text-gray-700 text-base md:text-lg leading-relaxed">
-					{@html valuesSection.description}
+	<section class="relative py-12 md:py-16 overflow-hidden">
+		<!-- Background with gradient -->
+		<div class="absolute inset-0 bg-gradient-to-br from-primary/5 via-brand-blue/5 to-brand-cyan/5"></div>
+		
+		<!-- Decorative elements -->
+		<div class="absolute top-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+		<div class="absolute bottom-0 right-0 w-96 h-96 bg-brand-cyan/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+		
+		<div class="container mx-auto px-4 relative z-10">
+			<div class="max-w-5xl mx-auto">
+				<!-- Section Header -->
+				<div class="text-center mb-8">
+					<div class="inline-block mb-4">
+						<span class="text-primary text-sm font-semibold uppercase tracking-wider">Our Foundation</span>
+					</div>
+					{#if valuesSection.title}
+						<h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
+							{@html valuesSection.title}
+						</h2>
+					{/if}
+				</div>
+				
+				<!-- Main Content Card -->
+				<div class="relative">
+					<!-- Decorative border gradient -->
+					<div class="absolute -inset-1 bg-gradient-to-r from-primary via-brand-blue to-brand-cyan rounded-2xl blur opacity-20"></div>
+					
+					<!-- Content container -->
+					<div class="relative bg-white/80 backdrop-blur-sm rounded-2xl p-8 md:p-12 shadow-xl border border-gray-100">
+						<!-- Quote icon decoration -->
+						<div class="absolute top-6 left-6 opacity-5">
+							<svg class="w-24 h-24 text-primary" fill="currentColor" viewBox="0 0 24 24">
+								<path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.996 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.984zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+							</svg>
+						</div>
+						
+						<!-- Content -->
+						<div class="relative z-10">
+							<div class="prose prose-lg md:prose-xl max-w-none text-gray-700 leading-relaxed">
+								{@html valuesSection.description}
+							</div>
+							
+							<!-- Accent line -->
+							<div class="mt-8 pt-8 border-t border-gray-200">
+								<div class="flex items-center gap-4">
+									<div class="flex-1 h-px bg-gradient-to-r from-transparent via-primary to-transparent"></div>
+									<div class="w-2 h-2 rounded-full bg-primary"></div>
+									<div class="flex-1 h-px bg-gradient-to-r from-transparent via-brand-cyan to-transparent"></div>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -151,7 +198,7 @@
 
 <!-- Values Grid Section -->
 {#if values && values.length > 0}
-	<section class="py-20 md:py-28 bg-gradient-to-b from-gray-50 via-white to-gray-50">
+	<section class="py-12 md:py-16 bg-gradient-to-b from-gray-50 via-white to-gray-50">
 		<div class="container mx-auto px-4">
 			<div class="max-w-7xl mx-auto">
 				<!-- Staggered Grid Layout -->

@@ -206,12 +206,13 @@
         {
           "id": "values-hero-1764799016840",
           "title": "Our values",
-          "subtitle": "",
+          "subtitle": "Churches on mission together",
           "image": "https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763066407/egcc/egcc/page-hero-church.jpg",
           "cta": "",
           "ctaLink": ""
         }
-      ]
+      ],
+      "keywords": ""
     },
     {
       "id": "audio",
