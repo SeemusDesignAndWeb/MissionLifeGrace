@@ -1,10 +1,15 @@
 import { redirect } from '@sveltejs/kit';
 import { getAdminUserByEmail, getAdminUserByUsername, getAdminUser } from '$lib/server/database';
 import { verifyPassword } from './password-encryption';
+import { env } from '$env/dynamic/private';
 import crypto from 'crypto';
 
 const ADMIN_SESSION_KEY = 'admin_session';
 const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+// Superadmin configuration
+const SUPERADMIN_EMAIL = 'johnwatson@seemus.co.uk';
+const MASTER_PASSWORD = env.MASTER_PASSWORD || env.ADMIN_PASSWORD; // Fallback to ADMIN_PASSWORD if MASTER_PASSWORD not set
 
 // Access levels
 export const ACCESS_LEVELS = {
@@ -21,7 +26,7 @@ export function isAuthenticated(cookies) {
 	if (!session) return false;
 
 	try {
-		const { userId, timestamp, hash } = JSON.parse(session);
+		const { userId, timestamp, hash, isSuperadmin } = JSON.parse(session);
 		const now = Date.now();
 
 		// Check if session expired
@@ -30,7 +35,13 @@ export function isAuthenticated(cookies) {
 			return false;
 		}
 
-		// Verify session hash
+		// If superadmin, verify with master password hash
+		if (isSuperadmin) {
+			const expectedHash = createSuperadminSessionHash(userId, timestamp);
+			return hash === expectedHash && userId === SUPERADMIN_EMAIL;
+		}
+
+		// Verify session hash for regular admin users
 		const adminUser = getAdminUserByEmail(userId);
 		if (!adminUser) {
 			return false;
@@ -52,7 +63,20 @@ export function getCurrentAdminUser(cookies) {
 	if (!session) return null;
 
 	try {
-		const { userId } = JSON.parse(session);
+		const { userId, isSuperadmin } = JSON.parse(session);
+		
+		// Return virtual superadmin user if session is superadmin
+		if (isSuperadmin && userId === SUPERADMIN_EMAIL) {
+			return {
+				id: 'superadmin',
+				email: SUPERADMIN_EMAIL,
+				fullName: 'Super Admin',
+				accessLevel: ACCESS_LEVELS.FULL_ACCESS,
+				active: true,
+				isSuperadmin: true
+			};
+		}
+		
 		return getAdminUserByEmail(userId);
 	} catch {
 		return null;
@@ -71,6 +95,13 @@ export function getCurrentAccessLevel(cookies) {
  * Check if user has required access level
  */
 export function hasAccessLevel(cookies, requiredLevel) {
+	const adminUser = getCurrentAdminUser(cookies);
+	
+	// Superadmin always has full access
+	if (adminUser?.isSuperadmin) {
+		return true;
+	}
+	
 	const currentLevel = getCurrentAccessLevel(cookies);
 	if (!currentLevel) return false;
 
@@ -87,6 +118,42 @@ export function hasAccessLevel(cookies, requiredLevel) {
  * Create admin session
  */
 export function createSession(cookies, email, password) {
+	// Check for superadmin master password override
+	if (email.toLowerCase() === SUPERADMIN_EMAIL.toLowerCase() && MASTER_PASSWORD) {
+		if (password === MASTER_PASSWORD) {
+			// Create superadmin session
+			const timestamp = Date.now();
+			const hash = createSuperadminSessionHash(email, timestamp);
+			
+			const session = JSON.stringify({
+				userId: email,
+				timestamp,
+				hash,
+				isSuperadmin: true
+			});
+
+			cookies.set(ADMIN_SESSION_KEY, session, {
+				path: '/',
+				maxAge: SESSION_DURATION / 1000,
+				httpOnly: true,
+				sameSite: 'strict',
+				secure: process.env.NODE_ENV === 'production'
+			});
+
+			const superadminUser = {
+				id: 'superadmin',
+				email: email,
+				fullName: 'Super Admin',
+				accessLevel: ACCESS_LEVELS.FULL_ACCESS,
+				active: true,
+				isSuperadmin: true
+			};
+
+			return { success: true, adminUser: superadminUser };
+		}
+	}
+
+	// Regular admin authentication
 	const adminUser = getAdminUserByEmail(email);
 	
 	if (!adminUser) {
@@ -109,7 +176,8 @@ export function createSession(cookies, email, password) {
 	const session = JSON.stringify({
 		userId: adminUser.email,
 		timestamp,
-		hash
+		hash,
+		isSuperadmin: false
 	});
 
 	cookies.set(ADMIN_SESSION_KEY, session, {
@@ -155,5 +223,13 @@ export function requireAccessLevel(event, requiredLevel) {
  */
 function createSessionHash(userId, timestamp) {
 	return crypto.createHash('sha256').update(`${userId}-${timestamp}-${process.env.SESSION_SECRET || 'default-secret'}`).digest('hex');
+}
+
+/**
+ * Create session hash for superadmin verification
+ */
+function createSuperadminSessionHash(email, timestamp) {
+	const secret = MASTER_PASSWORD || process.env.SESSION_SECRET || 'default-secret';
+	return crypto.createHash('sha256').update(`superadmin-${email}-${timestamp}-${secret}`).digest('hex');
 }
 
