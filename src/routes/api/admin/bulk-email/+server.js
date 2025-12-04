@@ -2,11 +2,9 @@ import { json } from '@sveltejs/kit';
 import { getConferenceBookings, getConference } from '$lib/server/database';
 import { env } from '$env/dynamic/private';
 import { Resend } from 'resend';
-import { getMlgLogoBase64 } from '$lib/server/logo';
 import { isAuthenticated } from '$lib/server/admin-auth';
 
 const resend = new Resend(env.RESEND_API_KEY);
-const MLG_LOGO_BASE64 = getMlgLogoBase64();
 
 export const POST = async ({ request, cookies }) => {
 	try {
@@ -33,6 +31,8 @@ export const POST = async ({ request, cookies }) => {
 		}
 
 		const fromEmail = env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+		const siteUrl = env.PUBLIC_SITE_URL || 'https://www.missionlifegrace.org.uk';
+		const logoUrl = `${siteUrl}/images/mlg-logo.png`;
 		const results = [];
 		const errors = [];
 
@@ -63,7 +63,7 @@ export const POST = async ({ request, cookies }) => {
 				</head>
 				<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
 					<div style="background: linear-gradient(135deg, #00a79d 0%, #0693ad 50%, #1384b6 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-						<img src="data:image/png;base64,${MLG_LOGO_BASE64}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
+						<img src="${logoUrl}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
 						<h1 style="color: white; margin: 0;">${personalizedSubject}</h1>
 					</div>
 					<div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">

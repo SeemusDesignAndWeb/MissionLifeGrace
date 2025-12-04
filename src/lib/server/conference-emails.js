@@ -1,12 +1,8 @@
 import { sendContactEmail } from './resend';
 import { env } from '$env/dynamic/private';
 import { Resend } from 'resend';
-import { getMlgLogoBase64 } from './logo';
 
 const resend = new Resend(env.RESEND_API_KEY);
-
-// Read MLG Logo as base64-encoded PNG
-const MLG_LOGO_BASE64 = getMlgLogoBase64();
 
 /**
  * Send booking confirmation email to group leader
@@ -14,7 +10,8 @@ const MLG_LOGO_BASE64 = getMlgLogoBase64();
 export async function sendBookingConfirmationEmail({ booking, conference, attendees, accountCreated = false }) {
 	try {
 		const fromEmail = env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-		const siteUrl = env.PUBLIC_SITE_URL || 'http://localhost:5173';
+		const siteUrl = env.PUBLIC_SITE_URL || 'https://www.missionlifegrace.org.uk';
+		const logoUrl = `${siteUrl}/images/mlg-logo.png`;
 
 		// Generate ticket list HTML
 		const ticketList = attendees.map(attendee => {
@@ -38,7 +35,7 @@ export async function sendBookingConfirmationEmail({ booking, conference, attend
 			</head>
 			<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
 				<div style="background: linear-gradient(135deg, #00a79d 0%, #0693ad 50%, #1384b6 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-					<img src="data:image/png;base64,${MLG_LOGO_BASE64}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
+					<img src="${logoUrl}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
 					<h1 style="color: white; margin: 0;">Booking Confirmed!</h1>
 				</div>
 				<div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
@@ -122,6 +119,8 @@ export async function sendBookingConfirmationEmail({ booking, conference, attend
 export async function sendChildRegistrationNotification({ booking, conference, childAttendees, childGroupLeaders }) {
 	try {
 		const fromEmail = env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+		const siteUrl = env.PUBLIC_SITE_URL || 'https://www.missionlifegrace.org.uk';
+		const logoUrl = `${siteUrl}/images/mlg-logo.png`;
 
 		// Group children by age group
 		const childrenByAgeGroup = {};
@@ -158,7 +157,7 @@ export async function sendChildRegistrationNotification({ booking, conference, c
 				</head>
 				<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
 					<div style="background: linear-gradient(135deg, #00a79d 0%, #0693ad 50%, #1384b6 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-						<img src="data:image/png;base64,${MLG_LOGO_BASE64}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
+						<img src="${logoUrl}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
 						<h2 style="color: white; margin: 0;">New Child Registration - ${ageGroup}</h2>
 					</div>
 					<div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
@@ -205,8 +204,8 @@ export async function sendChildRegistrationNotification({ booking, conference, c
 export async function sendVerificationCodeEmail({ email, code, name }) {
 	try {
 		const fromEmail = env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-		const siteUrl = env.PUBLIC_SITE_URL || 'http://localhost:5173';
-
+		const siteUrl = env.PUBLIC_SITE_URL || 'https://www.missionlifegrace.org.uk';
+		const logoUrl = `${siteUrl}/images/mlg-logo.png`;
 
 		const emailHtml = `
 			<!DOCTYPE html>
@@ -217,7 +216,7 @@ export async function sendVerificationCodeEmail({ email, code, name }) {
 			</head>
 			<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
 				<div style="background: linear-gradient(135deg, #00a79d 0%, #0693ad 50%, #1384b6 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-					<img src="data:image/png;base64,${MLG_LOGO_BASE64}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
+					<img src="${logoUrl}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
 					<h1 style="color: white; margin: 0;">Email Verification</h1>
 				</div>
 				<div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
@@ -260,7 +259,8 @@ export async function sendVerificationCodeEmail({ email, code, name }) {
 export async function sendPasswordResetEmail({ email, token }) {
 	try {
 		const fromEmail = env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-		const siteUrl = env.PUBLIC_SITE_URL || 'http://localhost:5173';
+		const siteUrl = env.PUBLIC_SITE_URL || 'https://www.missionlifegrace.org.uk';
+		const logoUrl = `${siteUrl}/images/mlg-logo.png`;
 
 		// Use a link with token
 		const resetLink = `${siteUrl}/my-account/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
@@ -274,7 +274,7 @@ export async function sendPasswordResetEmail({ email, token }) {
 			</head>
 			<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
 				<div style="background: linear-gradient(135deg, #00a79d 0%, #0693ad 50%, #1384b6 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-					<img src="data:image/png;base64,${MLG_LOGO_BASE64}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
+					<img src="${logoUrl}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
 					<h1 style="color: white; margin: 0;">Reset Your Password</h1>
 				</div>
 				<div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
@@ -387,7 +387,8 @@ function getAdminEmails() {
 export async function sendAdminBookingNotification({ booking, conference, attendees }) {
 	try {
 		const fromEmail = env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-		const siteUrl = env.PUBLIC_SITE_URL || 'http://localhost:5173';
+		const siteUrl = env.PUBLIC_SITE_URL || 'https://www.missionlifegrace.org.uk';
+		const logoUrl = `${siteUrl}/images/mlg-logo.png`;
 		const adminEmails = getAdminEmails();
 
 		// Generate attendee summary
@@ -417,7 +418,7 @@ export async function sendAdminBookingNotification({ booking, conference, attend
 			</head>
 			<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
 				<div style="background: linear-gradient(135deg, #00a79d 0%, #0693ad 50%, #1384b6 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-					<img src="data:image/png;base64,${MLG_LOGO_BASE64}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
+					<img src="${logoUrl}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
 					<h1 style="color: white; margin: 0;">New Booking Received</h1>
 				</div>
 				<div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
@@ -494,7 +495,8 @@ export async function sendAdminBookingNotification({ booking, conference, attend
 export async function sendAdminPaymentNotification({ booking, conference, paymentAmount, paymentMethod }) {
 	try {
 		const fromEmail = env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-		const siteUrl = env.PUBLIC_SITE_URL || 'http://localhost:5173';
+		const siteUrl = env.PUBLIC_SITE_URL || 'https://www.missionlifegrace.org.uk';
+		const logoUrl = `${siteUrl}/images/mlg-logo.png`;
 		const adminEmails = getAdminEmails();
 
 		const balanceDue = (booking.totalAmount || 0) - (booking.paidAmount || 0);
@@ -511,7 +513,7 @@ export async function sendAdminPaymentNotification({ booking, conference, paymen
 			</head>
 			<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
 				<div style="background: linear-gradient(135deg, #00a79d 0%, #0693ad 50%, #1384b6 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-					<img src="data:image/png;base64,${MLG_LOGO_BASE64}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
+					<img src="${logoUrl}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
 					<h1 style="color: white; margin: 0;">Payment Received</h1>
 				</div>
 				<div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
@@ -575,7 +577,8 @@ export async function sendAdminPaymentNotification({ booking, conference, paymen
 export async function sendPaymentConfirmationEmail({ booking, conference, paymentAmount }) {
 	try {
 		const fromEmail = env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-		const siteUrl = env.PUBLIC_SITE_URL || 'http://localhost:5173';
+		const siteUrl = env.PUBLIC_SITE_URL || 'https://www.missionlifegrace.org.uk';
+		const logoUrl = `${siteUrl}/images/mlg-logo.png`;
 
 		const balanceDue = (booking.totalAmount || 0) - (booking.paidAmount || 0);
 		const isFullyPaid = booking.paymentStatus === 'paid';
@@ -589,7 +592,7 @@ export async function sendPaymentConfirmationEmail({ booking, conference, paymen
 			</head>
 			<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
 				<div style="background: linear-gradient(135deg, #00a79d 0%, #0693ad 50%, #1384b6 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-					<img src="data:image/png;base64,${MLG_LOGO_BASE64}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
+					<img src="${logoUrl}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
 					<h1 style="color: white; margin: 0;">Payment Received</h1>
 				</div>
 				<div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
@@ -650,7 +653,8 @@ export async function sendPaymentConfirmationEmail({ booking, conference, paymen
 export async function sendPaymentReminderEmail({ booking, conference, daysUntilDeadline = null }) {
 	try {
 		const fromEmail = env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-		const siteUrl = env.PUBLIC_SITE_URL || 'http://localhost:5173';
+		const siteUrl = env.PUBLIC_SITE_URL || 'https://www.missionlifegrace.org.uk';
+		const logoUrl = `${siteUrl}/images/mlg-logo.png`;
 
 		const balanceDue = (booking.totalAmount || 0) - (booking.paidAmount || 0);
 		const urgencyMessage = daysUntilDeadline !== null && daysUntilDeadline <= 7
@@ -668,7 +672,7 @@ export async function sendPaymentReminderEmail({ booking, conference, daysUntilD
 			</head>
 			<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
 				<div style="background: linear-gradient(135deg, #00a79d 0%, #0693ad 50%, #1384b6 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-					<img src="data:image/png;base64,${MLG_LOGO_BASE64}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
+					<img src="${logoUrl}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
 					<h1 style="color: white; margin: 0;">Payment Reminder</h1>
 				</div>
 				<div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
@@ -720,7 +724,8 @@ export async function sendPaymentReminderEmail({ booking, conference, daysUntilD
 export async function sendEventBookingConfirmationEmail({ booking, event, attendees }) {
 	try {
 		const fromEmail = env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-		const siteUrl = env.PUBLIC_SITE_URL || 'http://localhost:5173';
+		const siteUrl = env.PUBLIC_SITE_URL || 'https://www.missionlifegrace.org.uk';
+		const logoUrl = `${siteUrl}/images/mlg-logo.png`;
 
 		// Generate ticket list HTML
 		const ticketList = attendees.map(attendee => {
@@ -758,7 +763,7 @@ export async function sendEventBookingConfirmationEmail({ booking, event, attend
 			</head>
 			<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
 				<div style="background: linear-gradient(135deg, #00a79d 0%, #0693ad 50%, #1384b6 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-					<img src="data:image/png;base64,${MLG_LOGO_BASE64}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
+					<img src="${logoUrl}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
 					<h1 style="color: white; margin: 0;">Booking Confirmed!</h1>
 				</div>
 				<div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
