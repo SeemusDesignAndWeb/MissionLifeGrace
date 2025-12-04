@@ -3,6 +3,7 @@ import { getConferenceBookings, getConference } from '$lib/server/database';
 import { env } from '$env/dynamic/private';
 import { Resend } from 'resend';
 import { getMlgLogoBase64 } from '$lib/server/logo';
+import { isAuthenticated } from '$lib/server/admin-auth';
 
 const resend = new Resend(env.RESEND_API_KEY);
 const MLG_LOGO_BASE64 = getMlgLogoBase64();
@@ -10,7 +11,6 @@ const MLG_LOGO_BASE64 = getMlgLogoBase64();
 export const POST = async ({ request, cookies }) => {
 	try {
 		// Check admin authentication
-		const { isAuthenticated } = await import('$lib/server/auth');
 		if (!isAuthenticated(cookies)) {
 			return json({ error: 'Unauthorized' }, { status: 401 });
 		}

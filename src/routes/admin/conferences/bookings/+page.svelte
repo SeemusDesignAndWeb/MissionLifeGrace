@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import HelpIcon from '$lib/components/HelpIcon.svelte';
 	import { getHelpContent } from '$lib/utils/helpContent';
+	import { notify } from '$lib/utils/notify';
+	import ConfirmationDialog from '$lib/components/ConfirmationDialog.svelte';
 
 	export let data;
 
@@ -24,6 +26,21 @@
 	let bulkEmailLoading = false;
 	let bulkEmailError = '';
 	let bulkEmailSuccess = false;
+
+	// Single Booking Actions
+	let showQuickMessageModal = false;
+	let quickMessageSubject = '';
+	let quickMessageBody = '';
+	let sendingEmail = false;
+	let quickMessageError = '';
+	let quickMessageSuccess = false;
+	let targetBooking = null;
+
+	// Confirmation
+	let showConfirm = false;
+	let confirmTitle = '';
+	let confirmMessage = '';
+	let onConfirm = () => {};
 
 	onMount(async () => {
 		await loadConferences();
@@ -73,6 +90,101 @@
 			ticketTypes = allTicketTypes;
 		} catch (error) {
 			console.error('Failed to load ticket types:', error);
+		}
+	}
+
+	async function sendPaymentReminder(booking) {
+		confirmTitle = 'Send Reminder';
+		confirmMessage = 'Are you sure you want to send a payment/information reminder to this customer?';
+		showConfirm = true;
+		onConfirm = async () => {
+			sendingEmail = true;
+			try {
+				const response = await fetch('/api/admin/send-booking-email', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						bookingId: booking.id,
+						subject: "Hi, we have been thinking of you...",
+						message: `This is a friendly reminder that we are still awaiting payment or information regarding your booking ({bookingReference}).
+
+Please log in to your account to update your details or complete payment.
+
+Best regards,
+Mission Life Grace Team`
+					})
+				});
+
+				const result = await response.json();
+
+				if (response.ok) {
+					notify('Payment/Info reminder sent successfully!', 'success');
+				} else {
+					notify('Failed to send reminder: ' + (result.error || 'Unknown error'), 'error');
+				}
+			} catch (error) {
+				console.error('Error sending reminder:', error);
+				notify('An error occurred while sending the reminder.', 'error');
+			} finally {
+				sendingEmail = false;
+			}
+		};
+	}
+
+	function openQuickMessageModal(booking) {
+		targetBooking = booking;
+		quickMessageSubject = '';
+		quickMessageBody = '';
+		quickMessageError = '';
+		quickMessageSuccess = false;
+		showQuickMessageModal = true;
+	}
+
+	function closeQuickMessageModal() {
+		showQuickMessageModal = false;
+		targetBooking = null;
+		quickMessageSubject = '';
+		quickMessageBody = '';
+		quickMessageError = '';
+		quickMessageSuccess = false;
+	}
+
+	async function sendQuickMessage() {
+		if (!quickMessageSubject.trim() || !quickMessageBody.trim()) {
+			quickMessageError = 'Subject and message are required';
+			return;
+		}
+
+		sendingEmail = true;
+		quickMessageError = '';
+		quickMessageSuccess = false;
+
+		try {
+			const response = await fetch('/api/admin/send-booking-email', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					bookingId: targetBooking.id,
+					subject: quickMessageSubject,
+					message: quickMessageBody
+				})
+			});
+
+			const result = await response.json();
+
+			if (response.ok) {
+				quickMessageSuccess = true;
+				setTimeout(() => {
+					closeQuickMessageModal();
+				}, 2000);
+			} else {
+				quickMessageError = result.error || 'Failed to send message';
+			}
+		} catch (error) {
+			quickMessageError = 'An error occurred. Please try again.';
+			console.error('Quick message error:', error);
+		} finally {
+			sendingEmail = false;
 		}
 	}
 
@@ -596,7 +708,7 @@
 								required
 								rows="10"
 								class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-								placeholder="Enter your message here. You can use {bookingReference} and {groupLeaderName} as placeholders."
+								placeholder="Enter your message here. You can use {'{'}bookingReference{'}'} and {'{'}groupLeaderName{'}'} as placeholders."
 							></textarea>
 							<p class="text-xs text-gray-500 mt-1">
 								Tip: Use <code class="bg-gray-100 px-1 rounded">{'{bookingReference}'}</code> and <code class="bg-gray-100 px-1 rounded">{'{groupLeaderName}'}</code> for personalization
@@ -633,13 +745,35 @@
 		<div class="bg-white rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
 			<div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
 				<h2 class="text-2xl font-bold text-gray-900">Booking Details</h2>
-				<button
-					on:click={closeBookingDetails}
-					class="text-gray-500 hover:text-gray-700 text-2xl font-bold"
-					aria-label="Close"
-				>
-					×
-				</button>
+				<div class="flex items-center gap-3">
+					<div class="flex items-center gap-2">
+						<button
+							on:click={() => sendPaymentReminder(selectedBooking)}
+							disabled={sendingEmail}
+							class="px-3 py-1.5 bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200 font-medium text-sm flex items-center gap-2 disabled:opacity-50"
+							title="Send Payment/Info Reminder"
+						>
+							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+							{sendingEmail ? 'Sending...' : 'Reminder'}
+						</button>
+						<button
+							on:click|stopPropagation={() => openQuickMessageModal(selectedBooking)}
+							class="px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 font-medium text-sm flex items-center gap-2"
+							title="Send Quick Message"
+						>
+							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+							Message
+						</button>
+					</div>
+					<div class="h-6 w-px bg-gray-300 mx-2"></div>
+					<button
+						on:click={closeBookingDetails}
+						class="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+						aria-label="Close"
+					>
+						×
+					</button>
+				</div>
 			</div>
 			
 			<div class="p-6">
@@ -884,6 +1018,108 @@
 							{/if}
 						</div>
 					</div>
+				{/if}
+			</div>
+		</div>
+	</div>
+	<ConfirmationDialog
+		open={showConfirm}
+		title={confirmTitle}
+		message={confirmMessage}
+		on:confirm={onConfirm}
+		on:cancel={() => showConfirm = false}
+	/>
+{/if}
+
+<!-- Quick Message Modal -->
+{#if showQuickMessageModal}
+	<div class="fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4" style="z-index: 100;">
+		<div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
+			<div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+				<h2 class="text-2xl font-bold text-gray-900">Send Message</h2>
+				<button
+					on:click={closeQuickMessageModal}
+					class="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+					aria-label="Close"
+				>
+					×
+				</button>
+			</div>
+			
+			<div class="p-6">
+				{#if quickMessageSuccess}
+					<div class="text-center py-8">
+						<div class="mb-4">
+							<svg class="w-16 h-16 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+							</svg>
+						</div>
+						<p class="text-lg font-semibold text-gray-900 mb-2">Message Sent Successfully!</p>
+						<p class="text-sm text-gray-600">Your message has been sent to {targetBooking?.groupLeaderName}.</p>
+					</div>
+				{:else}
+					<div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+						<p class="text-sm text-blue-800">
+							Sending message to <strong>{targetBooking?.groupLeaderName}</strong> ({targetBooking?.groupLeaderEmail}).
+						</p>
+					</div>
+
+					{#if quickMessageError}
+						<div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+							<p class="text-sm text-red-800">{quickMessageError}</p>
+						</div>
+					{/if}
+
+					<form on:submit|preventDefault={sendQuickMessage} class="space-y-4">
+						<div>
+							<label for="quick-message-subject" class="block text-sm font-medium text-gray-700 mb-1">
+								Subject *
+							</label>
+							<input
+								id="quick-message-subject"
+								type="text"
+								bind:value={quickMessageSubject}
+								required
+								class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+								placeholder="Email subject line"
+							/>
+						</div>
+
+						<div>
+							<label for="quick-message-body" class="block text-sm font-medium text-gray-700 mb-1">
+								Message *
+							</label>
+							<textarea
+								id="quick-message-body"
+								bind:value={quickMessageBody}
+								required
+								rows="10"
+								class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+								placeholder="Enter your message here. You can use {'{'}bookingReference{'}'} and {'{'}groupLeaderName{'}'} as placeholders."
+							></textarea>
+							<p class="text-xs text-gray-500 mt-1">
+								Tip: Use <code class="bg-gray-100 px-1 rounded">{'{bookingReference}'}</code> and <code class="bg-gray-100 px-1 rounded">{'{groupLeaderName}'}</code> for personalization
+							</p>
+						</div>
+
+						<div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+							<button
+								type="button"
+								on:click={closeQuickMessageModal}
+								disabled={sendingEmail}
+								class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold disabled:opacity-50"
+							>
+								Cancel
+							</button>
+							<button
+								type="submit"
+								disabled={sendingEmail}
+								class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark font-semibold disabled:opacity-50"
+							>
+								{sendingEmail ? 'Sending...' : 'Send Message'}
+							</button>
+						</div>
+					</form>
 				{/if}
 			</div>
 		</div>
