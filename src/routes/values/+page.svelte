@@ -6,7 +6,8 @@
 	export let data;
 	export let params = {};
 
-	// Extract values section from page data
+	// Extract foundation and values sections from page data
+	$: foundationSection = data.page?.sections?.find(s => s.type === 'foundation');
 	$: valuesSection = data.page?.sections?.find(s => s.type === 'values');
 	$: values = valuesSection?.values || [];
 
@@ -136,8 +137,8 @@
 <!-- Hero Slides -->
 <HeroSlides heroSlides={data.heroSlides} />
 
-<!-- Values Section Description (if exists, shown below hero) -->
-{#if valuesSection?.description}
+<!-- Foundation Section (if exists, shown below hero) -->
+{#if foundationSection}
 	<section class="relative py-12 md:py-16 overflow-hidden">
 		<!-- Background with gradient -->
 		<div class="absolute inset-0 bg-gradient-to-br from-primary/5 via-brand-blue/5 to-brand-cyan/5"></div>
@@ -150,12 +151,14 @@
 			<div class="max-w-5xl mx-auto">
 				<!-- Section Header -->
 				<div class="text-center mb-8">
-					<div class="inline-block mb-4">
-						<span class="text-primary text-sm font-semibold uppercase tracking-wider">Our Foundation</span>
-					</div>
-					{#if valuesSection.title}
+					{#if foundationSection.label}
+						<div class="inline-block mb-4">
+							<span class="text-primary text-sm font-semibold uppercase tracking-wider">{foundationSection.label}</span>
+						</div>
+					{/if}
+					{#if foundationSection.title}
 						<h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-							{@html valuesSection.title}
+							{@html foundationSection.title}
 						</h2>
 					{/if}
 				</div>
@@ -177,7 +180,7 @@
 						<!-- Content -->
 						<div class="relative z-10">
 							<div class="prose prose-lg md:prose-xl max-w-none text-gray-700 leading-relaxed">
-								{@html valuesSection.description}
+								{@html foundationSection.content}
 							</div>
 							
 							<!-- Accent line -->

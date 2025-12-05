@@ -256,27 +256,36 @@
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8 admin-page">
-	<h1 class="text-3xl font-bold mb-6">Conference Reports</h1>
+	<!-- Header -->
+	<div class="bg-gradient-to-r from-primary to-brand-blue text-white px-6 py-4 rounded-t-lg mb-6">
+		<h1 class="text-3xl font-bold text-white">Conference Reports</h1>
+	</div>
 
-	<div class="mb-6">
-		<label class="block text-sm font-medium mb-1">Filter by Conference</label>
-		<select
-			bind:value={selectedConferenceId}
-			on:change={loadData}
-			class="px-3 py-2 border rounded"
-		>
-			<option value="">All Conferences</option>
-			{#each conferences as conf}
-				<option value={conf.id}>{conf.title}</option>
-			{/each}
-		</select>
+	<!-- Filter Panel -->
+	<div class="bg-primary/5 rounded-lg p-5 border border-primary/20 mb-6">
+		<h3 class="text-lg font-semibold text-primary mb-4">Filter Options</h3>
+		<div>
+			<label class="block text-sm font-medium mb-1">Filter by Conference</label>
+			<select
+				bind:value={selectedConferenceId}
+				on:change={loadData}
+				class="w-full md:w-64 px-3 py-2 border rounded-lg bg-white"
+			>
+				<option value="">All Conferences</option>
+				{#each conferences as conf}
+					<option value={conf.id}>{conf.title}</option>
+				{/each}
+			</select>
+		</div>
 	</div>
 
 	{#if loading}
 		<p>Loading...</p>
 	{:else}
-		<!-- Summary Cards -->
-		<div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+		<!-- Summary Cards Panel -->
+		<div class="bg-brand-blue/5 rounded-lg p-5 border border-brand-blue/20 mb-6">
+			<h3 class="text-lg font-semibold text-brand-blue mb-4">Summary Statistics</h3>
+			<div class="grid grid-cols-1 md:grid-cols-5 gap-4">
 			<div class="bg-white p-6 rounded-lg shadow">
 				<h3 class="text-sm font-medium text-gray-600 mb-1">Total Bookings</h3>
 				<p class="text-3xl font-bold">{filteredData.bookings.length}</p>
@@ -297,18 +306,21 @@
 				<h3 class="text-sm font-medium text-gray-600 mb-1">Outstanding</h3>
 				<p class="text-3xl font-bold text-red-600">£{(totalValue - totalReceived).toFixed(2)}</p>
 			</div>
+			</div>
 		</div>
 
 		<!-- Financial Report -->
 		<div class="bg-white rounded-lg shadow overflow-hidden mb-6">
-			<div class="flex items-center justify-between p-4 border-b">
-				<h2 class="text-xl font-bold">Financial Report</h2>
-				<button
-					on:click={exportFinancialsCSV}
-					class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark text-sm"
-				>
-					Export Financials CSV
-				</button>
+			<div class="bg-primary/10 px-6 py-4 border-b border-primary/20">
+				<div class="flex items-center justify-between">
+					<h2 class="text-xl font-bold text-primary">Financial Report</h2>
+					<button
+						on:click={exportFinancialsCSV}
+						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark text-sm"
+					>
+						Export Financials CSV
+					</button>
+				</div>
 			</div>
 			<div class="overflow-x-auto">
 				<table class="min-w-full divide-y divide-gray-200">
@@ -350,14 +362,16 @@
 
 		<!-- Group Leaders Report -->
 		<div class="bg-white rounded-lg shadow overflow-hidden mb-6">
-			<div class="flex items-center justify-between p-4 border-b">
-				<h2 class="text-xl font-bold">Group Leaders Report</h2>
-				<button
-					on:click={exportGroupLeadersCSV}
-					class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark text-sm"
-				>
-					Export to CSV
-				</button>
+			<div class="bg-brand-blue/10 px-6 py-4 border-b border-brand-blue/20">
+				<div class="flex items-center justify-between">
+					<h2 class="text-xl font-bold text-brand-blue">Group Leaders Report</h2>
+					<button
+						on:click={exportGroupLeadersCSV}
+						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark text-sm"
+					>
+						Export to CSV
+					</button>
+				</div>
 			</div>
 			<div class="overflow-x-auto">
 				<table class="min-w-full divide-y divide-gray-200">
@@ -399,14 +413,16 @@
 
 		<!-- Teens Report -->
 		<div class="bg-white rounded-lg shadow overflow-hidden mb-6">
-			<div class="flex items-center justify-between p-4 border-b">
-				<h2 class="text-xl font-bold">Teens Report ({teenAttendees.length})</h2>
-				<button
-					on:click={exportTeensCSV}
-					class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark text-sm"
-				>
-					Export to CSV
-				</button>
+			<div class="bg-brand-cyan/10 px-6 py-4 border-b border-brand-cyan/20">
+				<div class="flex items-center justify-between">
+					<h2 class="text-xl font-bold text-brand-cyan">Teens Report ({teenAttendees.length})</h2>
+					<button
+						on:click={exportTeensCSV}
+						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark text-sm"
+					>
+						Export to CSV
+					</button>
+				</div>
 			</div>
 			{#if teenAttendees.length === 0}
 				<div class="p-6 text-center text-gray-500">No teen attendees found.</div>
@@ -457,14 +473,16 @@
 
 		<!-- Kids Report -->
 		<div class="bg-white rounded-lg shadow overflow-hidden mb-6">
-			<div class="flex items-center justify-between p-4 border-b">
-				<h2 class="text-xl font-bold">Kids Report ({childAttendees.length})</h2>
-				<button
-					on:click={exportKidsCSV}
-					class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark text-sm"
-				>
-					Export to CSV
-				</button>
+			<div class="bg-primary/10 px-6 py-4 border-b border-primary/20">
+				<div class="flex items-center justify-between">
+					<h2 class="text-xl font-bold text-primary">Kids Report ({childAttendees.length})</h2>
+					<button
+						on:click={exportKidsCSV}
+						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark text-sm"
+					>
+						Export to CSV
+					</button>
+				</div>
 			</div>
 			{#if childAttendees.length === 0}
 				<div class="p-6 text-center text-gray-500">No child attendees found.</div>

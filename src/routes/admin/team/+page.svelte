@@ -38,6 +38,15 @@
 		'Conference Ministry Team'
 	];
 
+	// Auto-generate ID from name
+	function generateIdFromName(name) {
+		if (!name) return '';
+		return name
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, '-')
+			.replace(/^-+|-+$/g, '');
+	}
+
 	function startEdit(member) {
 		editing = member
 			? { ...member, social: member.social || {}, category: member.category || 'Leadership Team' }
@@ -51,6 +60,11 @@
 					social: { facebook: '', twitter: '', instagram: '', linkedin: '' }
 				};
 		showForm = true;
+	}
+
+	// Auto-generate ID when name changes (only for new members or if ID is empty)
+	$: if (editing && editing.name && (!editing.id || editing.id === '')) {
+		editing.id = generateIdFromName(editing.name);
 	}
 
 	function cancelEdit() {
@@ -71,6 +85,16 @@
 
 	async function saveMember() {
 		if (!editing) return;
+
+		// Ensure ID is generated if missing
+		if (!editing.id && editing.name) {
+			editing.id = generateIdFromName(editing.name);
+		}
+
+		if (!editing.id || !editing.name) {
+			alert('Please fill in Name (ID will be auto-generated)');
+			return;
+		}
 
 		try {
 			const response = await fetch('/api/content', {
@@ -128,179 +152,181 @@
 	</div>
 
 	{#if showForm && editing}
-		<div class="bg-white p-6 rounded-lg shadow mb-6">
-			<div class="flex items-center justify-between mb-4">
-				<h2 class="text-2xl font-bold">
-					{editing.id ? 'Edit Team Member' : 'New Team Member'}
-				</h2>
-				<div class="flex gap-2">
-					<button
-						on:click={saveMember}
-						class="px-4 py-2 bg-primary text-white rounded-full hover:bg-primary-dark transition-colors"
-					>
-						Save
-					</button>
-					<button
-						on:click={cancelEdit}
-						class="px-4 py-2 bg-gray-300 rounded-full hover:bg-gray-400 transition-colors"
-					>
-						Cancel
-					</button>
+		<div class="bg-white rounded-lg shadow-lg mb-6 overflow-hidden">
+			<!-- Header -->
+			<div class="bg-gradient-to-r from-primary to-brand-blue text-white px-6 py-4">
+				<div class="flex items-center justify-between">
+					<div>
+						<h2 class="text-2xl font-bold text-white">
+							{editing.id ? 'Edit Team Member' : 'New Team Member'}
+						</h2>
+						{#if editing.id}
+							<p class="text-sm text-white/80 mt-1">ID: {editing.id}</p>
+						{/if}
+					</div>
+					<div class="flex gap-2">
+						<button
+							on:click={saveMember}
+							class="px-4 py-2 bg-white text-primary rounded-full hover:bg-gray-100 font-semibold transition-colors"
+						>
+							Save
+						</button>
+						<button
+							on:click={cancelEdit}
+							class="px-4 py-2 bg-white/20 text-white rounded-full hover:bg-white/30 font-semibold transition-colors"
+						>
+							Cancel
+						</button>
+					</div>
 				</div>
 			</div>
-			<div class="space-y-4">
-				<div>
-					<div class="flex items-center gap-1 mb-1">
-						<label class="text-sm font-medium">ID</label>
-						<HelpIcon helpId="field-team-id" position="right">
-							{@html getHelpContent('field-team-id').content}
-						</HelpIcon>
-					</div>
-					<input
-						type="text"
-						bind:value={editing.id}
-						class="w-full px-3 py-2 border rounded-lg"
-						placeholder="e.g., john-watson"
-					/>
-				</div>
-				<div>
-					<div class="flex items-center gap-1 mb-1">
-						<label class="text-sm font-medium">Name</label>
-						<HelpIcon helpId="field-team-name" position="right">
-							{@html getHelpContent('field-team-name').content}
-						</HelpIcon>
-					</div>
-					<input
-						type="text"
-						bind:value={editing.name}
-						class="w-full px-3 py-2 border rounded-lg"
-					/>
-				</div>
-				<div>
-					<div class="flex items-center gap-1 mb-1">
-						<label class="text-sm font-medium">Category</label>
-						<HelpIcon helpId="field-team-category" position="right">
-							{@html getHelpContent('field-team-category').content}
-						</HelpIcon>
-					</div>
-					<select
-						bind:value={editing.category}
-						class="w-full px-3 py-2 border rounded-lg"
-					>
-						{#each categories as cat}
-							<option value={cat}>{cat}</option>
-						{/each}
-					</select>
-				</div>
-				<div>
-					<div class="flex items-center gap-1 mb-1">
-						<label class="text-sm font-medium">Role</label>
-						<HelpIcon helpId="field-team-role" position="right">
-							{@html getHelpContent('field-team-role').content}
-						</HelpIcon>
-					</div>
-					<input
-						type="text"
-						bind:value={editing.role}
-						class="w-full px-3 py-2 border rounded-lg"
-					/>
-				</div>
-				<div>
-					<div class="flex items-center gap-1 mb-1">
-						<label class="text-sm font-medium">Image URL</label>
-						<HelpIcon helpId="field-team-image" position="right">
-							{@html getHelpContent('field-team-image').content}
-						</HelpIcon>
-					</div>
-					<div class="space-y-2">
-						<div class="flex gap-2">
+			
+			<div class="p-6 space-y-6">
+				<!-- Basic Information Panel -->
+				<div class="bg-primary/5 rounded-lg p-5 border border-primary/20">
+					<h3 class="text-lg font-semibold text-primary mb-4">Basic Information</h3>
+					<div class="space-y-4">
+						<div>
+							<div class="flex items-center gap-1 mb-1">
+								<label class="text-sm font-medium">Name</label>
+								<HelpIcon helpId="field-team-name" position="right">
+									{@html getHelpContent('field-team-name').content}
+								</HelpIcon>
+							</div>
 							<input
 								type="text"
-								bind:value={editing.image}
-								class="flex-1 px-3 py-2 border rounded"
-								placeholder="/images/team-member.jpg"
+								bind:value={editing.name}
+								class="w-full px-3 py-2 border rounded-lg bg-white"
 							/>
-							<button
-								type="button"
-								on:click={openImagePicker}
-								class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-							>
-								Select Image
-							</button>
 						</div>
-						{#if editing.image}
-							<div class="mt-2">
-								<img
-									src={editing.image}
-									alt="Preview"
-									class="max-w-xs h-32 object-cover rounded border"
+						<div>
+							<div class="flex items-center gap-1 mb-1">
+								<label class="text-sm font-medium">Category</label>
+								<HelpIcon helpId="field-team-category" position="right">
+									{@html getHelpContent('field-team-category').content}
+								</HelpIcon>
+							</div>
+							<select
+								bind:value={editing.category}
+								class="w-full px-3 py-2 border rounded-lg bg-white"
+							>
+								{#each categories as cat}
+									<option value={cat}>{cat}</option>
+								{/each}
+							</select>
+						</div>
+						<div>
+							<div class="flex items-center gap-1 mb-1">
+								<label class="text-sm font-medium">Role</label>
+								<HelpIcon helpId="field-team-role" position="right">
+									{@html getHelpContent('field-team-role').content}
+								</HelpIcon>
+							</div>
+							<input
+								type="text"
+								bind:value={editing.role}
+								class="w-full px-3 py-2 border rounded-lg bg-white"
+							/>
+						</div>
+					</div>
+				</div>
+
+				<!-- Image Panel -->
+				<div class="bg-brand-blue/5 rounded-lg p-5 border border-brand-blue/20">
+					<h3 class="text-lg font-semibold text-brand-blue mb-4">Image</h3>
+					<div>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Image URL</label>
+							<HelpIcon helpId="field-team-image" position="right">
+								{@html getHelpContent('field-team-image').content}
+							</HelpIcon>
+						</div>
+						<div class="space-y-2">
+							<div class="flex gap-2">
+								<input
+									type="text"
+									bind:value={editing.image}
+									class="flex-1 px-3 py-2 border rounded bg-white"
+									placeholder="/images/team-member.jpg"
+								/>
+								<button
+									type="button"
+									on:click={openImagePicker}
+									class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+								>
+									Select Image
+								</button>
+							</div>
+							{#if editing.image}
+								<div class="mt-2">
+									<img
+										src={editing.image}
+										alt="Preview"
+										class="max-w-xs h-32 object-cover rounded border"
+									/>
+								</div>
+							{/if}
+						</div>
+					</div>
+				</div>
+
+				<!-- Content Panel -->
+				<div class="bg-brand-cyan/5 rounded-lg p-5 border border-brand-cyan/20">
+					<h3 class="text-lg font-semibold text-brand-cyan mb-4">Content</h3>
+					<div>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Quote</label>
+							<HelpIcon helpId="field-team-quote" position="right">
+								{@html getHelpContent('field-team-quote').content}
+							</HelpIcon>
+						</div>
+						<textarea
+							bind:value={editing.quote}
+							rows="3"
+							class="w-full px-3 py-2 border rounded-lg bg-white"
+						></textarea>
+					</div>
+				</div>
+
+				<!-- Social Links Panel -->
+				<div class="bg-primary/5 rounded-lg p-5 border border-primary/20">
+					<h3 class="text-lg font-semibold text-primary mb-4">Social Links</h3>
+					<div>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Social Links</label>
+							<HelpIcon helpId="field-team-social" position="right">
+								{@html getHelpContent('field-team-social').content}
+							</HelpIcon>
+						</div>
+						{#if editing && editing.social}
+							<div class="grid grid-cols-2 gap-2">
+								<input
+									type="text"
+									bind:value={editing.social.facebook}
+									placeholder="Facebook URL"
+									class="px-3 py-2 border rounded bg-white"
+								/>
+								<input
+									type="text"
+									bind:value={editing.social.twitter}
+									placeholder="Twitter URL"
+									class="px-3 py-2 border rounded bg-white"
+								/>
+								<input
+									type="text"
+									bind:value={editing.social.instagram}
+									placeholder="Instagram URL"
+									class="px-3 py-2 border rounded bg-white"
+								/>
+								<input
+									type="text"
+									bind:value={editing.social.linkedin}
+									placeholder="LinkedIn URL"
+									class="px-3 py-2 border rounded bg-white"
 								/>
 							</div>
 						{/if}
 					</div>
-				</div>
-				<div>
-					<div class="flex items-center gap-1 mb-1">
-						<label class="text-sm font-medium">Quote</label>
-						<HelpIcon helpId="field-team-quote" position="right">
-							{@html getHelpContent('field-team-quote').content}
-						</HelpIcon>
-					</div>
-					<textarea
-						bind:value={editing.quote}
-						rows="3"
-						class="w-full px-3 py-2 border rounded-lg"
-					></textarea>
-				</div>
-				<div>
-					<div class="flex items-center gap-1 mb-1">
-						<label class="text-sm font-medium">Social Links</label>
-						<HelpIcon helpId="field-team-social" position="right">
-							{@html getHelpContent('field-team-social').content}
-						</HelpIcon>
-					</div>
-					{#if editing && editing.social}
-						<div class="grid grid-cols-2 gap-2">
-							<input
-								type="text"
-								bind:value={editing.social.facebook}
-								placeholder="Facebook URL"
-								class="px-3 py-2 border rounded"
-							/>
-							<input
-								type="text"
-								bind:value={editing.social.twitter}
-								placeholder="Twitter URL"
-								class="px-3 py-2 border rounded"
-							/>
-							<input
-								type="text"
-								bind:value={editing.social.instagram}
-								placeholder="Instagram URL"
-								class="px-3 py-2 border rounded"
-							/>
-							<input
-								type="text"
-								bind:value={editing.social.linkedin}
-								placeholder="LinkedIn URL"
-								class="px-3 py-2 border rounded"
-							/>
-						</div>
-					{/if}
-				</div>
-				<div class="flex gap-2">
-					<button
-						on:click={saveMember}
-						class="px-4 py-2 bg-primary text-white rounded-full hover:bg-primary-dark transition-colors"
-					>
-						Save
-					</button>
-					<button
-						on:click={cancelEdit}
-						class="px-4 py-2 bg-gray-300 rounded-full hover:bg-gray-400 transition-colors"
-					>
-						Cancel
-					</button>
 				</div>
 			</div>
 		</div>

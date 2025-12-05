@@ -175,7 +175,7 @@
 <div class="min-h-screen bg-gray-50">
 	<!-- Admin Navbar -->
 	{#if showNavbar}
-		<nav class="bg-primary shadow-lg border-b border-primary-dark">
+		<nav class="bg-gradient-to-r from-primary to-brand-blue shadow-lg border-b border-primary-dark">
 		<div class="container mx-auto px-4">
 			<div class="flex items-center justify-between h-16">
 				<!-- Logo/Brand -->

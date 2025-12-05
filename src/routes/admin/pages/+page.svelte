@@ -516,7 +516,7 @@
 			<!-- Header -->
 			<div class="bg-gradient-to-r from-primary to-brand-blue text-white px-6 py-4">
 				<div class="flex items-center justify-between">
-					<h2 class="text-2xl font-bold">
+					<h2 class="text-2xl font-bold text-white">
 						{editing.id ? `Edit: ${editing.title || editing.id}` : 'New Page'}
 					</h2>
 					<div class="flex gap-2">
@@ -1312,25 +1312,35 @@
 											+ Add Column
 										</button>
 									{/if}
-								{:else if section.type === 'values'}
+								{:else if section.type === 'foundation'}
 									<div class="mb-3">
-										<label class="block text-xs font-medium mb-1 text-gray-600">Section Title</label>
+										<label class="block text-xs font-medium mb-1 text-gray-600">Label (small text above title)</label>
+										<input
+											type="text"
+											bind:value={section.label}
+											class="w-full px-3 py-2 border rounded"
+											placeholder="e.g., Our Foundation"
+										/>
+									</div>
+									<div class="mb-3">
+										<label class="block text-xs font-medium mb-1 text-gray-600">Title</label>
 										<input
 											type="text"
 											bind:value={section.title}
 											class="w-full px-3 py-2 border rounded"
-											placeholder="e.g., Our Values"
+											placeholder="e.g., What makes us who we are"
 										/>
 									</div>
-									<div class="mb-3">
-										<label class="block text-xs font-medium mb-1 text-gray-600">Section Description</label>
-										<textarea
-											bind:value={section.description}
-											class="w-full px-3 py-2 border rounded"
-											rows="3"
-											placeholder="Introduction text for the values section"
-										></textarea>
+									<div class="relative mb-3" style="height: 300px;">
+										<div class="flex items-center gap-1 mb-1">
+											<label class="text-xs font-medium text-gray-600">Content</label>
+											<HelpIcon helpId="field-page-section-content" position="right">
+												{@html getHelpContent('field-page-section-content').content}
+											</HelpIcon>
+										</div>
+										<RichTextEditor bind:value={section.content} height="280px" />
 									</div>
+								{:else if section.type === 'values'}
 									<label class="block text-xs font-medium mb-2 text-gray-600">Values</label>
 									{#if section.values && section.values.length > 0}
 										<div class="space-y-4 mb-4">
@@ -1885,9 +1895,7 @@
 										const hasValues = editing.sections.some(s => s.type === 'values');
 										if (!hasValues) {
 											editing.sections = [...editing.sections, { 
-												type: 'values', 
-												title: 'Our Values',
-												description: 'We believe that God creates each movement of churches distinct, destined to fulfil a divinely appointed purpose for a specific time, with different emphasis according to the will of God.',
+												type: 'values',
 												values: [
 													{ title: 'ENJOYING GOD', description: 'We want to be a joyful people, who enjoy and celebrate Jesus Christ as our Lord and saviour, knowing we are loved, accepted and made righteous by Him.' },
 													{ title: 'THE LORDSHIP OF CHRIST', description: 'We recognise the foundational significance of the simple truth that it is no longer I who live but Christ who lives in me. We must die to sin and our selfish desires and live new lives unto God.' },
@@ -2038,9 +2046,7 @@
 										const hasValues = editing.sections.some(s => s.type === 'values');
 										if (!hasValues) {
 											editing.sections = [...editing.sections, { 
-												type: 'values', 
-												title: 'Our Values',
-												description: 'We believe that God creates each movement of churches distinct, destined to fulfil a divinely appointed purpose for a specific time, with different emphasis according to the will of God.',
+												type: 'values',
 												values: [
 													{ title: 'ENJOYING GOD', description: 'We want to be a joyful people, who enjoy and celebrate Jesus Christ as our Lord and saviour, knowing we are loved, accepted and made righteous by Him.' },
 													{ title: 'THE LORDSHIP OF CHRIST', description: 'We recognise the foundational significance of the simple truth that it is no longer I who live but Christ who lives in me. We must die to sin and our selfish desires and live new lives unto God.' },

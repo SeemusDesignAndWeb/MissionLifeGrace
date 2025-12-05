@@ -94,47 +94,60 @@
 	</p>
 
 	{#if showForm && editing}
-		<div class="bg-white p-6 rounded-lg shadow mb-6">
-			<div class="flex items-center justify-between mb-4">
-				<h2 class="text-2xl font-bold">Edit {editing.title}</h2>
-				<div class="flex gap-2">
-					<button
-						on:click={savePolicy}
-						class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
-					>
-						Save
-					</button>
-					<button
-						on:click={cancelEdit}
-						class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-					>
-						Cancel
-					</button>
+		<div class="bg-white rounded-lg shadow-lg mb-6 overflow-hidden">
+			<!-- Header -->
+			<div class="bg-gradient-to-r from-primary to-brand-blue text-white px-6 py-4">
+				<div class="flex items-center justify-between">
+					<h2 class="text-2xl font-bold text-white">Edit {editing.title}</h2>
+					<div class="flex gap-2">
+						<button
+							on:click={savePolicy}
+							class="px-4 py-2 bg-white text-primary rounded-full hover:bg-gray-100 font-semibold transition-colors"
+						>
+							Save
+						</button>
+						<button
+							on:click={cancelEdit}
+							class="px-4 py-2 bg-white/20 text-white rounded-full hover:bg-white/30 font-semibold transition-colors"
+						>
+							Cancel
+						</button>
+					</div>
 				</div>
 			</div>
-			<div class="space-y-4">
-				<div>
-					<div class="flex items-center gap-1 mb-1">
-						<label class="text-sm font-medium">Title</label>
-						<HelpIcon helpId="field-policy-title" position="right">
-							{@html getHelpContent('field-policy-title').content}
-						</HelpIcon>
+			
+			<div class="p-6 space-y-6">
+				<!-- Basic Information Panel -->
+				<div class="bg-primary/5 rounded-lg p-5 border border-primary/20">
+					<h3 class="text-lg font-semibold text-primary mb-4">Basic Information</h3>
+					<div>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Title</label>
+							<HelpIcon helpId="field-policy-title" position="right">
+								{@html getHelpContent('field-policy-title').content}
+							</HelpIcon>
+						</div>
+						<input
+							type="text"
+							bind:value={editing.title}
+							class="w-full px-3 py-2 border rounded-lg bg-white"
+						/>
 					</div>
-					<input
-						type="text"
-						bind:value={editing.title}
-						class="w-full px-3 py-2 border rounded"
-					/>
 				</div>
-				<div>
-					<div class="flex items-center gap-1 mb-1">
-						<label class="text-sm font-medium">Content</label>
-						<HelpIcon helpId="field-policy-content" position="right">
-							{@html getHelpContent('field-policy-content').content}
-						</HelpIcon>
-					</div>
-					<div class="relative" style="height: 500px;">
-						<RichTextEditor bind:value={editing.content} height="480px" />
+
+				<!-- Content Panel -->
+				<div class="bg-brand-cyan/5 rounded-lg p-5 border border-brand-cyan/20">
+					<h3 class="text-lg font-semibold text-brand-cyan mb-4">Content</h3>
+					<div>
+						<div class="flex items-center gap-1 mb-1">
+							<label class="text-sm font-medium">Content</label>
+							<HelpIcon helpId="field-policy-content" position="right">
+								{@html getHelpContent('field-policy-content').content}
+							</HelpIcon>
+						</div>
+						<div class="relative" style="height: 500px;">
+							<RichTextEditor bind:value={editing.content} height="480px" />
+						</div>
 					</div>
 				</div>
 			</div>
