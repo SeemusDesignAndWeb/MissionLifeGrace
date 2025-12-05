@@ -300,7 +300,7 @@
 								<div class="py-4 overflow-hidden">
 									<!-- Single Row - Draggable on mobile, auto-scroll on desktop -->
 									<div class="relative">
-										<div class="overflow-x-auto overflow-y-hidden md:overflow-hidden scrollbar-hide" id={churchesContainerId} style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;">
+										<div class="overflow-x-auto overflow-y-hidden scrollbar-hide" id={churchesContainerId} style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;">
 											<div class="flex md:animate-scroll-left gap-6 md:gap-8" style="animation-duration: 40s;" id="churches-scroll-{section.id}">
 												{#each section.columns as column, index}
 													{@const churchLink = column.link || column.content.match(/href="([^"]*)"/)?.[1] || '#'}

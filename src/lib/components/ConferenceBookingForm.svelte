@@ -1329,12 +1329,7 @@
 	<!-- Step 1: Ticket Selection -->
 	{#if currentStep === 1}
 		<div>
-			<div class="flex items-center gap-2 mb-4">
-				<h3 class="text-2xl font-bold">Select Tickets</h3>
-				<HelpIcon helpId="booking-tickets" position="right">
-					{@html getHelpContent('booking-tickets').content}
-				</HelpIcon>
-			</div>
+			<h3 class="text-2xl font-bold mb-4">Select Tickets</h3>
 			{#if availableTickets.length === 0}
 				<div class="p-4 bg-yellow-50 border border-yellow-200 rounded">
 					<p class="text-yellow-800">No tickets available for this conference.</p>
