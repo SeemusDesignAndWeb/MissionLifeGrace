@@ -259,7 +259,8 @@ Mission Life Grace Team`
 		selectedBookingAttendees = [];
 	}
 
-	function filterBookings() {
+	// Reactive filtered bookings
+	$: filteredBookings = (() => {
 		let filtered = bookings;
 		
 		// Filter by archived status
@@ -296,7 +297,7 @@ Mission Life Grace Team`
 		}
 		
 		return filtered;
-	}
+	})();
 
 	async function toggleArchive(booking, event) {
 		event.stopPropagation(); // Prevent opening booking details
@@ -402,11 +403,10 @@ Mission Life Grace Team`
 	}
 
 	function toggleAllBookings() {
-		const filtered = filterBookings();
-		if (selectedBookings.size === filtered.length) {
+		if (selectedBookings.size === filteredBookings.length) {
 			selectedBookings.clear();
 		} else {
-			filtered.forEach(b => selectedBookings.add(b.id));
+			filteredBookings.forEach(b => selectedBookings.add(b.id));
 		}
 		selectedBookings = new Set(selectedBookings);
 	}
@@ -540,7 +540,7 @@ Mission Life Grace Team`
 
 	<div class="mb-4 flex items-center justify-between">
 		<div class="text-sm text-gray-600">
-			Showing {filterBookings().length} {showArchived ? 'archived' : 'active'} booking{filterBookings().length !== 1 ? 's' : ''}
+			Showing {filteredBookings.length} {showArchived ? 'archived' : 'active'} booking{filteredBookings.length !== 1 ? 's' : ''}
 			{#if !showArchived}
 				<span class="text-gray-400">
 					({bookings.filter(b => b.archived).length} archived)
@@ -575,7 +575,7 @@ Mission Life Grace Team`
 
 	{#if loading}
 		<p>Loading...</p>
-	{:else if filterBookings().length === 0}
+	{:else if filteredBookings.length === 0}
 		<p class="text-gray-600">No bookings found.</p>
 	{:else}
 		<div class="bg-white rounded-lg shadow overflow-hidden">
@@ -585,7 +585,7 @@ Mission Life Grace Team`
 						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
 							<input
 								type="checkbox"
-								checked={selectedBookings.size === filterBookings().length && filterBookings().length > 0}
+								checked={selectedBookings.size === filteredBookings.length && filteredBookings.length > 0}
 								on:change={toggleAllBookings}
 								class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
 							/>
@@ -603,7 +603,7 @@ Mission Life Grace Team`
 					</tr>
 				</thead>
 				<tbody class="bg-white divide-y divide-gray-200">
-					{#each filterBookings() as booking}
+					{#each filteredBookings as booking}
 						<tr 
 							class="cursor-pointer hover:bg-gray-50 transition-colors {booking.archived ? 'opacity-60 bg-gray-50' : ''} {selectedBookings.has(booking.id) ? 'bg-blue-50' : ''}"
 							on:click={() => viewBookingDetails(booking)}
