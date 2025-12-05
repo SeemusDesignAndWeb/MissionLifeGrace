@@ -206,9 +206,10 @@ export function getImageUrl(publicId, options = {}) {
 		}
 	});
 
-	const transformStr = transformations.length > 0 ? `/${transformations.join(',')}` : '';
+	// Use slash-separated format: /w_1000/f_auto/q_auto/
+	const transformStr = transformations.length > 0 ? `/${transformations.join('/')}/` : '';
 
-	return `https://res.cloudinary.com/${cloudName}/image/upload${transformStr}/${id}`;
+	return `https://res.cloudinary.com/${cloudName}/image/upload${transformStr}${id}`;
 }
 
 /**

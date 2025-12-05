@@ -7,7 +7,7 @@
 	export let heroButtons = [];
 	export let heroMessages = [];
 	export let heroOverlay = 40;
-	export let heroHeight = 'h-[35vh]';
+	export let heroHeight = 'h-[30vh] md:h-[35vh]';
 
 	let bannerVisible = false;
 	let currentMessage = 0;

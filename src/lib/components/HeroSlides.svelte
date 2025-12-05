@@ -65,7 +65,7 @@
 	});
 </script>
 
-<section id="hero" class="relative h-[50vh] overflow-hidden transition-all duration-300" class:mt-[5px]={bannerVisible}>
+<section id="hero" class="relative h-[30vh] md:h-[50vh] overflow-hidden transition-all duration-300" class:mt-[5px]={bannerVisible}>
 	{#each slides as slide, index}
 		<div
 			class="absolute inset-0 transition-opacity duration-1000"

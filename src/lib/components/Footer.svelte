@@ -48,6 +48,7 @@
 					<a href="/values" class="text-gray-400 hover:text-white transition-colors">Values</a>
 					<a href="/team" class="text-gray-400 hover:text-white transition-colors">Team</a>
 					<a href="/events" class="text-gray-400 hover:text-white transition-colors">Events</a>
+					<a href="/conferences" class="text-gray-400 hover:text-white transition-colors">Conferences</a>
 					<a href="/contact" class="text-gray-400 hover:text-white transition-colors">Contact</a>
 				</div>
 			</div>

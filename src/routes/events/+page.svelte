@@ -225,7 +225,7 @@
 											{/if}
 										</div>
 										<div class="flex-1 p-4">
-											<h4 class="text-base font-bold mb-1 text-gray-900 group-hover:text-primary transition-colors line-clamp-1">{event.title}</h4>
+											<h4 class="text-base font-bold mb-1 text-gray-900 group-hover:text-primary transition-colors break-words">{event.title}</h4>
 											{#if getEventInfo(event)}
 												<div class="flex items-center gap-2 text-primary font-semibold text-xs mb-2">
 													<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

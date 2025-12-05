@@ -147,6 +147,12 @@
       "order": 3,
       "sections": [
         {
+          "type": "text",
+          "title": "Section title",
+          "content": "<p>Some copy</p>",
+          "label": "Some text about us"
+        },
+        {
           "type": "values",
           "id": "values-section",
           "title": "What makes us who we are",
@@ -180,7 +186,13 @@
               "title": "ELDERSHIP",
               "description": "Jesus Christ reigns as head over His church, and He gives to His church elders to oversee and lead local churches under His authority. We believe that men, qualified by both character and gifting, are to serve as elders, caring and serving those in the church.  We are deeply committed both to the fundamental spiritual and moral equality of male and female. Under the oversight of Eldership we believe that all people, male and female, can operate in leadership in various activities and ministries. "
             }
-          ]
+          ],
+          "ctaButton1Text": "Get in touch",
+          "ctaButton2Text": "Learn more about us",
+          "ctaButton1Link": "#contact",
+          "ctaButton2Link": "/church",
+          "ctaDescription": "These values shape everything we do as a network of churches. We invite you to join us as we live out these principles in our communities and beyond.",
+          "ctaTitle": "Living out our values together"
         }
       ],
       "heroMessages": [],
@@ -3101,8 +3113,8 @@
       "time": "18:00",
       "location": "Eltham Green Community Church",
       "image": "https://res.cloudinary.com/dl8kjhwjs/image/upload/v1763390998/egcc/375d5fb3-6856-49be-a8d1-48859a442bca.jpg",
-      "featured": true,
-      "published": true,
+      "featured": false,
+      "published": false,
       "order": 0,
       "eventInfo": "<p>Join us for a warm and peaceful evening as we gather to sing familiar carols and hear the Christmas story. It is a relaxed event for all ages, with candles, music, and a welcoming festive atmosphere. Bring friends and family, and take a moment to pause and enjoy the season together.</p>",
       "highlighted": false,

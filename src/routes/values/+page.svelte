@@ -6,10 +6,19 @@
 	export let data;
 	export let params = {};
 
-	// Extract foundation and values sections from page data
-	$: foundationSection = data.page?.sections?.find(s => s.type === 'foundation');
-	$: valuesSection = data.page?.sections?.find(s => s.type === 'values');
+	// Extract sections from page data
+	$: allSections = data.page?.sections || [];
+	$: foundationSection = allSections.find(s => s.type === 'foundation');
+	$: valuesSection = allSections.find(s => s.type === 'values');
 	$: values = valuesSection?.values || [];
+	
+	// Find the index of the values section to determine which sections come before it
+	$: valuesSectionIndex = valuesSection ? allSections.findIndex(s => s.type === 'values') : -1;
+	
+	// Get all sections that come before the values section (excluding foundation which is handled separately)
+	$: sectionsBeforeValues = valuesSectionIndex >= 0 
+		? allSections.slice(0, valuesSectionIndex).filter(s => s.type !== 'foundation')
+		: allSections.filter(s => s.type !== 'foundation' && s.type !== 'values');
 
 	let mounted = false;
 	let expandedCards = new Set();
@@ -124,6 +133,74 @@
 		mousePositions.delete(index);
 		mousePositions = mousePositions; // Trigger reactivity
 	}
+	
+	// Helper function to get background class
+	function getBackgroundClass(bg) {
+		switch (bg) {
+			case 'white': return 'bg-white';
+			case 'gray-50': return 'bg-gray-50';
+			case 'gray-100': return 'bg-gray-100';
+			case 'gray-800': return 'bg-gray-800';
+			case 'primary': return 'bg-primary';
+			default: return 'bg-white';
+		}
+	}
+	
+	// Helper function to get padding class
+	function getPaddingClass(padding) {
+		switch (padding) {
+			case 'none': return '';
+			case 'small': return 'py-10';
+			case 'medium': return 'py-16';
+			case 'large': return 'py-20';
+			default: return 'py-16';
+		}
+	}
+	
+	// Helper function to get max width class
+	function getMaxWidthClass(maxWidth) {
+		switch (maxWidth) {
+			case 'sm': return 'max-w-sm';
+			case 'md': return 'max-w-md';
+			case 'lg': return 'max-w-lg';
+			case 'xl': return 'max-w-xl';
+			case '2xl': return 'max-w-2xl';
+			case '4xl': return 'max-w-4xl';
+			case 'full': return 'max-w-full';
+			default: return 'max-w-4xl';
+		}
+	}
+	
+	// Helper function to get alignment class
+	function getAlignmentClass(alignment) {
+		switch (alignment) {
+			case 'left': return 'text-left';
+			case 'right': return 'text-right';
+			case 'center': return 'text-center';
+			default: return 'text-left';
+		}
+	}
+	
+	// Helper function to render CTA buttons
+	function renderCTA(cta) {
+		if (!cta) return null;
+
+		const buttons = Array.isArray(cta) ? cta : [cta];
+
+		return buttons.map((button) => {
+			const styleClass =
+				button.style === 'secondary'
+					? 'bg-gray-600 text-white'
+					: button.style === 'outline'
+						? 'border-2 border-primary text-primary bg-transparent'
+						: 'bg-primary text-white';
+
+			return {
+				...button,
+				styleClass
+			};
+		});
+	}
 </script>
 
 <svelte:head>
@@ -136,6 +213,86 @@
 
 <!-- Hero Slides -->
 <HeroSlides heroSlides={data.heroSlides} />
+
+<!-- Sections before values (excluding foundation) -->
+{#each sectionsBeforeValues as section}
+	{@const paddingClass = getPaddingClass(section.padding || 'large')}
+	
+	<section class="relative py-12 md:py-16 overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-50">
+		<!-- Decorative elements -->
+		<div class="absolute top-0 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+		<div class="absolute bottom-0 right-0 w-96 h-96 bg-brand-blue/5 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+		
+		<div class="container mx-auto px-4 relative z-10">
+			<div class="max-w-4xl mx-auto">
+				<!-- Section Header -->
+				<div class="text-center mb-8">
+					{#if section.label}
+						<div class="mb-4">
+							<span class="inline-block px-4 py-2 bg-white/80 backdrop-blur-sm text-gray-700 text-xs font-semibold uppercase tracking-wider rounded-full border border-gray-200">
+								{@html section.label}
+							</span>
+						</div>
+					{/if}
+					{#if section.title}
+						<h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-8 leading-tight">
+							{@html section.title}
+						</h2>
+					{/if}
+				</div>
+				
+				<!-- Main Content Card -->
+				<div class="relative">
+					<!-- Decorative border gradient -->
+					<div class="absolute -inset-1 bg-gradient-to-r from-primary/20 via-brand-blue/20 to-brand-cyan/20 rounded-2xl blur opacity-30"></div>
+					
+					<!-- Content container -->
+					<div class="relative bg-white/80 backdrop-blur-sm rounded-2xl p-8 md:p-12 shadow-xl border border-gray-100">
+						<!-- Content -->
+						<div class="relative z-10">
+							{#if section.content}
+								<div class="prose prose-lg md:prose-xl max-w-none text-gray-700 leading-relaxed">
+									{@html section.content}
+								</div>
+							{/if}
+							
+							<!-- CTA Buttons -->
+							{#if section.cta}
+								<div class="mt-8 text-center">
+									{#each renderCTA(section.cta) as button}
+										<a
+											href={button.link}
+											target={button.target || '_self'}
+											class="inline-block {button.styleClass} px-8 py-3 rounded-full hover:bg-opacity-90 transition-colors mr-4 mb-4 font-semibold"
+										>
+											{button.text}
+										</a>
+									{/each}
+								</div>
+							{/if}
+							
+							<!-- Accent line -->
+							<div class="mt-8 pt-8 border-t border-gray-200">
+								<div class="flex items-center gap-4">
+									<div class="flex-1 h-px bg-gradient-to-r from-transparent via-primary to-transparent"></div>
+									<div class="w-2 h-2 rounded-full bg-primary"></div>
+									<div class="flex-1 h-px bg-gradient-to-r from-transparent via-brand-cyan to-transparent"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+					<!-- Decorative Quote Marks -->
+					<div class="mt-6 flex justify-center items-center gap-4">
+						<svg class="w-8 h-8 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+							<path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.996 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.984zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+						</svg>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+{/each}
 
 <!-- Foundation Section (if exists, shown below hero) -->
 {#if foundationSection}

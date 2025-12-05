@@ -296,11 +296,12 @@
 						{#if isChurchesPage}
 							<!-- Horizontal scrolling churches - logo on top, text below, single row -->
 							{#if section.columns && section.columns.length > 0}
+								{@const churchesContainerId = `churches-container-${section.id}`}
 								<div class="py-4 overflow-hidden">
-									<!-- Single Row - Scrolls left to right -->
+									<!-- Single Row - Draggable on mobile, auto-scroll on desktop -->
 									<div class="relative">
-										<div class="overflow-hidden">
-											<div class="flex animate-scroll-left gap-6 md:gap-8" style="animation-duration: 40s;">
+										<div class="overflow-x-auto overflow-y-hidden md:overflow-hidden scrollbar-hide" id={churchesContainerId} style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;">
+											<div class="flex md:animate-scroll-left gap-6 md:gap-8" style="animation-duration: 40s;" id="churches-scroll-{section.id}">
 												{#each section.columns as column, index}
 													{@const churchLink = column.link || column.content.match(/href="([^"]*)"/)?.[1] || '#'}
 													<a 
@@ -308,6 +309,7 @@
 														target="_blank" 
 														rel="noopener noreferrer" 
 														class="group flex-shrink-0 w-48 md:w-64 bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden flex flex-col p-6 border-2 border-transparent hover:border-primary/30"
+														style="touch-action: pan-y;"
 													>
 														<!-- Logo at top -->
 														<div class="flex items-center justify-center h-32 md:h-40 mb-4 bg-gray-50 rounded-lg p-4">
@@ -345,7 +347,7 @@
 									</div>
 								</div>
 								
-								<!-- Add CSS animation for smooth infinite scrolling -->
+								<!-- Add CSS animation for smooth infinite scrolling on desktop only -->
 								<style>
 									@keyframes scroll-left {
 										0% {
@@ -356,14 +358,25 @@
 										}
 									}
 									
-									.animate-scroll-left {
-										animation: scroll-left linear infinite;
-										will-change: transform;
+									@media (min-width: 768px) {
+										.animate-scroll-left {
+											animation: scroll-left linear infinite;
+											will-change: transform;
+										}
+										
+										/* Pause on hover for better UX */
+										.animate-scroll-left:hover {
+											animation-play-state: paused;
+										}
 									}
 									
-									/* Pause on hover for better UX */
-									.animate-scroll-left:hover {
-										animation-play-state: paused;
+									.scrollbar-hide {
+										-ms-overflow-style: none;
+										scrollbar-width: none;
+									}
+									
+									.scrollbar-hide::-webkit-scrollbar {
+										display: none;
 									}
 								</style>
 							{/if}

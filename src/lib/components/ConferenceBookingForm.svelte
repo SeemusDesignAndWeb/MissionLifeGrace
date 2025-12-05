@@ -127,6 +127,29 @@
 		}
 	}
 	
+	// Auto-populate group leader info in kids forms when entering step 3
+	$: if (currentStep === 3 && hasTeenOrChild) {
+		const groupLeader = attendees.find(a => a.isGroupLeader) || null;
+		const glName = groupLeader?.fullName || separateGroupLeader.fullName || '';
+		const glPhone = groupLeader?.phone || separateGroupLeader.phone || '';
+		
+		// Auto-populate emergency contact for all teen/child attendees if not already filled
+		attendees.forEach(attendee => {
+			const ticketType = ticketTypes?.find(t => t.id === attendee.ticketTypeId);
+			if (ticketType && (ticketType.type === 'teen' || ticketType.type === 'child')) {
+				if (!attendee.emergencyContact.name && glName) {
+					attendee.emergencyContact.name = glName;
+				}
+				if (!attendee.emergencyContact.phone && glPhone) {
+					attendee.emergencyContact.phone = glPhone;
+				}
+				if (!attendee.emergencyContact.relationship && glName) {
+					attendee.emergencyContact.relationship = 'Parent/Guardian';
+				}
+			}
+		});
+	}
+	
 	// This reactive statement is handled above in the main $: block
 
 	// Step 1: Ticket Selection
@@ -317,11 +340,24 @@
 		}
 	}
 
+	// Check if volunteer/free tickets require discount code
+	function hasVolunteerOrFreeTickets() {
+		return selectedTickets.some(ticket => {
+			const ticketType = ticketTypes?.find(t => t.id === ticket.ticketTypeId);
+			return ticketType && (ticketType.type === 'free' || ticketType.price === 0);
+		});
+	}
+
 	async function nextStep(skipLoginCheck = false) {
 		if (currentStep === 1) {
 			// Validate ticket selection
 			if (selectedTickets.length === 0) {
 				errors.tickets = 'Please select at least one ticket';
+				return;
+			}
+			// Validate discount code for volunteer/free tickets
+			if (hasVolunteerOrFreeTickets() && (!discountCode || !discountCode.trim() || !discountCodeData)) {
+				discountError = 'A discount code/voucher is required for volunteer/free tickets. Please contact admin for access code.';
 				return;
 			}
 			// Initialize attendees with auto-assigned ticket types
@@ -905,7 +941,7 @@
 		
 		// Load churches for conference
 		try {
-			const response = await fetch('/api/content?type=churches-for-conference');
+			const response = await fetch('/api/churches?type=conference');
 			if (response.ok) {
 				churches = await response.json();
 			}
@@ -2313,6 +2349,20 @@
 				{/if}
 				<button
 					on:click={() => {
+						// Check if deposit payment is required before closing
+						if (orderSummary && orderSummary.totalAmount > 0) {
+							const balanceDue = orderSummary.totalAmount - (orderSummary.paidAmount || 0);
+							// If deposit payment method was selected but no payment made yet
+							if (orderSummary.paymentMethod === 'deposit20' && orderSummary.paymentStatus === 'unpaid' && balanceDue > 0) {
+								alert('Please complete your deposit payment before closing. A 20% deposit is required to secure your booking.');
+								return;
+							}
+							// If full payment is required but not paid
+							if (orderSummary.paymentMethod !== 'deposit20' && orderSummary.paymentStatus === 'unpaid' && balanceDue > 0) {
+								alert('Please complete your payment before closing.');
+								return;
+							}
+						}
 						clearDraft();
 						sessionStorage.removeItem('pendingBookingId');
 						dispatch('close');

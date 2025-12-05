@@ -1,6 +1,6 @@
 /**
  * Optimize an existing Cloudinary URL by adding optimization parameters
- * Adds w_1000/f_auto/q_auto if not already present
+ * Adds /w_1000/f_auto/q_auto/ if not already present
  * @param {string} url - Cloudinary URL
  * @returns {string} Optimized Cloudinary URL
  */
@@ -17,10 +17,21 @@ export function optimizeCloudinaryUrl(url) {
 	// Split into transformations and public ID
 	const parts = rest.split('/');
 	const publicId = parts[parts.length - 1];
-	const existingTransforms = parts.length > 1 ? parts.slice(0, -1).join('/') : '';
+	const existingTransforms = parts.length > 1 ? parts.slice(0, -1) : [];
 	
-	// Parse existing transformations
-	const existing = existingTransforms ? existingTransforms.split(',').filter(t => t.trim()) : [];
+	// Parse existing transformations (handle both comma and slash separated)
+	const existing = [];
+	existingTransforms.forEach(transform => {
+		if (transform.includes(',')) {
+			// Handle comma-separated transforms
+			transform.split(',').forEach(t => {
+				const trimmed = t.trim();
+				if (trimmed) existing.push(trimmed);
+			});
+		} else if (transform.trim()) {
+			existing.push(transform.trim());
+		}
+	});
 	
 	// Check what optimization params already exist
 	const hasWidth = existing.some(t => t.startsWith('w_'));
@@ -30,13 +41,15 @@ export function optimizeCloudinaryUrl(url) {
 	// Build final transformations array
 	const finalTransforms = [...existing];
 	
-	// Add missing optimization params
+	// Add missing optimization params in order: width, format, quality
 	if (!hasWidth) finalTransforms.push('w_1000');
 	if (!hasFormat) finalTransforms.push('f_auto');
 	if (!hasQuality) finalTransforms.push('q_auto');
 	
-	// Construct optimized URL
-	return `${baseUrl}${finalTransforms.join(',')}/${publicId}`;
+	// Construct optimized URL with slash-separated format: /w_1000/f_auto/q_auto/
+	const transformStr = finalTransforms.length > 0 ? `${finalTransforms.join('/')}/` : '';
+	
+	return `${baseUrl}${transformStr}${publicId}`;
 }
 
 /**
@@ -61,7 +74,7 @@ export function getImageUrl(path) {
 
 	// If it's a Cloudinary public ID (without folder), construct optimized URL
 	if (!path.includes('/') && !path.includes('.')) {
-		return `https://res.cloudinary.com/dsnceqtza/image/upload/w_1000,f_auto,q_auto/${path}`;
+		return `https://res.cloudinary.com/dsnceqtza/image/upload/w_1000/f_auto/q_auto/${path}`;
 	}
 
 	// Default: return as is
@@ -109,7 +122,8 @@ export function getOptimizedImageUrl(path, options = {}) {
 	if (options.crop) transformations.push(`c_${options.crop}`);
 	if (options.gravity) transformations.push(`g_${options.gravity}`);
 
-	const transformStr = transformations.length > 0 ? `${transformations.join(',')}/` : '';
+	// Use slash-separated format: /w_1000/f_auto/q_auto/
+	const transformStr = transformations.length > 0 ? `${transformations.join('/')}/` : '';
 
 	return `https://res.cloudinary.com/dsnceqtza/image/upload/${transformStr}${publicId}`;
 }

@@ -1,12 +1,13 @@
 import { Resend } from 'resend';
 import { env } from '$env/dynamic/private';
-import { getMlgLogoBase64 } from './logo';
+import { getMlgLogoBase64, getMlgLogoMimeType } from './logo';
 
 // Initialize Resend with API key from environment or fallback
 const resend = new Resend(env.RESEND_API_KEY || 're_C88Tpi9d_5uF8M4U2R8r4NbyTwjHBVZ6A');
 
-// Read MLG Logo as base64-encoded PNG
+// Read MLG Logo as base64-encoded image (PNG or JPG)
 const MLG_LOGO_BASE64 = getMlgLogoBase64();
+const MLG_LOGO_MIME = getMlgLogoMimeType();
 
 /**
  * Send a contact form email via Resend
@@ -46,7 +47,7 @@ export async function sendContactEmail({
 				</head>
 				<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
 					<div style="background: linear-gradient(135deg, #2d7a32 0%, #1e5a22 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-						<img src="data:image/png;base64,${MLG_LOGO_BASE64}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
+						${MLG_LOGO_BASE64 ? `<img src="data:${MLG_LOGO_MIME};base64,${MLG_LOGO_BASE64}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />` : '<div style="color: white; font-size: 24px; font-weight: bold; margin-bottom: 20px;">Mission Life Grace</div>'}
 						<h1 style="color: white; margin: 0; font-size: 24px;">New Contact Form Submission</h1>
 					</div>
 					
@@ -151,7 +152,7 @@ export async function sendConfirmationEmail({ to, from = 'onboarding@resend.dev'
 				</head>
 				<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
 					<div style="background: linear-gradient(135deg, #2d7a32 0%, #1e5a22 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-						<img src="data:image/png;base64,${MLG_LOGO_BASE64}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
+						${MLG_LOGO_BASE64 ? `<img src="data:${MLG_LOGO_MIME};base64,${MLG_LOGO_BASE64}" alt="MLG Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />` : '<div style="color: white; font-size: 24px; font-weight: bold; margin-bottom: 20px;">Mission Life Grace</div>'}
 						<h1 style="color: white; margin: 0; font-size: 24px;">Thank You, ${name}!</h1>
 					</div>
 					

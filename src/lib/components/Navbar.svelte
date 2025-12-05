@@ -119,7 +119,7 @@
 					alt="Mission Life Grace"
 					class="h-12 w-auto transition-all duration-300 {menuOpen ? 'brightness-0 invert' : ''} {menuOpen ? 'md:brightness-0 md:invert' : 'md:brightness-100 md:invert-0'}"
 				/>
-				<span class="text-xl md:text-2xl font-light transition-colors {menuOpen ? 'text-white' : 'text-gray-900'} hidden sm:block">
+				<span class="text-lg sm:text-xl md:text-2xl font-light transition-colors {menuOpen ? 'text-white' : 'text-gray-900'}">
 					Mission Life Grace
 				</span>
 			</a>
