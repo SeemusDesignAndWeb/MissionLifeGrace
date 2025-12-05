@@ -658,6 +658,46 @@
 	"field-form-required": {
 		"title": "Required Field",
 		"content": "<p class=\"text-xs\">When checked, this field must be filled in before the form can be submitted. Required fields are marked with an asterisk (*) on the form.</p>"
+	},
+	"conference-listing": {
+		"title": "Browse Conferences",
+		"content": "<p class=\"mb-2\">View all available conferences and find the one that's right for you.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Click on a conference:</strong> View full details, dates, venue, and ticket information</li><li><strong>Booking Open:</strong> Green badge indicates registration is currently open</li><li><strong>Conference Details:</strong> Each card shows date, venue, and a brief description</li></ul><p class=\"mt-2 text-xs text-gray-600\">Click \"Learn More & Book\" or the conference card to see full details and start your booking.</p>"
+	},
+	"conference-details": {
+		"title": "Conference Information",
+		"content": "<p class=\"mb-2\">This page contains all the information you need about the conference.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Description:</strong> Learn about what the conference offers</li><li><strong>Schedule:</strong> View the conference timetable and sessions</li><li><strong>Venue:</strong> Find location and address details</li><li><strong>Supporting Pages:</strong> Access additional information about worship, activities, accommodation, and more</li><li><strong>Ticket Types:</strong> See available tickets and current pricing in the sidebar</li></ul><p class=\"mt-2 text-xs text-gray-600\">Click \"Book Now\" to start your booking process.</p>"
+	},
+	"conference-ticket-types": {
+		"title": "Understanding Ticket Types",
+		"content": "<p class=\"mb-2\">Different ticket types are available for different age groups and accommodation preferences.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Adult:</strong> For attendees aged 18 and over</li><li><strong>Teen:</strong> For teenagers (age range varies by conference)</li><li><strong>Child:</strong> For children (age range varies by conference)</li><li><strong>Camping:</strong> Some tickets include camping accommodation - look for the green \"Camping\" badge</li><li><strong>Non-Camping:</strong> Standard tickets without accommodation</li></ul><p class=\"mt-2 text-xs text-gray-600\">Each ticket type shows the current price, availability, and any special notes. Early bird discounts are automatically applied when available.</p>"
+	},
+	"conference-early-bird": {
+		"title": "Early Bird Pricing",
+		"content": "<p class=\"mb-2\">Save money by booking early! Early bird pricing offers discounted tickets for a limited time.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Automatic Discount:</strong> Early bird prices are automatically applied when you select tickets during the early bird period</li><li><strong>Ending Soon:</strong> Orange badge indicates the early bird period is ending within 7 days</li><li><strong>Regular Price:</strong> After the early bird period ends, tickets return to regular pricing</li></ul><p class=\"mt-2 text-xs text-gray-600\">The discount amount is shown on each ticket, and the original price is displayed with a line through it. Book early to secure the best price!</p>"
+	},
+	"conference-booking-process": {
+		"title": "How to Book",
+		"content": "<p class=\"mb-2\">Booking a conference is simple and straightforward.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Step 1:</strong> Select your tickets and quantities</li><li><strong>Step 2:</strong> Enter attendee details (name, email, etc.)</li><li><strong>Step 3:</strong> Complete additional forms for teen/child attendees if needed</li><li><strong>Step 4:</strong> Choose payment method and complete payment</li><li><strong>Step 5:</strong> Receive confirmation email with booking reference</li></ul><p class=\"mt-2 text-xs text-gray-600\">Your progress is saved automatically, so you can return to complete your booking later if needed.</p>"
+	},
+	"conference-supporting-pages": {
+		"title": "Additional Information",
+		"content": "<p class=\"mb-2\">Each conference may have additional pages with more detailed information.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Worship and Ministry:</strong> Learn about worship sessions and ministry opportunities</li><li><strong>Kids Activities:</strong> Information about activities and programs for children</li><li><strong>Youth Activities:</strong> Details about teen programs and activities</li><li><strong>Social Activities:</strong> Find out about social events and networking opportunities</li><li><strong>Accommodation:</strong> Learn about accommodation options and arrangements</li><li><strong>What You Need:</strong> Essential information about what to bring and prepare</li></ul><p class=\"mt-2 text-xs text-gray-600\">Click on any of these sections from the conference page to access detailed information.</p>"
+	},
+	"conference-discount-code": {
+		"title": "Using Discount Codes",
+		"content": "<p class=\"mb-2\">Have a discount code or voucher? Apply it during ticket selection to save money.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Enter Code:</strong> Type your discount code in the \"Discount Code\" field</li><li><strong>Apply:</strong> Click \"Apply\" or the code will be validated automatically</li><li><strong>Valid Codes:</strong> Valid codes will show a green confirmation message</li><li><strong>Invalid Codes:</strong> Invalid or expired codes will show an error message</li></ul><p class=\"mt-2 text-xs text-gray-600\">Discount codes can provide percentage or fixed amount discounts. The discount is applied to your total before payment. Some codes may be required for volunteer or free tickets.</p>"
+	},
+	"conference-group-leader": {
+		"title": "Group Leader Information",
+		"content": "<p class=\"mb-2\">The Group Leader is the main contact person for your booking.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Automatic Assignment:</strong> The first adult attendee is automatically set as the Group Leader</li><li><strong>No Adult Attendees:</strong> If booking only teen/child tickets, you'll need to provide separate Group Leader details</li><li><strong>Responsibilities:</strong> The Group Leader receives all booking confirmations and communications</li><li><strong>Required Information:</strong> Group Leader must provide full name, email, phone, address, and home church</li></ul><p class=\"mt-2 text-xs text-gray-600\">All booking communications, payment reminders, and important updates will be sent to the Group Leader's email address.</p>"
+	},
+	"conference-payment-options": {
+		"title": "Payment Methods",
+		"content": "<p class=\"mb-2\">Choose the payment option that works best for you.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Pay in Full:</strong> Pay the entire amount immediately via PayPal</li><li><strong>Pay 20% Deposit:</strong> Secure your booking with a 20% deposit, pay the balance before the conference</li><li><strong>Pay Deposit + Installments:</strong> Available for some conferences - pay a deposit and spread the remaining cost over installments</li></ul><p class=\"mt-2 text-xs text-gray-600\">After payment, you'll receive a confirmation email with your booking reference. For partial payments, you can complete the balance later through your account.</p>"
+	},
+	"conference-account-setup": {
+		"title": "Setting Up Your Account",
+		"content": "<p class=\"mb-2\">Create an account to manage your booking and make future payments easily.</p><ul class=\"list-disc list-inside space-y-1 text-xs\"><li><strong>Email Verification:</strong> Enter the verification code sent to your email</li><li><strong>Password Creation:</strong> Set a secure password for your account</li><li><strong>Account Benefits:</strong> View all your bookings, payment status, and make additional payments</li><li><strong>Future Bookings:</strong> Faster checkout for future conferences</li></ul><p class=\"mt-2 text-xs text-gray-600\">Account setup is optional but recommended, especially if you've chosen a deposit payment option. You can access your account anytime at \"My Account\".</p>"
 	}
 }
 

@@ -3,6 +3,8 @@
 	import { env } from '$env/dynamic/public';
 	import { notifyError, notifyWarning, notifySuccess } from '$lib/utils/notify';
 	import ConfirmationDialog from './ConfirmationDialog.svelte';
+	import HelpIcon from '$lib/components/HelpIcon.svelte';
+	import { getHelpContent } from '$lib/utils/helpContent.js';
 
 	export let conference;
 	export let ticketTypes = [];
@@ -1293,35 +1295,46 @@
 	{/if}
 	
 	<!-- Step Indicator -->
-	<div class="mb-6">
-		<div class="flex items-center justify-between">
-			{#each Array(actualSteps || 4) as _, i}
-				<div class="flex items-center flex-1">
-					<div class="flex flex-col items-center flex-1">
-						<div class="w-10 h-10 rounded-full flex items-center justify-center {i + 1 <= currentStep ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'}">
-							{i + 1}
+	<div class="mb-6 hidden md:block">
+		<div class="max-w-4xl mx-auto px-4">
+			<div class="flex items-start justify-between relative">
+				{#each Array(actualSteps || 4) as _, i}
+					<div class="flex items-center flex-1" style="min-width: 0;">
+						<!-- Step Circle and Label -->
+						<div class="flex flex-col items-center flex-1 relative z-10">
+							<!-- Circle -->
+							<div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 font-semibold {i + 1 <= currentStep ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'}">
+								{i + 1}
+							</div>
+							<!-- Label -->
+							<div class="mt-2 text-xs text-center leading-tight px-1 whitespace-nowrap">
+								{#if i === 0}Select Tickets
+								{:else if i === 1}Attendee Details
+								{:else if i === 2 && hasTeenOrChild}Teen/Child Info
+								{:else if (i === 2 && !hasTeenOrChild)}Payment
+								{:else if i === 3 && hasTeenOrChild}Payment
+								{:else}Confirmation{/if}
+							</div>
 						</div>
-						<div class="mt-2 text-xs text-center">
-							{#if i === 0}Select Tickets
-							{:else if i === 1}Attendee Details
-							{:else if i === 2 && hasTeenOrChild}Teen/Child Info
-							{:else if (i === 2 && !hasTeenOrChild)}Payment
-							{:else if i === 3 && hasTeenOrChild}Payment
-							{:else}Confirmation{/if}
-						</div>
+						<!-- Connecting Line -->
+						{#if i < actualSteps - 1}
+							<div class="flex-1 h-0.5 mx-3 {i + 1 < currentStep ? 'bg-primary' : 'bg-gray-200'}" style="margin-top: -20px;"></div>
+						{/if}
 					</div>
-					{#if i < actualSteps - 1}
-						<div class="flex-1 h-1 mx-2 {i + 1 < currentStep ? 'bg-primary' : 'bg-gray-200'}"></div>
-					{/if}
-				</div>
-			{/each}
+				{/each}
+			</div>
 		</div>
 	</div>
 	
 	<!-- Step 1: Ticket Selection -->
 	{#if currentStep === 1}
 		<div>
-			<h3 class="text-2xl font-bold mb-4">Select Tickets</h3>
+			<div class="flex items-center gap-2 mb-4">
+				<h3 class="text-2xl font-bold">Select Tickets</h3>
+				<HelpIcon helpId="booking-tickets" position="right">
+					{@html getHelpContent('booking-tickets').content}
+				</HelpIcon>
+			</div>
 			{#if availableTickets.length === 0}
 				<div class="p-4 bg-yellow-50 border border-yellow-200 rounded">
 					<p class="text-yellow-800">No tickets available for this conference.</p>
@@ -1352,12 +1365,15 @@
 							<div class="flex flex-col md:items-end gap-2 md:min-w-[200px]">
 								<!-- 3. Early Bird -->
 								{#if isEarlyBirdActive()}
-									<div class="mb-1">
+									<div class="mb-1 flex items-center gap-1">
 										{#if isEarlyBirdEndingSoon()}
 											<span class="px-2 py-1 text-xs font-semibold bg-orange-100 text-orange-800 rounded">Early Bird Ending Soon</span>
 										{:else}
 											<span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded">Early Bird</span>
 										{/if}
+										<HelpIcon helpId="conference-early-bird" position="right">
+											{@html getHelpContent('conference-early-bird').content}
+										</HelpIcon>
 									</div>
 								{/if}
 
@@ -1429,7 +1445,12 @@
 		{/if}
 
 			<div class="mb-4">
-				<label for="discount-code" class="block text-sm font-medium mb-1">Discount Code (optional)</label>
+				<div class="flex items-center gap-1 mb-1">
+					<label for="discount-code" class="block text-sm font-medium">Discount Code (optional)</label>
+					<HelpIcon helpId="conference-discount-code" position="right">
+						{@html getHelpContent('conference-discount-code').content}
+					</HelpIcon>
+				</div>
 				<div class="flex gap-2">
 					<input
 						id="discount-code"
@@ -1472,12 +1493,22 @@
 	<!-- Step 2: Attendee Details -->
 	{#if currentStep === 2}
 		<div class="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-300 rounded-lg p-6">
-			<h3 class="text-2xl font-bold mb-4 text-blue-900">Step 2: Attendee Details</h3>
+			<div class="flex items-center gap-2 mb-4">
+				<h3 class="text-2xl font-bold text-blue-900">Step 2: Attendee Details</h3>
+				<HelpIcon helpId="booking-attendees" position="right">
+					{@html getHelpContent('booking-attendees').content}
+				</HelpIcon>
+			</div>
 			
 			<!-- Check if any attendee is a group leader (adult) -->
 			{#if !attendees.some(a => a.isGroupLeader)}
 				<div class="bg-white rounded p-4 border-2 border-blue-400 mb-6 shadow-sm">
-					<h4 class="font-bold text-lg text-blue-900 mb-2">Group Leader / Parent / Guardian Details</h4>
+					<div class="flex items-center gap-2 mb-2">
+						<h4 class="font-bold text-lg text-blue-900">Group Leader / Parent / Guardian Details</h4>
+						<HelpIcon helpId="conference-group-leader" position="right">
+							{@html getHelpContent('conference-group-leader').content}
+						</HelpIcon>
+					</div>
 					<p class="text-sm text-blue-800 mb-4">
 						Since there are no adult attendees, please provide details for the Group Leader or Parent/Guardian responsible for this booking.
 					</p>
@@ -1963,7 +1994,12 @@
 	<!-- Step 3 or 4: Payment Summary (Step 3 if no teen/child, Step 4 if teen/child) -->
 	{#if (currentStep === 3 && !hasTeenOrChild) || (currentStep === 4 && hasTeenOrChild)}
 			<div class="bg-gradient-to-r from-indigo-50 to-indigo-100 border-2 border-indigo-300 rounded-lg p-6">
-			<h3 class="text-2xl font-bold mb-4 text-indigo-900">Step {hasTeenOrChild ? '4' : '3'}: Payment Summary</h3>
+			<div class="flex items-center gap-2 mb-4">
+				<h3 class="text-2xl font-bold text-indigo-900">Step {hasTeenOrChild ? '4' : '3'}: Payment Summary</h3>
+				<HelpIcon helpId="booking-payment" position="right">
+					{@html getHelpContent('booking-payment').content}
+				</HelpIcon>
+			</div>
 			<div class="mt-6 bg-gradient-to-r from-gray-50 to-gray-100 border-2 border-gray-300 p-6 rounded-lg">
 				<h4 class="font-semibold mb-4 text-lg text-gray-900">Order Summary</h4>
 				<div class="space-y-2">
@@ -1999,7 +2035,12 @@
 			</div>
 
 			<div class="mt-6 bg-white border-2 border-indigo-300 p-6 rounded-lg">
-				<h5 class="block text-sm font-medium mb-4 text-lg text-indigo-900">Payment Method</h5>
+				<div class="flex items-center gap-2 mb-4">
+					<h5 class="block text-sm font-medium text-lg text-indigo-900">Payment Method</h5>
+					<HelpIcon helpId="conference-payment-options" position="right">
+						{@html getHelpContent('conference-payment-options').content}
+					</HelpIcon>
+				</div>
 				<div class="space-y-2">
 					<div class="flex items-center">
 						<input
@@ -2171,10 +2212,17 @@
 				<!-- Account Setup Section -->
 				{#if showAccountSetup && (orderSummary.paymentStatus === 'partial' || orderSummary.paymentStatus === 'unpaid')}
 					<div class="mb-6 bg-blue-50 border-2 border-blue-300 rounded-lg p-6">
-						{#if accountSetupStep === 'login'}
-							<h4 class="text-xl font-bold mb-2 text-blue-900">Log In to Your Account</h4>
-						{:else}
-							<h4 class="text-xl font-bold mb-2 text-blue-900">Set Up Your Account</h4>
+						<div class="flex items-center gap-2 mb-2">
+							{#if accountSetupStep === 'login'}
+								<h4 class="text-xl font-bold text-blue-900">Log In to Your Account</h4>
+							{:else}
+								<h4 class="text-xl font-bold text-blue-900">Set Up Your Account</h4>
+							{/if}
+							<HelpIcon helpId="conference-account-setup" position="right">
+								{@html getHelpContent('conference-account-setup').content}
+							</HelpIcon>
+						</div>
+						{#if accountSetupStep !== 'login'}
 							<p class="text-sm text-blue-800 mb-4">
 								Create an account to manage your booking, view payment status, and make additional payments online.
 							</p>

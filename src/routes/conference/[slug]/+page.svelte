@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import ConferenceBookingForm from '$lib/components/ConferenceBookingForm.svelte';
 	import Footer from '$lib/components/Footer.svelte';
+	import HelpIcon from '$lib/components/HelpIcon.svelte';
+	import { getHelpContent } from '$lib/utils/helpContent.js';
 
 	export let data;
 
