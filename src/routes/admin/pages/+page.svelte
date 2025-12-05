@@ -1382,6 +1382,69 @@
 									>
 										+ Add Value
 									</button>
+									
+									<!-- Call to Action Section -->
+									<div class="mt-6 pt-6 border-t border-gray-300">
+										<h4 class="text-sm font-semibold text-gray-700 mb-4">Call to Action Section</h4>
+										<div class="mb-3">
+											<label class="block text-xs font-medium mb-1 text-gray-600">Title</label>
+											<input
+												type="text"
+												bind:value={section.ctaTitle}
+												class="w-full px-3 py-2 border rounded"
+												placeholder="e.g., Living Out Our Values Together"
+											/>
+										</div>
+										<div class="mb-3">
+											<label class="block text-xs font-medium mb-1 text-gray-600">Description</label>
+											<textarea
+												bind:value={section.ctaDescription}
+												class="w-full px-3 py-2 border rounded"
+												rows="3"
+												placeholder="e.g., These values shape everything we do as a network of churches..."
+											></textarea>
+										</div>
+										<div class="grid grid-cols-2 gap-4 mb-3">
+											<div>
+												<label class="block text-xs font-medium mb-1 text-gray-600">Button 1 Text</label>
+												<input
+													type="text"
+													bind:value={section.ctaButton1Text}
+													class="w-full px-3 py-2 border rounded text-sm"
+													placeholder="e.g., Get in Touch"
+												/>
+											</div>
+											<div>
+												<label class="block text-xs font-medium mb-1 text-gray-600">Button 1 Link</label>
+												<input
+													type="text"
+													bind:value={section.ctaButton1Link}
+													class="w-full px-3 py-2 border rounded text-sm"
+													placeholder="e.g., /contact"
+												/>
+											</div>
+										</div>
+										<div class="grid grid-cols-2 gap-4">
+											<div>
+												<label class="block text-xs font-medium mb-1 text-gray-600">Button 2 Text</label>
+												<input
+													type="text"
+													bind:value={section.ctaButton2Text}
+													class="w-full px-3 py-2 border rounded text-sm"
+													placeholder="e.g., Learn More About Us"
+												/>
+											</div>
+											<div>
+												<label class="block text-xs font-medium mb-1 text-gray-600">Button 2 Link</label>
+												<input
+													type="text"
+													bind:value={section.ctaButton2Link}
+													class="w-full px-3 py-2 border rounded text-sm"
+													placeholder="e.g., /church"
+												/>
+											</div>
+										</div>
+									</div>
 								{:else if section.type === 'for-all-ages'}
 									<div class="mb-3">
 										<label class="block text-xs font-medium mb-1 text-gray-600">Label (small text above title)</label>
@@ -1833,7 +1896,13 @@
 													{ title: 'ORDINARY PEOPLE', description: 'We are humbled by the fact that Christ has entrusted the Gospel to us through the power of His Spirit to see broken lives restored and the lost saved.' },
 													{ title: 'THE CHURCH', description: 'We believe the manifold wisdom of God is displayed through the church, which is expressed through local churches.' },
 													{ title: 'ELDERSHIP', description: 'Jesus Christ reigns as head over His church, and He gives to His church elders to oversee and lead local churches under His authority.' }
-												]
+												],
+												ctaTitle: 'Living Out Our Values Together',
+												ctaDescription: 'These values shape everything we do as a network of churches. We invite you to join us as we live out these principles in our communities and beyond.',
+												ctaButton1Text: 'Get in Touch',
+												ctaButton1Link: '/contact',
+												ctaButton2Text: 'Learn More About Us',
+												ctaButton2Link: '/church'
 											}];
 											editing = editing;
 										}
@@ -1980,7 +2049,13 @@
 													{ title: 'ORDINARY PEOPLE', description: 'We are humbled by the fact that Christ has entrusted the Gospel to us through the power of His Spirit to see broken lives restored and the lost saved.' },
 													{ title: 'THE CHURCH', description: 'We believe the manifold wisdom of God is displayed through the church, which is expressed through local churches.' },
 													{ title: 'ELDERSHIP', description: 'Jesus Christ reigns as head over His church, and He gives to His church elders to oversee and lead local churches under His authority.' }
-												]
+												],
+												ctaTitle: 'Living Out Our Values Together',
+												ctaDescription: 'These values shape everything we do as a network of churches. We invite you to join us as we live out these principles in our communities and beyond.',
+												ctaButton1Text: 'Get in Touch',
+												ctaButton1Link: '/contact',
+												ctaButton2Text: 'Learn More About Us',
+												ctaButton2Link: '/church'
 											}];
 											editing = editing;
 										}

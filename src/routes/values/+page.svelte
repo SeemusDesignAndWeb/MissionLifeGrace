@@ -285,32 +285,44 @@
 {/if}
 
 <!-- Call to Action Section -->
-<section class="py-20 bg-gradient-to-r from-primary via-brand-blue to-brand-cyan">
-	<div class="container mx-auto px-4">
-		<div class="max-w-4xl mx-auto text-center">
-			<h2 class="text-4xl md:text-5xl font-bold text-white mb-6">
-				Living Out Our Values Together
-			</h2>
-			<p class="text-xl text-white/90 mb-8 leading-relaxed">
-				These values shape everything we do as a network of churches. We invite you to join us as we live out these principles in our communities and beyond.
-			</p>
-			<div class="flex flex-col sm:flex-row gap-4 justify-center">
-				<a
-					href="/contact"
-					class="px-8 py-4 bg-white text-primary rounded-full font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg"
-				>
-					Get in Touch
-				</a>
-				<a
-					href="/church"
-					class="px-8 py-4 bg-transparent border-2 border-white text-white rounded-full font-semibold hover:bg-white/10 transition-all duration-300 transform hover:scale-105"
-				>
-					Learn More About Us
-				</a>
+{#if valuesSection?.ctaTitle || valuesSection?.ctaDescription || valuesSection?.ctaButton1Text || valuesSection?.ctaButton2Text}
+	<section class="py-20 bg-gradient-to-r from-primary via-brand-blue to-brand-cyan">
+		<div class="container mx-auto px-4">
+			<div class="max-w-4xl mx-auto text-center">
+				{#if valuesSection.ctaTitle}
+					<h2 class="text-4xl md:text-5xl font-bold text-white mb-6">
+						{@html valuesSection.ctaTitle}
+					</h2>
+				{/if}
+				{#if valuesSection.ctaDescription}
+					<p class="text-xl text-white/90 mb-8 leading-relaxed">
+						{@html valuesSection.ctaDescription}
+					</p>
+				{/if}
+				{#if valuesSection.ctaButton1Text || valuesSection.ctaButton2Text}
+					<div class="flex flex-col sm:flex-row gap-4 justify-center">
+						{#if valuesSection.ctaButton1Text}
+							<a
+								href={valuesSection.ctaButton1Link || '#'}
+								class="px-8 py-4 bg-white text-primary rounded-full font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg"
+							>
+								{@html valuesSection.ctaButton1Text}
+							</a>
+						{/if}
+						{#if valuesSection.ctaButton2Text}
+							<a
+								href={valuesSection.ctaButton2Link || '#'}
+								class="px-8 py-4 bg-transparent border-2 border-white text-white rounded-full font-semibold hover:bg-white/10 transition-all duration-300 transform hover:scale-105"
+							>
+								{@html valuesSection.ctaButton2Text}
+							</a>
+						{/if}
+					</div>
+				{/if}
 			</div>
 		</div>
-	</div>
-</section>
+	</section>
+{/if}
 
 <Footer contactInfo={data.contactInfo} />
 
