@@ -36,6 +36,12 @@
 	let quickMessageSuccess = false;
 	let targetBooking = null;
 
+	// Password Reset
+	let resettingPassword = false;
+	let resetPasswordError = '';
+	let resetPasswordSuccess = false;
+	let resetPasswordNewPassword = '';
+
 	// Confirmation
 	let showConfirm = false;
 	let confirmTitle = '';
@@ -185,6 +191,52 @@ Mission Life Grace Team`
 			console.error('Quick message error:', error);
 		} finally {
 			sendingEmail = false;
+		}
+	}
+
+	async function resetUserPassword(booking, sendEmail = false) {
+		if (!booking.accountEmail) {
+			notify('No account email found for this booking', 'error');
+			return;
+		}
+
+		resettingPassword = true;
+		resetPasswordError = '';
+		resetPasswordSuccess = false;
+		resetPasswordNewPassword = '';
+
+		try {
+			const response = await fetch('/api/admin/reset-user-password', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					email: booking.accountEmail,
+					sendEmail: sendEmail
+				})
+			});
+
+			const result = await response.json();
+
+			if (response.ok) {
+				resetPasswordSuccess = true;
+				if (result.newPassword) {
+					resetPasswordNewPassword = result.newPassword;
+				}
+				if (result.emailSent) {
+					notify('Password reset successfully! Reset email sent to user.', 'success');
+				} else {
+					notify('Password reset successfully!', 'success');
+				}
+			} else {
+				resetPasswordError = result.error || 'Failed to reset password';
+				notify(resetPasswordError, 'error');
+			}
+		} catch (error) {
+			resetPasswordError = 'An error occurred. Please try again.';
+			notify(resetPasswordError, 'error');
+			console.error('Reset password error:', error);
+		} finally {
+			resettingPassword = false;
 		}
 	}
 
@@ -545,7 +597,6 @@ Mission Life Grace Team`
 						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
 						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paid</th>
 						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Account</th>
 						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Booking Date</th>
 						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment Date</th>
 						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
@@ -608,17 +659,6 @@ Mission Life Grace Team`
 										{status.label}
 									</span>
 								{/each}
-							</td>
-							<td class="px-6 py-4 whitespace-nowrap text-sm">
-								{#if booking.hasAccount}
-									<span class="px-2 py-1 text-xs rounded-full {
-										booking.accountVerified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-									}">
-										{booking.accountVerified ? '✓ Verified' : 'Pending'}
-									</span>
-								{:else}
-									<span class="text-xs text-gray-400">No account</span>
-								{/if}
 							</td>
 							<td class="px-6 py-4 whitespace-nowrap text-sm">{formatDateTime(booking.createdAt)}</td>
 							<td class="px-6 py-4 whitespace-nowrap text-sm">{booking.paymentDate ? formatDateTime(booking.paymentDate) : '-'}</td>
@@ -851,6 +891,42 @@ Mission Life Grace Team`
 											</span>
 											{#if selectedBooking.accountEmail}
 												<p class="text-xs text-gray-600 mt-1">{selectedBooking.accountEmail}</p>
+											{/if}
+											<div class="mt-2 flex gap-2">
+												<button
+													on:click={(e) => {
+														e.stopPropagation();
+														resetUserPassword(selectedBooking, false);
+													}}
+													disabled={resettingPassword}
+													class="px-3 py-1.5 bg-red-100 text-red-800 rounded hover:bg-red-200 font-medium text-xs flex items-center gap-1 disabled:opacity-50"
+													title="Reset Password (Show in modal)"
+												>
+													<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+													{resettingPassword ? 'Resetting...' : 'Reset Password'}
+												</button>
+												<button
+													on:click={(e) => {
+														e.stopPropagation();
+														resetUserPassword(selectedBooking, true);
+													}}
+													disabled={resettingPassword}
+													class="px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 font-medium text-xs flex items-center gap-1 disabled:opacity-50"
+													title="Reset Password & Send Email"
+												>
+													<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+													{resettingPassword ? 'Sending...' : 'Reset & Email'}
+												</button>
+											</div>
+											{#if resetPasswordSuccess && resetPasswordNewPassword}
+												<div class="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+													<p class="text-xs font-semibold text-yellow-800 mb-1">New Password:</p>
+													<p class="text-xs font-mono text-yellow-900 break-all">{resetPasswordNewPassword}</p>
+													<p class="text-xs text-yellow-700 mt-1">Copy this password and share it securely with the user.</p>
+												</div>
+											{/if}
+											{#if resetPasswordError}
+												<p class="text-xs text-red-600 mt-1">{resetPasswordError}</p>
 											{/if}
 										</div>
 									{:else}
