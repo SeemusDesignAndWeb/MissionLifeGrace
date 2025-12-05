@@ -2,8 +2,6 @@
 	import Footer from '$lib/components/Footer.svelte';
 	import Contact from '$lib/components/Contact.svelte';
 	import HeroSlides from '$lib/components/HeroSlides.svelte';
-	import HelpIcon from '$lib/components/HelpIcon.svelte';
-	import { getHelpContent } from '$lib/utils/helpContent.js';
 	import { onMount } from 'svelte';
 
 	export let data;

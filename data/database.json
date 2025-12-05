@@ -3697,7 +3697,7 @@
     {
       "id": "user-1764584836212",
       "email": "johnwatson@seemus.co.uk",
-      "passwordHash": "77a5dd73d79a480641fa63b520b07f8af3a92ff2d96113a68161ad14d36228ed",
+      "passwordHash": "8QE54X6A0BWsE8eYSKe3Lg==:100000:pSjkhd3vLz4PXcjrj+lsvAu6XT3omwrMi09o0A0lP0tybADii7ungGfvmdI3zBgIpMFiXgFwyde05C3VgHmo2g==",
       "verified": true,
       "bookingIds": [
         "booking-1764584782731-lfxpux9zc"
@@ -3705,7 +3705,8 @@
       "createdAt": "2025-12-01T10:27:16.212Z",
       "emailVerified": true,
       "emailVerifiedAt": "2025-12-01T10:27:39.100Z",
-      "verifiedAt": "2025-12-01T10:27:46.595Z"
+      "verifiedAt": "2025-12-01T10:27:46.595Z",
+      "updatedAt": "2025-12-05T15:33:11.855Z"
     }
   ],
   "emailVerificationCodes": [
