@@ -194,44 +194,6 @@
 		</div>
 	{/each}
 
-	<!-- Mobile Events Section (at bottom of hero) -->
-	{#if featuredEvents && featuredEvents.length > 0}
-		<div class="absolute bottom-0 left-0 right-0 md:hidden bg-black/90 backdrop-blur-sm py-4 px-4">
-			<div class="container mx-auto">
-				<div class="space-y-2">
-					{#each featuredEvents as event}
-						<a
-							href="/events/{event.id}"
-							class="block bg-gray-900/50 hover:bg-gray-800/50 rounded-lg px-4 py-2.5 transition-colors border border-gray-700"
-						>
-							{#if event.title}
-								<h3 class="font-semibold text-white mb-1.5 text-sm">{event.title}</h3>
-							{/if}
-							<div class="flex items-center gap-4 text-xs text-gray-300">
-								{#if event.date}
-									<div class="flex items-center gap-1.5">
-										<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-										</svg>
-										<span>{formatDate(event.date)}</span>
-									</div>
-								{/if}
-								{#if event.time}
-									<div class="flex items-center gap-1.5">
-										<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-										</svg>
-										<span>{formatTime(event.time)}</span>
-									</div>
-								{/if}
-							</div>
-						</a>
-					{/each}
-				</div>
-			</div>
-		</div>
-	{/if}
-
 	<!-- Slide indicators -->
 	<div class="hidden md:flex absolute bottom-4 md:bottom-8 left-1/2 transform -translate-x-1/2 gap-2 z-10">
 		{#each slides as _, index}

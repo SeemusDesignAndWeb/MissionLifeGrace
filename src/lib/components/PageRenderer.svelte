@@ -300,8 +300,8 @@
 								<div class="py-4 overflow-hidden">
 									<!-- Single Row - Draggable on mobile, auto-scroll on desktop -->
 									<div class="relative">
-										<div class="overflow-x-auto overflow-y-hidden scrollbar-hide" id={churchesContainerId} style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;">
-											<div class="flex md:animate-scroll-left gap-6 md:gap-8" style="animation-duration: 40s;" id="churches-scroll-{section.id}">
+										<div class="overflow-x-auto overflow-y-hidden md:overflow-hidden scrollbar-hide" id={churchesContainerId} style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;">
+											<div class="flex gap-6 md:gap-8 md:animate-scroll-left" style="animation-duration: 40s;" id="churches-scroll-{section.id}">
 												{#each section.columns as column, index}
 													{@const churchLink = column.link || column.content.match(/href="([^"]*)"/)?.[1] || '#'}
 													<a 
@@ -309,7 +309,7 @@
 														target="_blank" 
 														rel="noopener noreferrer" 
 														class="group flex-shrink-0 w-48 md:w-64 bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden flex flex-col p-6 border-2 border-transparent hover:border-primary/30"
-														style="touch-action: pan-y;"
+														style="touch-action: pan-x pan-y;"
 													>
 														<!-- Logo at top -->
 														<div class="flex items-center justify-center h-32 md:h-40 mb-4 bg-gray-50 rounded-lg p-4">
@@ -354,11 +354,16 @@
 											transform: translateX(0);
 										}
 										100% {
-											transform: translateX(-100%);
+											transform: translateX(-50%);
 										}
 									}
 									
 									@media (min-width: 768px) {
+										#churches-scroll-{section.id} {
+											/* Duplicate content for seamless infinite scroll */
+											display: flex;
+										}
+										
 										.animate-scroll-left {
 											animation: scroll-left linear infinite;
 											will-change: transform;
@@ -367,6 +372,25 @@
 										/* Pause on hover for better UX */
 										.animate-scroll-left:hover {
 											animation-play-state: paused;
+										}
+										
+										/* Hide scrollbar on desktop when auto-scrolling */
+										#churches-container-{section.id} {
+											overflow: hidden;
+										}
+									}
+									
+									/* Mobile: Enable horizontal scrolling */
+									@media (max-width: 767px) {
+										#churches-container-{section.id} {
+											overflow-x: auto;
+											overflow-y: hidden;
+											-webkit-overflow-scrolling: touch;
+											scroll-snap-type: x mandatory;
+										}
+										
+										#churches-scroll-{section.id} > * {
+											scroll-snap-align: start;
 										}
 									}
 									
